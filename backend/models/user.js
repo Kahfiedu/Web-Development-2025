@@ -20,6 +20,13 @@ module.exports = (sequelize, DataTypes) => {
 
   User.init(
     {
+      id: {
+        type: DataTypes.UUID,
+        defaultValue: DataTypes.UUIDV4,
+        primaryKey: true,
+        allowNull: false,
+        unique: true,
+      },
       name: {
         type: DataTypes.STRING,
         allowNull: false
@@ -40,14 +47,14 @@ module.exports = (sequelize, DataTypes) => {
     {
       sequelize,
       modelName: 'User',
+      paranoid: true, // enable soft delete (adds deletedAt)
+      timestamps: true, // default true, but better to be explicit
       hooks: {
-        // Auto-hash password sebelum create
         beforeCreate: async (user) => {
           if (user.password) {
             user.password = await User.hashPassword(user.password);
           }
         },
-        // Auto-hash password sebelum update (jika diubah)
         beforeUpdate: async (user) => {
           if (user.changed('password')) {
             user.password = await User.hashPassword(user.password);
