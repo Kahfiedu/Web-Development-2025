@@ -52,7 +52,6 @@ const register = async (req, res) => {
     }
 };
 
-
 // Fungsi untuk login pengguna
 const login = async (req, res) => {
     const { email, password } = req.body;
