@@ -3,7 +3,7 @@
 /** @type {import('sequelize-cli').Migration} */
 module.exports = {
   async up(queryInterface, Sequelize) {
-    await queryInterface.createTable('users', {
+    await queryInterface.createTable('otps', {
       id: {
         allowNull: false,
         unique: true,
@@ -11,30 +11,17 @@ module.exports = {
         type: Sequelize.STRING(36),
         defaultValue: Sequelize.UUIDV4,
       },
-      name: {
+      userId: {
         type: Sequelize.STRING,
         allowNull: false,
       },
-      email: {
+      code: {
         type: Sequelize.STRING,
         allowNull: false,
       },
-      emailVerified: {
-        type: Sequelize.DATE,
+      isVerified: {
+        type: Sequelize.BOOLEAN,
         allowNull: true,
-      },
-      role: {
-        type: Sequelize.ENUM('admin', 'student', 'teacher'),
-        allowNull: false,
-        defaultValue: 'student',
-      },
-      phone: {
-        type: Sequelize.STRING,
-        allowNull: true,
-      },
-      password: {
-        type: Sequelize.STRING,
-        allowNull: false,
       },
       createdAt: {
         allowNull: false,
@@ -51,7 +38,13 @@ module.exports = {
       }
     });
   },
+
   async down(queryInterface, Sequelize) {
-    await queryInterface.dropTable('users');
+    /**
+     * Add reverting commands here.
+     *
+     * Example:
+     * await queryInterface.dropTable('users');
+     */
   }
 };

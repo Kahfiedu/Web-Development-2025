@@ -5,7 +5,7 @@ const bcrypt = require('bcryptjs');
 module.exports = (sequelize, DataTypes) => {
   class User extends Model {
     static associate(models) {
-      // define association here jika perlu
+      User.hasMany(models.Otp, { foreignKey: 'userId' });
     }
 
     static async hashPassword(password) {
@@ -42,6 +42,19 @@ module.exports = (sequelize, DataTypes) => {
       password: {
         type: DataTypes.STRING,
         allowNull: false
+      },
+      emailVerified: {
+        type: DataTypes.DATE,
+        allowNull: true,
+      },
+      role: {
+        type: DataTypes.ENUM('admin', 'student', 'teacher'),
+        allowNull: false,
+        defaultValue: 'student',
+      },
+      phone: {
+        type: DataTypes.STRING,
+        allowNull: true,
       }
     },
     {

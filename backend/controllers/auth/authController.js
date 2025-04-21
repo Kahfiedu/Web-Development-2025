@@ -1,58 +1,54 @@
-const { User } = require('../../models'); // Pastikan path ini sesuai dengan struktur folder Anda
+const { User, Otp } = require('../../models');
 const jwt = require('jsonwebtoken');
 const { v4: uuidv4 } = require("uuid");
+const sendEmail = require('../../utils/sendEmail');
+const url = process.env.APP_URL || 'http://localhost:5173';
+require("dotenv").config();
 
-require("dotenv").config(); // Menggunakan dotenv untuk mengakses variabel dari .env
+// Helper untuk membuat OTP
+const generateOtp = () => Math.floor(100000 + Math.random() * 900000);
 
-const sendEmail = require('../../utils/sendEmail'); // Pastikan path ini sesuai dengan struktur folder Anda
-const url = process.env.APP_URL || 'http://localhost:5173'; // URL aplikasi Anda, bisa diubah sesuai kebutuhan
+// Helper untuk membuat JWT
+const generateToken = (payload, expiresIn = '1h') => {
+    return jwt.sign(payload, process.env.JWT_SECRET, { expiresIn });
+};
 
-
-// Fungsi untuk registrasi pengguna baru
+// Fungsi Registrasi
 const register = async (req, res) => {
     const { name, email, password } = req.body;
 
-    if (!name || !email || !password) {
-        return res.status(400).json({ message: 'Semua field wajib diisi!' });
-    }
-
-    if (password.length < 8) {
-        return res.status(400).json({ message: 'Password harus memiliki minimal 8 karakter!' });
+    if (!name || !email || !password || password.length < 8) {
+        return res.status(400).json({ message: 'Nama, email, dan password (minimal 8 karakter) wajib diisi!' });
     }
 
     try {
-        // Periksa apakah email sudah digunakan
         const existingUser = await User.findOne({ where: { email } });
-        if (existingUser) {
-            return res.status(400).json({ message: 'Email sudah terdaftar!' });
-        }
+        if (existingUser) return res.status(400).json({ message: 'Email sudah terdaftar!' });
 
-        // Buat pengguna baru
-        const newUser = await User.create(
-            {
-                id: uuidv4(),
-                name,
-                email,
-                password
-            });
+        const newUser = await User.create({
+            id: uuidv4(),
+            name,
+            email,
+            password,
+            role: 'student',
+            emailVerified: null,
+        });
 
-        // Ambil data tanpa password, createdAt, dan updatedAt
-        const { id, password: _, createdAt, updatedAt, ...userData } = newUser.dataValues;
 
-        const token = jwt.sign(
-            { id: newUser.id, role: newUser.role },
-            process.env.JWT_SECRET,
-            { expiresIn: '30d' }
-        );
+        const otp = generateOtp();
+        await Otp.create({ id: uuidv4(), userId: newUser.id, code: otp, isVerified: false });
 
-        return res.status(201).json({ message: 'Registrasi berhasil!', token, user: userData });
+        generateToken({ userId: newUser.id, email: newUser.email });
+        await sendEmail(email, 'Verifikasi Email', `<h2>Kode OTP Anda</h2><p>${otp}</p>`);
+
+        return res.status(201).json({ message: 'Kode OTP telah dikirim ke email Anda.' });
     } catch (error) {
-        console.error(error);
+        console.error('Error saat registrasi:', error);
         return res.status(500).json({ message: 'Terjadi kesalahan server.' });
     }
 };
 
-// Fungsi untuk login pengguna
+// Fungsi Login
 const login = async (req, res) => {
     const { email, password } = req.body;
 
@@ -61,126 +57,119 @@ const login = async (req, res) => {
     }
 
     try {
-        // Cari pengguna berdasarkan email
         const user = await User.findOne({ where: { email } });
-        if (!user) {
-            return res.status(401).json({ message: 'Email atau password salah!' });
+        if (!user || user.deletedAt !== null) {
+            return res.status(401).json({ message: 'Email atau password salah, atau akun dinonaktifkan!' });
         }
 
-        // Verifikasi password
         const isMatch = await User.verifyPassword(password, user.password);
-        if (!isMatch) {
-            return res.status(401).json({ message: 'Email atau password salah!' });
+        if (!isMatch) return res.status(401).json({ message: 'Email atau password salah!' });
+
+        if (!user.emailVerified) {
+            const otp = generateOtp();
+            await Otp.upsert({ userId: user.id, code: otp, isVerified: false });
+            await sendEmail(email, 'Verifikasi Email', `<h2>Kode OTP Anda</h2><p>${otp}</p>`);
+
+            return res.status(401).json({ message: 'Email belum diverifikasi! Kode OTP telah dikirim ulang.', userId: user.id });
         }
 
-        // Buat token JWT
-        const token = jwt.sign(
-            { userId: user.id, email: user.email },
-            process.env.JWT_SECRET,
-            { expiresIn: process.env.JWT_EXPIRES_IN || '1h' }
-        );
-
+        const token = generateToken({ userId: user.id, email: user.email });
         return res.status(200).json({ message: 'Login berhasil!', token });
     } catch (error) {
-        console.error(error);
+        console.error('Error saat login:', error);
         return res.status(500).json({ message: 'Terjadi kesalahan server.' });
     }
 };
 
+// Fungsi Konfirmasi OTP
+const confirmOtp = async (req, res) => {
+    const { otp, userId } = req.body;
+
+    if (!otp || otp.length !== 6) {
+        return res.status(400).json({ message: 'Kode OTP tidak valid!' });
+    }
+
+    try {
+        const otpRecord = await Otp.findOne({ where: { code: otp, userId } });
+        if (!otpRecord || otpRecord.isVerified) {
+            return res.status(400).json({ message: 'Kode OTP tidak valid atau sudah digunakan!' });
+        }
+
+        otpRecord.isVerified = true;
+        await otpRecord.save();
+
+        const user = await User.findByPk(userId);
+        if (!user) return res.status(404).json({ message: 'Pengguna tidak ditemukan!' });
+
+        if (user.emailVerified) {
+            return res.status(400).json({ message: 'Email sudah diverifikasi!' });
+        }
+
+        user.emailVerified = new Date();
+        await user.save();
+
+        const token = generateToken({ userId: user.id });
+        return res.status(200).json({ message: 'Email berhasil diverifikasi!', token });
+    } catch (error) {
+        console.error('Error saat konfirmasi OTP:', error);
+        return res.status(500).json({ message: 'Terjadi kesalahan server.' });
+    }
+};
+
+// Fungsi Reset Password Request
 const resetPasswordRequest = async (req, res) => {
     const { email } = req.body;
 
-    if (!email) {
-        return res.status(400).json({ message: 'Email wajib diisi!' });
-    }
+    if (!email) return res.status(400).json({ message: 'Email wajib diisi!' });
 
     try {
         const user = await User.findOne({ where: { email } });
-        if (!user) {
-            return res.status(404).json({ message: 'Pengguna tidak ditemukan!' });
-        }
+        if (!user) return res.status(404).json({ message: 'Pengguna tidak ditemukan!' });
 
-        const token = jwt.sign(
-            { userId: user.id },
-            process.env.JWT_SECRET,
-            { expiresIn: '1h' }
-        );
-
+        const token = generateToken({ userId: user.id });
         const resetLink = `${url}/reset-password?token=${token}&id=${user.id}`;
 
-        const htmlContent = `
-                <h2>Permintaan Reset Password</h2>
-                <p>Klik link berikut untuk mereset password Anda:</p>
-                <a href="${resetLink}">${resetLink}</a>
-            `;
+        await sendEmail(email, 'Reset Password', `<h2>Reset Password</h2><p>Klik link berikut untuk mereset password Anda:</p><a href="${resetLink}">Reset Password</a>`);
 
-        await sendEmail(user.email, 'Reset Password', htmlContent);
-
-        return res.status(200).json({ message: 'Link reset password telah dikirim ke email Anda.' });
+        return res.status(200).json({ message: 'Link password reset telah dikirim ke email Anda.' });
     } catch (error) {
-        console.error(error);
+        console.error('Error saat reset password request:', error);
         return res.status(500).json({ message: 'Terjadi kesalahan server.' });
     }
 };
 
-
+// Fungsi Ubah Password
 const changePassword = async (req, res) => {
-    const { oldPassword, newPassword, token, userId: rawUserId } = req.body;
+    const { oldPassword, newPassword, token, userId } = req.body;
 
-    let userId = req.user?.id || null;
-
-    if (!newPassword || (!token && !oldPassword)) {
-        return res.status(400).json({ message: 'Password baru dan lama (jika tidak menggunakan token) wajib diisi!' });
-    }
-
-    if (newPassword.length < 8) {
-        return res.status(400).json({ message: 'Password baru harus memiliki minimal 8 karakter!' });
-    }
-
-    if (oldPassword && newPassword === oldPassword) {
-        return res.status(400).json({ message: 'Password baru tidak boleh sama dengan password lama!' });
-    }
-
-    // Jika menggunakan token dari reset password
-    if (token && rawUserId) {
-        try {
-            const decoded = jwt.verify(token, process.env.JWT_SECRET);
-            if (decoded.userId !== rawUserId) {
-                return res.status(401).json({ message: 'Token tidak cocok dengan pengguna!' });
-            }
-            userId = rawUserId;
-        } catch (error) {
-            return res.status(401).json({ message: 'Token tidak valid atau kadaluarsa!' });
-        }
-    }
-
-    if (!userId) {
-        return res.status(400).json({ message: 'User ID tidak ditemukan.' });
+    if (!newPassword || newPassword.length < 8 || (token && !userId)) {
+        return res.status(400).json({ message: 'Password baru wajib diisi dan minimal 8 karakter!' });
     }
 
     try {
-        const user = await User.findByPk(userId);
-        if (!user) {
-            return res.status(404).json({ message: 'Pengguna tidak ditemukan!' });
+        let user;
+        if (token) {
+            const decoded = jwt.verify(token, process.env.JWT_SECRET);
+            if (decoded.userId !== userId) {
+                return res.status(401).json({ message: 'Token tidak valid!' });
+            }
+            user = await User.findByPk(userId);
+        } else {
+            user = await User.findByPk(req.user.id);
+            const isMatch = await User.verifyPassword(oldPassword, user.password);
+            if (!isMatch) return res.status(401).json({ message: 'Password lama tidak sesuai!' });
         }
 
-        // Jika tidak menggunakan token, pastikan oldPassword cocok
-        if (!token) {
-            const isMatch = await User.verifyPassword(oldPassword, user.password);
-            if (!isMatch) {
-                return res.status(401).json({ message: 'Password lama tidak sesuai!' });
-            }
-        }
+        if (!user) return res.status(404).json({ message: 'Pengguna tidak ditemukan!' });
 
         user.password = newPassword;
         await user.save();
 
         return res.status(200).json({ message: 'Password berhasil diubah.' });
     } catch (error) {
-        console.error(error);
+        console.error('Error saat mengubah password:', error);
         return res.status(500).json({ message: 'Terjadi kesalahan server.' });
     }
 };
 
-
-module.exports = { register, login, resetPasswordRequest, changePassword };
+module.exports = { register, login, confirmOtp, resetPasswordRequest, changePassword };

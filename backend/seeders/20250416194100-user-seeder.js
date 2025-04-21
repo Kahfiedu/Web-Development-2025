@@ -21,8 +21,10 @@ module.exports = {
       {
         id: uuidv4(),
         name: "Jhon Doe",
-        email: "demo@example.com",
+        email: "user@example.com",
         password: hashedPassword,
+        emailVerified: new Date(),
+        role: "admin",
         createdAt: new Date(),
         updatedAt: new Date(),
       },
