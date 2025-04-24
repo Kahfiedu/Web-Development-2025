@@ -2,7 +2,7 @@
 /** @type {import('sequelize-cli').Migration} */
 module.exports = {
   async up(queryInterface, Sequelize) {
-    await queryInterface.createTable('Child', {
+    await queryInterface.createTable('children', {
       id: {
         type: Sequelize.STRING(36),
         defaultValue: Sequelize.UUIDV4,
@@ -33,7 +33,7 @@ module.exports = {
         allowNull: false,
       },
       relationship: {
-        type: Sequelize.STRING,
+        type: Sequelize.ENUM('anak', 'keponakan', 'cucu'),
         allowNull: false,
       },
       createdAt: {
@@ -51,6 +51,6 @@ module.exports = {
     });
   },
   async down(queryInterface, Sequelize) {
-    await queryInterface.dropTable('Child');
+    await queryInterface.dropTable('children');
   }
 };

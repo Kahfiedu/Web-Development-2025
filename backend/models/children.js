@@ -3,7 +3,7 @@ const {
   Model
 } = require('sequelize');
 module.exports = (sequelize, DataTypes) => {
-  class Child extends Model {
+  class Children extends Model {
     /**
      * Helper method for defining associations.
      * This method is not a part of Sequelize lifecycle.
@@ -23,7 +23,7 @@ module.exports = (sequelize, DataTypes) => {
       });
     }
   }
-  Child.init({
+  Children.init({
     id: {
       allowNull: false,
       unique: true,
@@ -68,5 +68,5 @@ module.exports = (sequelize, DataTypes) => {
       timestamps: true, // default true, but better to be explicit
     }
   );
-  return Child;
+  return Children;
 };

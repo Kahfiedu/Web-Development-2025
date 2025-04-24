@@ -1,6 +1,5 @@
 'use strict';
 
-const { sequelize } = require('../models');
 
 /** @type {import('sequelize-cli').Migration} */
 module.exports = {
@@ -35,7 +34,7 @@ module.exports = {
         type: Sequelize.STRING,
         allowNull: true,
         references: {
-          model: 'Child',
+          model: 'children',
           key: 'id'
         },
         onDelete: 'CASCADE',
@@ -43,14 +42,15 @@ module.exports = {
       progress: {
         type: Sequelize.INTEGER,
         defaultValue: 0,
-        validate: {
-          min: 0,
-          max: 100
-        },
         allowNull: false,
       },
       enrolled_at: {
         type: Sequelize.DATE,
+        allowNull: false,
+      },
+      status: {
+        type: Sequelize.ENUM('active', 'completed', 'dropped'),
+        defaultValue: 'active',
         allowNull: false,
       },
       createdAt: {
