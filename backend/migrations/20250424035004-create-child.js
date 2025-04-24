@@ -1,56 +1,47 @@
 'use strict';
-
 /** @type {import('sequelize-cli').Migration} */
 module.exports = {
   async up(queryInterface, Sequelize) {
-    await queryInterface.createTable('users', {
+    await queryInterface.createTable('Child', {
       id: {
+        type: Sequelize.STRING(36),
+        defaultValue: Sequelize.UUIDV4,
         allowNull: false,
         unique: true,
         primaryKey: true,
-        type: Sequelize.STRING(36),
+      },
+      parentId: {
+        type: Sequelize.STRING,
         defaultValue: Sequelize.UUIDV4,
+        references: {
+          model: 'users',
+          key: 'id'
+        },
+        onDelete: 'CASCADE',
+        allowNull: false
       },
       name: {
         type: Sequelize.STRING,
         allowNull: false,
       },
-      email: {
-        type: Sequelize.STRING,
+      date_of_birth: {
+        type: Sequelize.DATEONLY,
         allowNull: false,
-      },
-      emailVerified: {
-        type: Sequelize.DATE,
-        allowNull: true,
-      },
-      role: {
-        type: Sequelize.ENUM('admin', 'student', 'teacher', 'parent'),
-        allowNull: false,
-        defaultValue: 'student',
       },
       gender: {
         type: Sequelize.ENUM('laki-laki', 'perempuan'),
-        allowNull: true,
-      },
-      phone: {
-        type: Sequelize.STRING,
-        allowNull: true,
-      },
-      password: {
-        type: Sequelize.STRING,
         allowNull: false,
       },
-      avatar: {
+      relationship: {
         type: Sequelize.STRING,
-        allowNull: true,
+        allowNull: false,
       },
       createdAt: {
         allowNull: false,
-        type: Sequelize.DATE,
-        defaultValue: Sequelize.fn('NOW')
+        type: Sequelize.DATE
       },
       updatedAt: {
-        allowNull: true,
+        allowNull: false,
         type: Sequelize.DATE
       },
       deletedAt: {
@@ -60,6 +51,6 @@ module.exports = {
     });
   },
   async down(queryInterface, Sequelize) {
-    await queryInterface.dropTable('users');
+    await queryInterface.dropTable('Child');
   }
 };

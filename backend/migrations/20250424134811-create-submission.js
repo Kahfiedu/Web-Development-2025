@@ -1,0 +1,68 @@
+'use strict';
+/** @type {import('sequelize-cli').Migration} */
+module.exports = {
+  async up(queryInterface, Sequelize) {
+    await queryInterface.createTable('submissions', {
+      id: {
+        allowNull: false,
+        unique: true,
+        primaryKey: true,
+        type: Sequelize.STRING(36),
+        defaultValue: Sequelize.UUIDV4,
+      },
+      assignmentId: {
+        type: Sequelize.STRING,
+        defaultValue: Sequelize.UUIDV4,
+        references: {
+          model: 'assignments',
+          key: 'id'
+        },
+        onDelete: 'CASCADE',
+        allowNull: false
+      },
+      studentId: {
+        type: Sequelize.STRING,
+        defaultValue: Sequelize.UUIDV4,
+        references: {
+          model: 'users',
+          key: 'id'
+        },
+        onDelete: 'CASCADE',
+        allowNull: false
+      },
+      childId: {
+        type: Sequelize.STRING,
+        defaultValue: Sequelize.UUIDV4,
+        references: {
+          model: 'children',
+          key: 'id'
+        },
+        onDelete: 'CASCADE',
+        allowNull: true
+      },
+      file_url: {
+        type: Sequelize.STRING
+      },
+      submitted_at: {
+        type: Sequelize.DATE
+      },
+      grade: {
+        type: Sequelize.FLOAT
+      },
+      feedback: {
+        type: Sequelize.TEXT
+      },
+      createdAt: {
+        allowNull: false,
+        type: Sequelize.DATE
+      },
+      updatedAt: {
+        allowNull: false,
+        type: Sequelize.DATE
+      }
+    });
+  },
+  async down(queryInterface, Sequelize) {
+    await queryInterface.dropTable('submissions');
+  }
+};

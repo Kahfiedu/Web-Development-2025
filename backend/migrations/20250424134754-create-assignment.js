@@ -1,9 +1,8 @@
 'use strict';
-
 /** @type {import('sequelize-cli').Migration} */
 module.exports = {
   async up(queryInterface, Sequelize) {
-    await queryInterface.createTable('otps', {
+    await queryInterface.createTable('assignments', {
       id: {
         allowNull: false,
         unique: true,
@@ -11,48 +10,36 @@ module.exports = {
         type: Sequelize.STRING(36),
         defaultValue: Sequelize.UUIDV4,
       },
-      userId: {
+      classId: {
         type: Sequelize.STRING,
         defaultValue: Sequelize.UUIDV4,
-        allowNull: false,
         references: {
-          model: 'Users',
+          model: 'classes',
           key: 'id'
         },
         onDelete: 'CASCADE',
         allowNull: false
       },
-      code: {
-        type: Sequelize.STRING,
-        allowNull: false,
+      title: {
+        type: Sequelize.STRING
       },
-      isVerified: {
-        type: Sequelize.BOOLEAN,
-        allowNull: true,
+      description: {
+        type: Sequelize.TEXT
+      },
+      due_date: {
+        type: Sequelize.DATE
       },
       createdAt: {
         allowNull: false,
-        type: Sequelize.DATE,
-        defaultValue: Sequelize.fn('NOW')
-      },
-      updatedAt: {
-        allowNull: true,
         type: Sequelize.DATE
       },
-      deletedAt: {
-        allowNull: true,
+      updatedAt: {
+        allowNull: false,
         type: Sequelize.DATE
       }
     });
   },
-
   async down(queryInterface, Sequelize) {
-    /**
-     * Add reverting commands here.
-     *
-     * Example:
-     * await queryInterface.dropTable('users');
-     */
-    await queryInterface.dropTable('otps');
+    await queryInterface.dropTable('assignments');
   }
 };

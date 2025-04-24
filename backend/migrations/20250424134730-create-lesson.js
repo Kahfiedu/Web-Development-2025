@@ -1,9 +1,8 @@
 'use strict';
-
 /** @type {import('sequelize-cli').Migration} */
 module.exports = {
   async up(queryInterface, Sequelize) {
-    await queryInterface.createTable('otps', {
+    await queryInterface.createTable('lessons', {
       id: {
         allowNull: false,
         unique: true,
@@ -11,48 +10,39 @@ module.exports = {
         type: Sequelize.STRING(36),
         defaultValue: Sequelize.UUIDV4,
       },
-      userId: {
+      courseId: {
         type: Sequelize.STRING,
         defaultValue: Sequelize.UUIDV4,
-        allowNull: false,
         references: {
-          model: 'Users',
+          model: 'courses',
           key: 'id'
         },
         onDelete: 'CASCADE',
         allowNull: false
       },
-      code: {
-        type: Sequelize.STRING,
-        allowNull: false,
+      title: {
+        type: Sequelize.STRING
       },
-      isVerified: {
-        type: Sequelize.BOOLEAN,
-        allowNull: true,
+      content: {
+        type: Sequelize.TEXT
+      },
+      video_url: {
+        type: Sequelize.STRING
+      },
+      order: {
+        type: Sequelize.INTEGER
       },
       createdAt: {
         allowNull: false,
-        type: Sequelize.DATE,
-        defaultValue: Sequelize.fn('NOW')
-      },
-      updatedAt: {
-        allowNull: true,
         type: Sequelize.DATE
       },
-      deletedAt: {
-        allowNull: true,
+      updatedAt: {
+        allowNull: false,
         type: Sequelize.DATE
       }
     });
   },
-
   async down(queryInterface, Sequelize) {
-    /**
-     * Add reverting commands here.
-     *
-     * Example:
-     * await queryInterface.dropTable('users');
-     */
-    await queryInterface.dropTable('otps');
+    await queryInterface.dropTable('lessons');
   }
 };

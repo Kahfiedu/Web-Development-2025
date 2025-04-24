@@ -1,9 +1,8 @@
 'use strict';
-
 /** @type {import('sequelize-cli').Migration} */
 module.exports = {
   async up(queryInterface, Sequelize) {
-    await queryInterface.createTable('otps', {
+    await queryInterface.createTable('classes', {
       id: {
         allowNull: false,
         unique: true,
@@ -11,32 +10,44 @@ module.exports = {
         type: Sequelize.STRING(36),
         defaultValue: Sequelize.UUIDV4,
       },
-      userId: {
+      courseId: {
         type: Sequelize.STRING,
         defaultValue: Sequelize.UUIDV4,
-        allowNull: false,
         references: {
-          model: 'Users',
+          model: 'courses',
           key: 'id'
         },
         onDelete: 'CASCADE',
         allowNull: false
       },
-      code: {
+      teacherId: {
         type: Sequelize.STRING,
-        allowNull: false,
+        defaultValue: Sequelize.UUIDV4,
+        references: {
+          model: 'users',
+          key: 'id'
+        },
+        onDelete: 'CASCADE',
+        allowNull: false
       },
-      isVerified: {
-        type: Sequelize.BOOLEAN,
-        allowNull: true,
+      name: {
+        type: Sequelize.STRING
+      },
+      schedule: {
+        type: Sequelize.TEXT
+      },
+      startDate: {
+        type: Sequelize.DATE
+      },
+      endDate: {
+        type: Sequelize.DATE
       },
       createdAt: {
         allowNull: false,
-        type: Sequelize.DATE,
-        defaultValue: Sequelize.fn('NOW')
+        type: Sequelize.DATE
       },
       updatedAt: {
-        allowNull: true,
+        allowNull: false,
         type: Sequelize.DATE
       },
       deletedAt: {
@@ -45,14 +56,7 @@ module.exports = {
       }
     });
   },
-
   async down(queryInterface, Sequelize) {
-    /**
-     * Add reverting commands here.
-     *
-     * Example:
-     * await queryInterface.dropTable('users');
-     */
-    await queryInterface.dropTable('otps');
+    await queryInterface.dropTable('classes');
   }
 };
