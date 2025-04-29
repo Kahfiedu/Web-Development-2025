@@ -1,5 +1,5 @@
 const Home = () => (
-  <div className="py-10 px-5 md:px-10">
+  <div className="pt-[100px] py-10 px-5 md:px-10">
     <div className="flex flex-col md:flex-row justify-between items-center gap-10">
       <div className="flex-1">
         <h2 className="text-4xl md:text-5xl font-medium mb-4">Kahfi Education</h2>

@@ -5,7 +5,7 @@ const Navbar = () => {
   const [open, setOpen] = useState(false);
 
   return (
-    <nav className="bg-slate-50 px-6 md:px-14  shadow-sm">
+    <nav className="fixed top-0 w-full z-50 bg-slate-50 px-6 md:px-14 shadow-sm">
       <div className="flex items-center justify-between">
         <img
           src="src/assets/logo-kahfi.png"
