@@ -1,7 +1,6 @@
 'use strict';
-const {
-  Model
-} = require('sequelize');
+const { Model } = require('sequelize');
+
 module.exports = (sequelize, DataTypes) => {
   class Children extends Model {
     /**
@@ -11,12 +10,12 @@ module.exports = (sequelize, DataTypes) => {
      */
     static associate(models) {
       // define association here
-      Child.belongsTo(models.User, {
+      Children.belongsTo(models.User, {
         foreignKey: 'parentId',
         as: 'parent',
         onDelete: 'CASCADE',
       });
-      Child.hasMany(models.ClassEnrollment, {
+      Children.hasMany(models.ClassEnrollment, {
         foreignKey: 'childId',
         as: 'classEnrollments',
         onDelete: 'CASCADE',

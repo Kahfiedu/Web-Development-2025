@@ -23,10 +23,15 @@ module.exports = {
         type: Sequelize.DATE,
         allowNull: true,
       },
-      role: {
-        type: Sequelize.ENUM('admin', 'student', 'teacher', 'parent'),
-        allowNull: false,
-        defaultValue: 'student',
+      roleId: {
+        type: Sequelize.STRING,
+        defaultValue: Sequelize.UUIDV4,
+        references: {
+          model: 'roles',
+          key: 'id'
+        },
+        onDelete: 'CASCADE',
+        allowNull: false
       },
       gender: {
         type: Sequelize.ENUM('laki-laki', 'perempuan'),

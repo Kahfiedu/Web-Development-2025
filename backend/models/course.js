@@ -17,7 +17,7 @@ module.exports = (sequelize, DataTypes) => {
     title: DataTypes.STRING,
     description: DataTypes.TEXT,
     category: DataTypes.STRING,
-    level: DataTypes.ENUM,
+    // level: DataTypes.ENUM,
     thumbnail: DataTypes.STRING
   }, {
     sequelize,

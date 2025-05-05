@@ -1,4 +1,4 @@
-const { User, Otp } = require('../../models');
+const { User, Otp, Role } = require('../../models');
 const jwt = require('jsonwebtoken');
 const { v4: uuidv4 } = require("uuid");
 const sendEmail = require('../../utils/sendEmail');
@@ -25,20 +25,23 @@ const register = async (req, res) => {
         const existingUser = await User.findOne({ where: { email } });
         if (existingUser) return res.status(400).json({ message: 'Email sudah terdaftar!' });
 
+        const studentRole = await Role.findOne({ where: { name: 'student' } });
+        if (!studentRole) {
+            return res.status(500).json({ message: 'Role student tidak ditemukan di database.' });
+        }
+
         const newUser = await User.create({
             id: uuidv4(),
             name,
             email,
             password,
-            role: 'student',
+            roleId: studentRole.id,
             emailVerified: null,
         });
-
 
         const otp = generateOtp();
         await Otp.create({ id: uuidv4(), userId: newUser.id, code: otp, isVerified: false });
 
-        generateToken({ userId: newUser.id, email: newUser.email });
         await sendEmail(email, 'Verifikasi Email', `<h2>Kode OTP Anda</h2><p>${otp}</p>`);
 
         return res.status(201).json({ message: 'Kode OTP telah dikirim ke email Anda.' });
@@ -57,7 +60,16 @@ const login = async (req, res) => {
     }
 
     try {
-        const user = await User.findOne({ where: { email } });
+        const user = await User.findOne({
+            where: { email },
+            include: [
+                {
+                    model: Role,
+                    as: 'role',
+                    attributes: ['id', 'name']
+                }
+            ]
+        });
         if (!user || user.deletedAt !== null) {
             return res.status(401).json({ message: 'Email atau password salah, atau akun dinonaktifkan!' });
         }
@@ -74,7 +86,11 @@ const login = async (req, res) => {
         }
 
         const token = generateToken({ userId: user.id, email: user.email });
-        return res.status(200).json({ message: 'Login berhasil!', token });
+        return res.status(200).json({
+            message: 'Login berhasil!',
+            token,
+            role: user.role.name
+        });
     } catch (error) {
         console.error('Error saat login:', error);
         return res.status(500).json({ message: 'Terjadi kesalahan server.' });

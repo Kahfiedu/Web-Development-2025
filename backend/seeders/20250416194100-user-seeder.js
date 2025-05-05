@@ -16,15 +16,25 @@ module.exports = {
      * }], {});
     */
     const hashedPassword = await bcrypt.hash("12345678", 10);
+
+    const [roles] = await queryInterface.sequelize.query(
+      `SELECT id FROM roles WHERE name = 'admin' LIMIT 1;`
+    );
+
+    const adminRoleId = roles.length ? roles[0].id : null;
+
+    if (!adminRoleId) {
+      throw new Error("Role 'admin' tidak ditemukan. Pastikan seed roles sudah dijalankan.");
+    }
     // Insert a demo user into the users table
     await queryInterface.bulkInsert('users', [
       {
         id: uuidv4(),
-        name: "Jhon Doe",
-        email: "user@example.com",
+        name: "Admin",
+        email: "admin@example.com",
         password: hashedPassword,
         emailVerified: new Date(),
-        role: "admin",
+        roleId: adminRoleId,
         createdAt: new Date(),
         updatedAt: new Date(),
       },

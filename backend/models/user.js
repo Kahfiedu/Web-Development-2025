@@ -1,11 +1,25 @@
 'use strict';
 const { Model } = require('sequelize');
 const bcrypt = require('bcryptjs');
+const { v4: uuidv4 } = require('uuid');
 
 module.exports = (sequelize, DataTypes) => {
   class User extends Model {
+
     static associate(models) {
-      User.hasMany(models.Otp, { foreignKey: 'userId' });
+      User.hasMany(models.Otp, { foreignKey: 'userId', as: 'otps', onDelete: 'CASCADE' });
+
+      User.hasMany(models.Child, {
+        foreignKey: 'parentId',
+        as: 'childrens',
+        onDelete: 'CASCADE',
+      });
+
+      User.belongsTo(models.Role, {
+        foreignKey: 'roleId',
+        as: 'role',
+        onDelete: 'CASCADE',
+      });
     }
 
     static async hashPassword(password) {
@@ -47,10 +61,15 @@ module.exports = (sequelize, DataTypes) => {
         type: DataTypes.DATE,
         allowNull: true,
       },
-      role: {
-        type: DataTypes.ENUM('admin', 'student', 'teacher', 'parent'),
-        allowNull: false,
-        defaultValue: 'student',
+      roleId: {
+        type: DataTypes.STRING,
+        defaultValue: DataTypes.UUIDV4,
+        references: {
+          model: 'roles',
+          key: 'id'
+        },
+        onDelete: 'CASCADE',
+        allowNull: false
       },
       phone: {
         type: DataTypes.STRING,
@@ -64,6 +83,9 @@ module.exports = (sequelize, DataTypes) => {
       timestamps: true, // default true, but better to be explicit
       hooks: {
         beforeCreate: async (user) => {
+          if (!user.id) {
+            user.id = uuidv4();
+          }
           if (user.password) {
             user.password = await User.hashPassword(user.password);
           }
