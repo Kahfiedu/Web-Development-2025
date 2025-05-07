@@ -32,6 +32,7 @@ module.exports = {
         id: uuidv4(),
         name: "Admin",
         email: "admin@example.com",
+        alamat: "Jl. Merpati No. 03, Tanjung Jabung Barat, Jambi, Indonesia",
         password: hashedPassword,
         emailVerified: new Date(),
         roleId: adminRoleId,
