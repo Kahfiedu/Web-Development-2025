@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 # See https://help.github.com/articles/ignoring-files/ for more about ignoring files.
 
 # dependencies
@@ -12,3 +13,6 @@
 
 # misc
 .env
+=======
+node_modules
+>>>>>>> 7aa76e4fe52abf9985006fa65f2d52a68fd85f90
