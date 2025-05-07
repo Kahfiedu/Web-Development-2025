@@ -17,7 +17,7 @@ function Footer() {
         {/* Kolom 1 */}
         <Box sx={{ flex: 1 }}>
           <img
-            src="./src/assets/logo-kahfi.png"
+            src="img/logo/logo-kahfi.png"
             alt="Logo"
             style={{ marginRight: "8px", height: "75px" }}
           />

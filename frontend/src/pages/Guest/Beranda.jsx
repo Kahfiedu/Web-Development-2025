@@ -56,55 +56,55 @@ const Beranda = () => {
               </Typography>
 
               <Box
-  sx={{
-    display: "flex",
-    gap: 2,
-    mt: 6,
-    flexWrap: "wrap",
-    justifyContent: { xs: "center", md: "flex-start" }, // Menjaga tombol di tengah di mobile dan ke kiri di desktop
-    flexDirection: { xs: "column", md: "row" }, // Menampilkan tombol secara vertikal di mobile, horizontal di desktop
-  }}
->
-  <Button
-    variant="contained"
-    sx={{
-      backgroundColor: "#fff",
-      color: "#008B47",
-      fontWeight: 600,
-      px: 4,
-      py: 1.5,
-      borderRadius: 2,
-      "&:hover": {
-        backgroundColor: "#f0f0f0",
-      },
-    }}
-  >
-    Pilih Program
-  </Button>
+                sx={{
+                  display: "flex",
+                  gap: 2,
+                  mt: 6,
+                  flexWrap: "wrap",
+                  justifyContent: { xs: "center", md: "flex-start" }, // Menjaga tombol di tengah di mobile dan ke kiri di desktop
+                  flexDirection: { xs: "column", md: "row" }, // Menampilkan tombol secara vertikal di mobile, horizontal di desktop
+                }}
+              >
+                <Button
+                  variant="contained"
+                  sx={{
+                    backgroundColor: "#fff",
+                    color: "#008B47",
+                    fontWeight: 600,
+                    px: 4,
+                    py: 1.5,
+                    borderRadius: 2,
+                    "&:hover": {
+                      backgroundColor: "#f0f0f0",
+                    },
+                  }}
+                >
+                  Pilih Program
+                </Button>
 
-  <Button
-    variant="contained"
-    sx={{
-      backgroundColor: "#fff",
-      color: "#008B47",
-      fontWeight: 600,
-      px: 4,
-      py: 1.5,
-      borderRadius: 2,
-      "&:hover": {
-        backgroundColor: "#f0f0f0",
-      },
-    }}
-  >
-    Daftar Sekarang
-  </Button>
-</Box>
+                <Button
+                  variant="contained"
+                  sx={{
+                    backgroundColor: "#fff",
+                    color: "#008B47",
+                    fontWeight: 600,
+                    px: 4,
+                    py: 1.5,
+                    borderRadius: 2,
+                    "&:hover": {
+                      backgroundColor: "#f0f0f0",
+                    },
+                  }}
+                >
+                  Daftar Sekarang
+                </Button>
+              </Box>
 
             </Box>
 
             <Box sx={{ flex: 1, textAlign: "center" }}>
               <img
-                src="src/assets/mosquee.png"
+                src="img/beranda/mosquee.png"
                 alt="Anak belajar"
                 style={{
                   maxWidth: "100%",

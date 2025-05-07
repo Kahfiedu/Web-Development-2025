@@ -41,7 +41,7 @@ const Navbar = () => {
       <Container maxWidth="lg">
         <Toolbar disableGutters>
           <img
-            src="./src/assets/logo-kahfi.png"
+            src="img/logo/logo-kahfi.png"
             alt="Logo"
             style={{ marginRight: "8px", height: "50px" }}
           />
