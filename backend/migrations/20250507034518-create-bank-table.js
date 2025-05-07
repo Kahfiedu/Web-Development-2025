@@ -28,6 +28,16 @@ module.exports = {
         allowNull: false,
         defaultValue: true,
       },
+      paymentMethodId: {
+        type: Sequelize.STRING,
+        defaultValue: Sequelize.UUIDV4,
+        references: {
+          model: 'payment_methods',
+          key: 'id'
+        },
+        onDelete: 'CASCADE',
+        allowNull: false
+      },
       createAt: {
         allowNull: false,
         type: Sequelize.DATE
