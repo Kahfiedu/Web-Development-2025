@@ -1,27 +1,46 @@
 'use strict';
-const {
-  Model
-} = require('sequelize');
+const { Model } = require('sequelize');
 module.exports = (sequelize, DataTypes) => {
   class Course extends Model {
-    /**
-     * Helper method for defining associations.
-     * This method is not a part of Sequelize lifecycle.
-     * The `models/index` file will call this method automatically.
-     */
     static associate(models) {
-      // define association here
+      Course.belongsTo(models.Category, {
+        foreignKey: 'categoryId',
+        as: 'category',
+        onDelete: 'CASCADE'
+      });
     }
   }
   Course.init({
-    title: DataTypes.STRING,
-    description: DataTypes.TEXT,
-    category: DataTypes.STRING,
-    // level: DataTypes.ENUM,
-    thumbnail: DataTypes.STRING
+    id: {
+      type: DataTypes.UUID,
+      defaultValue: DataTypes.UUIDV4,
+      primaryKey: true
+    },
+    title: {
+      type: DataTypes.STRING,
+      allowNull: false
+    },
+    description: {
+      type: DataTypes.TEXT,
+      allowNull: false
+    },
+    categoryId: {
+      type: DataTypes.UUID,
+      allowNull: false
+    },
+    level: {
+      type: DataTypes.STRING,
+      allowNull: false
+    },
+    thumbnail: {
+      type: DataTypes.STRING
+    }
   }, {
     sequelize,
     modelName: 'Course',
+    tableName: 'courses',
+    timestamps: true,
+    paranoid: true
   });
   return Course;
 };
