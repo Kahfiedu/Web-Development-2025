@@ -1,115 +1,50 @@
-import React, { useState, useEffect } from 'react';
+import React from 'react';
 import { Box, Container, Typography, Button } from '@mui/material';
 
 const Beranda = () => {
-  const [isMobile, setIsMobile] = useState(false);
-
-  useEffect(() => {
-    const handleResize = () => {
-      setIsMobile(window.innerWidth <= 768); // Menentukan apakah layar kecil (mobile)
-    };
-
-    handleResize(); // Cek ukuran layar saat pertama kali render
-    window.addEventListener('resize', handleResize); // Tambahkan event listener saat ukuran layar berubah
-
-    return () => window.removeEventListener('resize', handleResize); // Bersihkan event listener saat komponen di-unmount
-  }, []);
-
   return (
-    <div style={{ marginTop: "50px" }}>
+    <div>
       {/* Hero Section */}
-      <Box
-        sx={{
-          backgroundColor: "#008B47",
-          minHeight: "100vh",
-          color: "#fff",
-          textAlign: isMobile ? "center" : "left",
-          py: 6,
-        }}
-      >
+      <Box className="bg-green-700 text-white min-h-screen py-16">
         <Container maxWidth="lg">
-          <Box
-            sx={{
-              display: "flex",
-              flexDirection: isMobile ? "column" : "row",
-              alignItems: "center",
-              justifyContent: "space-between",
-              gap: 4,
-            }}
-          >
-            <Box sx={{ flex: 1 }}>
-              <Typography
-                variant="h4"
-                component="h1"
-                gutterBottom
-                sx={{ fontWeight: 700, fontSize: isMobile ? 28 : 42 }}
+          <Box className="flex flex-col md:flex-row items-center justify-between gap-8">
+            {/* Text Section */}
+            <Box className="flex-1 text-center md:text-left">
+              <p
+                className="font-bold text-[28px] md:text-[42px] mb-4"
               >
                 Belajar Membaca, Menulis & Mengaji Jadi Lebih Mudah!
-              </Typography>
-              <Typography
-                variant="body1"
-                sx={{ fontWeight: 400, fontSize: isMobile ? 16 : 18, mb: 3 }}
+              </p>
+              <span
+                className="text-[16px] md:text-[18px] font-normal mb-6"
               >
                 Kahfi Education adalah solusi les privat online terbaik untuk
                 anak usia dini. Dengan pendekatan interaktif, kami bantu si
                 kecil belajar membaca, menulis, dan mengaji dari rumah.
-              </Typography>
+              </span>
 
-              <Box
-                sx={{
-                  display: "flex",
-                  gap: 2,
-                  mt: 6,
-                  flexWrap: "wrap",
-                  justifyContent: { xs: "center", md: "flex-start" }, // Menjaga tombol di tengah di mobile dan ke kiri di desktop
-                  flexDirection: { xs: "column", md: "row" }, // Menampilkan tombol secara vertikal di mobile, horizontal di desktop
-                }}
-              >
+              <Box className="flex flex-col md:flex-row gap-4 mt-6 justify-center md:justify-start">
                 <Button
                   variant="contained"
-                  sx={{
-                    backgroundColor: "#fff",
-                    color: "#008B47",
-                    fontWeight: 600,
-                    px: 4,
-                    py: 1.5,
-                    borderRadius: 2,
-                    "&:hover": {
-                      backgroundColor: "#f0f0f0",
-                    },
-                  }}
+                  className="!bg-white !text-green-700 !font-semibold px-6 py-3 rounded-md hover:!bg-gray-100"
                 >
                   Pilih Program
                 </Button>
-
                 <Button
                   variant="contained"
-                  sx={{
-                    backgroundColor: "#fff",
-                    color: "#008B47",
-                    fontWeight: 600,
-                    px: 4,
-                    py: 1.5,
-                    borderRadius: 2,
-                    "&:hover": {
-                      backgroundColor: "#f0f0f0",
-                    },
-                  }}
+                  className="!bg-white !text-green-700 !font-semibold px-6 py-3 rounded-md hover:!bg-gray-100"
                 >
                   Daftar Sekarang
                 </Button>
               </Box>
-
             </Box>
 
-            <Box sx={{ flex: 1, textAlign: "center" }}>
+            {/* Image Section */}
+            <Box className="flex-1 flex justify-center">
               <img
                 src="img/beranda/mosquee.png"
                 alt="Anak belajar"
-                style={{
-                  maxWidth: "100%",
-                  height: "auto",
-                }}
+                className="max-w-full h-auto"
               />
             </Box>
           </Box>
