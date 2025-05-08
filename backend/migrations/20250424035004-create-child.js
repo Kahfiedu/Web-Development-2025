@@ -11,7 +11,7 @@ module.exports = {
         primaryKey: true,
       },
       parentId: {
-        type: Sequelize.STRING,
+        ttype: Sequelize.STRING(36),
         defaultValue: Sequelize.UUIDV4,
         references: {
           model: 'users',

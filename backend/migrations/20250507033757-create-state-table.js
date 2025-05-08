@@ -12,7 +12,7 @@ module.exports = {
         defaultValue: Sequelize.UUIDV4,
       },
       countryId: {
-        type: Sequelize.STRING,
+        type: Sequelize.STRING(36),
         defaultValue: Sequelize.UUIDV4,
         references: {
           model: 'countries',

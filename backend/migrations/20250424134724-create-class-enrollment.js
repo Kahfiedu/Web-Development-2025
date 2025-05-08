@@ -13,7 +13,7 @@ module.exports = {
         defaultValue: Sequelize.UUIDV4,
       },
       classId: {
-        type: Sequelize.STRING,
+        type: Sequelize.STRING(36),
         allowNull: false,
         references: {
           model: 'classes',
@@ -22,7 +22,7 @@ module.exports = {
         onDelete: 'CASCADE'
       },
       studentId: {
-        type: Sequelize.STRING,
+        type: Sequelize.STRING(36),
         allowNull: true,
         references: {
           model: 'users',
@@ -31,7 +31,7 @@ module.exports = {
         onDelete: 'CASCADE',
       },
       childId: {
-        type: Sequelize.STRING,
+        type: Sequelize.STRING(36),
         allowNull: true,
         references: {
           model: 'children',

@@ -11,7 +11,7 @@ module.exports = {
         defaultValue: Sequelize.UUIDV4,
       },
       assignmentId: {
-        type: Sequelize.STRING,
+        type: Sequelize.STRING(36),
         defaultValue: Sequelize.UUIDV4,
         references: {
           model: 'assignments',
@@ -21,17 +21,17 @@ module.exports = {
         allowNull: false
       },
       studentId: {
-        type: Sequelize.STRING,
+        type: Sequelize.STRING(36),
         defaultValue: Sequelize.UUIDV4,
         references: {
           model: 'users',
           key: 'id'
         },
         onDelete: 'CASCADE',
-        allowNull: false
+        allowNull: true
       },
       childId: {
-        type: Sequelize.STRING,
+        type: Sequelize.STRING(36),
         defaultValue: Sequelize.UUIDV4,
         references: {
           model: 'children',

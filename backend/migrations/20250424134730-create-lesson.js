@@ -11,7 +11,7 @@ module.exports = {
         defaultValue: Sequelize.UUIDV4,
       },
       courseId: {
-        type: Sequelize.STRING,
+        type: Sequelize.STRING(36),
         defaultValue: Sequelize.UUIDV4,
         references: {
           model: 'courses',

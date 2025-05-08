@@ -19,7 +19,7 @@ module.exports = {
         allowNull: false
       },
       categoryId: {
-        type: Sequelize.STRING,
+        type: Sequelize.STRING(36),
         defaultValue: Sequelize.UUIDV4,
         references: {
           model: 'categories',

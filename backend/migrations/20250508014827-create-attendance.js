@@ -5,9 +5,10 @@ module.exports = {
     await queryInterface.createTable('attendances', {
       id: {
         allowNull: false,
-        autoIncrement: true,
+        unique: true,
         primaryKey: true,
-        type: Sequelize.INTEGER
+        type: Sequelize.STRING(36),
+        defaultValue: Sequelize.UUIDV4,
       },
       classId: {
         type: Sequelize.STRING,
@@ -30,7 +31,7 @@ module.exports = {
         allowNull: false
       },
       studentId: {
-        type: Sequelize.STRING,
+        type: Sequelize.STRING(36),
         allowNull: true,
         references: {
           model: 'users',
@@ -39,7 +40,7 @@ module.exports = {
         onDelete: 'CASCADE',
       },
       childId: {
-        type: Sequelize.STRING,
+        type: Sequelize.STRING(36),
         allowNull: true,
         references: {
           model: 'children',

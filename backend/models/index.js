@@ -5,7 +5,9 @@ const fs = require('fs');
 const path = require('path');
 const Sequelize = require('sequelize');
 const process = require('process');
+const user = require('./user');
 const basename = path.basename(__filename);
+const PaperTrail = require('sequelize-paper-trail').init;
 const env = process.env.NODE_ENV || 'development';
 const config = require(__dirname + '/../config/config.json')[env];
 
@@ -23,6 +25,11 @@ if (config.use_env_variable) {
 } else {
   sequelize = new Sequelize(config.database, config.username, config.password, config);
 }
+
+const paperTrail = PaperTrail(sequelize, {
+  userModel: 'User',
+});
+paperTrail.defineModels();
 
 fs
   .readdirSync(__dirname)
@@ -43,9 +50,15 @@ Object.keys(db).forEach(modelName => {
   if (db[modelName].associate) {
     db[modelName].associate(db);
   }
+
+  if (!['Revision', 'RevisionChange'].includes(modelName)) {
+    paperTrail.attachTo(db[modelName]);
+  }
 });
 
 db.sequelize = sequelize;
 db.Sequelize = Sequelize;
+db.Revision = sequelize.models.Revision;
+db.RevisionChange = sequelize.models.RevisionChange;
 
 module.exports = db;
