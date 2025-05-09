@@ -29,7 +29,6 @@ if (config.use_env_variable) {
 const paperTrail = PaperTrail(sequelize, {
   userModel: 'User',
 });
-paperTrail.defineModels();
 
 fs
   .readdirSync(__dirname)
@@ -46,13 +45,14 @@ fs
     db[model.name] = model;
   });
 
+
 Object.keys(db).forEach(modelName => {
   if (db[modelName].associate) {
     db[modelName].associate(db);
   }
 
   if (!['Revision', 'RevisionChange'].includes(modelName)) {
-    paperTrail.attachTo(db[modelName]);
+    paperTrail.defineModels(db[modelName], db.Revision, db.RevisionChange);
   }
 });
 

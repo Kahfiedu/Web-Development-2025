@@ -17,7 +17,27 @@ module.exports = {
       },
       alamat: {
         type: Sequelize.STRING,
-        allowNull: false,
+        allowNull: true,
+      },
+      country: {
+        type: Sequelize.STRING,
+        allowNull: true,
+      },
+      state: {
+        type: Sequelize.STRING,
+        allowNull: true,
+      },
+      city: {
+        type: Sequelize.STRING,
+        allowNull: true,
+      },
+      district: {
+        type: Sequelize.STRING,
+        allowNull: true,
+      },
+      village: {
+        type: Sequelize.STRING,
+        allowNull: true,
       },
       email: {
         type: Sequelize.STRING,

@@ -11,7 +11,7 @@ module.exports = {
         primaryKey: true,
       },
       parentId: {
-        ttype: Sequelize.STRING(36),
+        type: Sequelize.STRING(36),
         defaultValue: Sequelize.UUIDV4,
         references: {
           model: 'users',
@@ -25,7 +25,7 @@ module.exports = {
         allowNull: false,
       },
       date_of_birth: {
-        type: Sequelize.DATEONLY,
+        type: Sequelize.DATE,
         allowNull: false,
       },
       gender: {

@@ -47,15 +47,32 @@ module.exports = (sequelize, DataTypes) => {
       },
       alamat: {
         type: DataTypes.STRING,
-        allowNull: false
+        allowNull: true
+      },
+      country: {
+        type: DataTypes.STRING,
+        allowNull: true
+      },
+      state: {
+        type: DataTypes.STRING,
+        allowNull: true
+      },
+      city: {
+        type: DataTypes.STRING,
+        allowNull: true
+      },
+      district: {
+        type: DataTypes.STRING,
+        allowNull: true
+      },
+      village: {
+        type: DataTypes.STRING,
+        allowNull: true
       },
       email: {
         type: DataTypes.STRING,
         allowNull: false,
         unique: true,
-        validate: {
-          isEmail: true
-        }
       },
       password: {
         type: DataTypes.STRING,
