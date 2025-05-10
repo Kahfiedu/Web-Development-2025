@@ -104,6 +104,7 @@ export default function SocketIOTester() {
                 body: formData,
                 headers: {
                     "x-api-key": "ueRs7TFkywICK0yI0koUuoVu1OynOmZ",
+                    "Authorization": `Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiIxMzU2MjJkYS00NjA0LTRhOTQtOWY2ZS05ZjI0Mzc2MWMxZWQiLCJlbWFpbCI6ImFkbWluQGV4YW1wbGUuY29tIiwicm9sZSI6ImFkbWluIiwiaWF0IjoxNzQ2ODYxNTk1LCJleHAiOjE3NDY5NDc5OTV9.n1PVUQDjopjrybPeJilwudanDZkRvZmm2HsRpLKI0cc`,
                 },
             });
 
