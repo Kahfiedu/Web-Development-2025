@@ -1,6 +1,7 @@
 'use strict';
 const { Model } = require('sequelize');
 
+
 module.exports = (sequelize, DataTypes) => {
   class Role extends Model {
     static associate(models) {
@@ -26,14 +27,9 @@ module.exports = (sequelize, DataTypes) => {
     modelName: 'Role',
     timestamps: true,
     paranoid: true,
-    hooks: {
-      beforeBulkCreate: async (role) => {
-        if (!role.id) {
-          role.id = uuidv4();
-        }
-      }
-    }
+
   });
+
 
   return Role;
 };

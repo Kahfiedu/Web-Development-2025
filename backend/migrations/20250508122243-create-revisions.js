@@ -16,7 +16,7 @@ module.exports = {
         allowNull: false
       },
       document: {
-        type: Sequelize.JSON, // Gunakan JSON, bukan JSONB di MariaDB
+        type: Sequelize.TEXT,
         allowNull: false
       },
       operation: {
@@ -24,7 +24,8 @@ module.exports = {
         allowNull: false
       },
       documentId: {
-        type: Sequelize.INTEGER, // Atau UUID jika kamu aktifkan UUID
+        type: Sequelize.STRING(36),
+        defaultValue: Sequelize.UUIDV4, // Atau UUID jika kamu aktifkan UUID
         allowNull: false
       },
       revision: {
@@ -44,6 +45,10 @@ module.exports = {
       },
       updatedAt: {
         allowNull: false,
+        type: Sequelize.DATE
+      },
+      deletedAt: {
+        allowNull: true,
         type: Sequelize.DATE
       }
     });

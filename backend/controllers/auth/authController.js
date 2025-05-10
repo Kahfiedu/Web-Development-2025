@@ -2,7 +2,7 @@ const { User, Otp, Role } = require('../../models');
 const { v4: uuidv4 } = require("uuid");
 const sendEmail = require('../../helpers/sendEmailHelper');
 const { generateOtp } = require('../../utils/generateOtp');
-const { generateToken } = require('../../utils/generateToken');
+const { generateToken } = require('../../helpers/jwtHelper');
 const url = process.env.APP_URL || 'http://localhost:5173';
 const jwt = require('jsonwebtoken');
 
@@ -78,7 +78,15 @@ const login = async (req, res) => {
             return res.status(401).json({ message: 'Email belum diverifikasi! Kode OTP telah dikirim ulang.', userId: user.id });
         }
 
-        const token = generateToken({ userId: user.id, email: user.email });
+        const token = generateToken({
+            userId: user.id,
+            email: user.email,
+            role: user.role.name
+        });
+
+        if (!token) {
+            return res.status(500).json({ message: 'Gagal membuat token!' });
+        }
         return res.status(200).json({
             message: 'Login berhasil!',
             token,

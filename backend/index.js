@@ -20,9 +20,12 @@ if (!process.env.JWT_SECRET) {
 
 // 📝 Logging setiap request
 app.use((req, res, next) => {
+    // Set namespace untuk setiap request
     console.log(`[${new Date().toISOString()}] ${req.method} ${req.url}`);
     next();
 });
+
+
 
 // 🧩 Middleware umum
 app.use(corsHelper());
@@ -31,6 +34,7 @@ app.use(apiKeyMiddleware);
 
 // 📂 (Optional) akses file upload
 app.use("/uploads", express.static("uploads"));
+
 
 // 📌 Versi API
 const v = process.env.API_VERSION || "v1";

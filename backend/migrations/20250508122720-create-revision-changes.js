@@ -18,17 +18,17 @@ module.exports = {
         onDelete: 'CASCADE',
         allowNull: false,
       },
-      field: {
+      path: {
         type: Sequelize.STRING,
         allowNull: false,
       },
-      previousValue: {
+      document: {
         type: Sequelize.JSON,
-        allowNull: true
+        allowNull: true,
       },
-      newValue: {
+      diff: {
         type: Sequelize.JSON,
-        allowNull: true
+        allowNull: true,
       },
       createdAt: {
         type: Sequelize.DATE,
@@ -37,6 +37,10 @@ module.exports = {
       updatedAt: {
         type: Sequelize.DATE,
         allowNull: false,
+      },
+      deletedAt: {
+        allowNull: true,
+        type: Sequelize.DATE
       },
     });
   },

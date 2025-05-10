@@ -1,4 +1,4 @@
-// processors/userImportProcessor.js
+// queues/processors/userImportProcessor.js
 const { parseExcel } = require("../../utils/excelParser");
 const { User, Role } = require("../../models");
 const { getIO } = require("../../config/socketConfig");
@@ -6,6 +6,7 @@ const fs = require("fs");
 const { v4: uuidv4 } = require("uuid");
 const { validateEmail, validateRole } = require("../../utils/validorUtil");
 const { sendProgressUpdate } = require("../../utils/socketUtil");
+
 
 /**
  * Process user import job
@@ -150,50 +151,89 @@ async function loadRoles() {
  * @returns {Promise<Object>} - Result of processing
  */
 async function processUserRecord(item, index, rolesMap) {
-    // Validate email
-    if (!validateEmail(item.email)) {
-        console.warn(`⚠️ Record #${index + 1} skipped: invalid email ->`, item.email);
+    try {
+
+        // Validate email format
+        if (!validateEmail(item.email)) {
+            console.warn(`⚠️ Record #${index + 1} skipped: invalid email ->`, item.email);
+            return {
+                success: false,
+                reason: 'Invalid email',
+                email: item.email
+            };
+        }
+
+        // Check for email uniqueness - add transaction
+        const existingUser = await User.findOne({
+            where: { email: item.email },
+            transaction
+        });
+        if (existingUser) {
+            console.warn(`⚠️ Record #${index + 1} skipped: email already exists ->`, item.email);
+            return {
+                success: false,
+                reason: 'Email already exists',
+                email: item.email
+            };
+        }
+
+        // Get role ID
+        const roleResult = validateRole(item.role, rolesMap);
+        if (!roleResult.success) {
+            console.warn(`⚠️ ${roleResult.message}`);
+            return {
+                success: false,
+                reason: roleResult.message,
+                email: item.email
+            };
+        }
+
+        const plainPassword = String(item.password);
+        console.log(plainPassword);
+        if (!plainPassword) {
+            console.error(`❌ Failed password for record #${index + 1}`);
+            return {
+                success: false,
+                reason: 'Failed password',
+                email: item.email
+            };
+        }
+        // Prepare user data
+        const userData = {
+            id: uuidv4(),
+            name: item.name,
+            alamat: item.alamat,
+            country: item.country,
+            state: item.state,
+            city: item.city,
+            district: item.district,
+            village: item.village,
+            email: item.email,
+            emailVerified: item.emailVerified ? new Date(item.emailVerified) : null,
+            roleId: roleResult.roleId,
+            gender: item.gender,
+            phone: item.phone,
+            password: plainPassword,
+            avatar: typeof item.avatar === "string" ? item.avatar : null
+        };
+
+        console.log(`🔄 Processing record #${index + 1}`);
+
+        // Create user with transaction
+        await User.create(userData);
+
+        return { success: true, email: userData.email };
+
+    } catch (error) {
+        console.error(`❌ Error processing record #${index + 1}:`, error);
         return {
             success: false,
-            reason: 'Invalid email',
+            reason: error.message,
             email: item.email
         };
     }
-
-    // Get role ID
-    const roleResult = validateRole(item.role, rolesMap);
-    if (!roleResult.success) {
-        console.warn(`⚠️ ${roleResult.message}`);
-        return {
-            success: false,
-            reason: roleResult.message,
-            email: item.email
-        };
-    }
-
-    // Prepare user data
-    const userData = {
-        id: uuidv4(),
-        name: item.name,
-        alamat: item.alamat,
-        country: item.country,
-        state: item.state,
-        city: item.city,
-        district: item.district,
-        village: item.village,
-        email: item.email,
-        emailVerified: item.emailVerified ? new Date(item.emailVerified) : null,
-        roleId: roleResult.roleId,
-        gender: item.gender,
-        phone: item.phone,
-        password: item.password,
-        avatar: item.avatar
-    };
-
-    console.log(`🔄 Processing record #${index + 1}`);
-    await User.create(userData);
-    return { success: true, email: userData.email };
 }
+
 
 /**
  * Send error notification to client

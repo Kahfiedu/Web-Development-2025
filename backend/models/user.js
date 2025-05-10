@@ -20,6 +20,12 @@ module.exports = (sequelize, DataTypes) => {
         as: 'role',
         onDelete: 'CASCADE',
       });
+
+      User.hasMany(models.Revision, {
+        foreignKey: 'userId',
+        as: 'revisions',
+        onDelete: 'CASCADE',
+      });
     }
 
     static async hashPassword(password) {
@@ -95,7 +101,11 @@ module.exports = (sequelize, DataTypes) => {
       phone: {
         type: DataTypes.STRING,
         allowNull: true,
-      }
+      },
+      avatar: {
+        type: DataTypes.STRING,
+        allowNull: true,
+      },
     },
     {
       sequelize,

@@ -64,6 +64,7 @@ module.exports = (sequelize, DataTypes) => {
     {
       sequelize,
       modelName: 'ClassEnrollment',
+      tableName: 'classenrollment',
       paranoid: true, // enable soft delete (adds deletedAt)
       timestamps: true, // default true, but better to be explicit
     }

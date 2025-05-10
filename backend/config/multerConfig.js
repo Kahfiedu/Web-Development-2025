@@ -2,6 +2,7 @@
 const multer = require("multer");
 const path = require("path");
 const fs = require("fs");
+const crypto = require("crypto");
 
 /**
  * Fungsi untuk membuat konfigurasi penyimpanan dengan path dan filename dinamis.
@@ -19,9 +20,11 @@ function createStorage(destinationPath, fileNamePrefix = "") {
             cb(null, destinationPath);
         },
         filename: (req, file, cb) => {
-            const fileName = `${fileNamePrefix}${Date.now()}-${file.originalname}`;
+            const randomStr = crypto.randomBytes(3).toString("hex"); // 6 karakter hex
+            const ext = path.extname(file.originalname); // ambil ekstensi asli
+            const fileName = `${Date.now()}-${randomStr}${ext}`;
             cb(null, fileName);
-        },
+        }
     });
 }
 

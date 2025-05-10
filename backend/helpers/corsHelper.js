@@ -1,7 +1,6 @@
 require("dotenv").config(); // Menggunakan dotenv untuk mengakses variabel dari .env
 const cors = require('cors');
 
-
 const corsOptions = {
     origin: "*",
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],

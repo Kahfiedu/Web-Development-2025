@@ -1,13 +1,13 @@
 'use strict';
 require('dotenv').config();
+require("../config/sequelizeContext");
 
 const fs = require('fs');
 const path = require('path');
 const Sequelize = require('sequelize');
 const process = require('process');
-const user = require('./user');
+const { namespace } = require('../config/sequelizeContext');
 const basename = path.basename(__filename);
-const PaperTrail = require('sequelize-paper-trail').init;
 const env = process.env.NODE_ENV || 'development';
 const config = require(__dirname + '/../config/config.json')[env];
 
@@ -26,10 +26,10 @@ if (config.use_env_variable) {
   sequelize = new Sequelize(config.database, config.username, config.password, config);
 }
 
-const paperTrail = PaperTrail(sequelize, {
-  userModel: 'User',
-});
 
+
+
+// Define models first
 fs
   .readdirSync(__dirname)
   .filter(file => {
@@ -50,15 +50,44 @@ Object.keys(db).forEach(modelName => {
   if (db[modelName].associate) {
     db[modelName].associate(db);
   }
+});
 
-  if (!['Revision', 'RevisionChange'].includes(modelName)) {
-    paperTrail.defineModels(db[modelName], db.Revision, db.RevisionChange);
+const PaperTrail = require('sequelize-paper-trail').init(sequelize, {
+  debug: false,
+  log: null,
+  exclude: ['id', 'createdAt', 'updatedAt', 'deletedAt', 'created_at', 'updated_at', 'deleted_at', 'revision'],
+  revisionAttribute: 'revision',
+  revisionModel: 'Revision',
+  revisionChangeModel: 'RevisionChange',
+  enableRevisionChangeModel: true,
+  UUID: true,
+  underscored: false,
+  underscoredAttributes: false,
+  defaultAttributes: {
+    documentId: 'documentId',
+    revisionId: 'revisionId'
+  },
+  userModel: "User",
+  userModelAttribute: 'userId',
+  enableCompression: false,
+  enableMigration: true,
+  enableStrictDiff: true,
+  continuationNamespace: namespace,
+  continuationKey: 'userId',
+  metaDataFields: null,
+  metaDataContinuationKey: 'metaData',
+  mysql: true
+});
+
+PaperTrail.defineModels(db);
+
+Object.keys(db).forEach(modelName => {
+  if (modelName !== 'Revision' && modelName !== 'RevisionChange') {
+    db[modelName].hasPaperTrail();
   }
 });
 
 db.sequelize = sequelize;
 db.Sequelize = Sequelize;
-db.Revision = sequelize.models.Revision;
-db.RevisionChange = sequelize.models.RevisionChange;
 
 module.exports = db;
