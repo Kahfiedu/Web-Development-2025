@@ -1,7 +1,8 @@
 const { verifyToken } = require('../helpers/jwtHelper');
 const { namespace } = require("../config/sequelizeContext");
+const { User } = require("../models");
 
-const validateToken = (req, res, next) => {
+const validateToken = async (req, res, next) => {
     try {
         let token = req.headers["authorization"];
 
@@ -16,6 +17,20 @@ const validateToken = (req, res, next) => {
 
         // Verify token using helper
         const decoded = verifyToken(token);
+
+        const user = await User.findOne({
+            where: {
+                id: decoded.userId
+            },
+            attributes: ['id', 'email', 'roleId'] // Only fetch needed fields
+        });
+
+        if (!user) {
+            return res.status(404).json({
+                success: false,
+                message: "Token tidak valid"
+            });
+        }
 
         // Set request properties
         req.user = decoded;

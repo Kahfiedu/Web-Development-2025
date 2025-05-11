@@ -4,6 +4,8 @@ const authRoute = require('./auth/authRoute.js');
 const importRoute = require('./import/importRoute.js');
 const userRoute = require('./userRouter.js');
 const roleRoute = require('./roleRouter.js');
+const paymentMethodRoute = require('./paymentMethodRoute.js');
+const bankRoute = require('./bankRoute.js');
 const revisionRoute = require('./revisionRoute.js');
 const { namespace } = require('../config/sequelizeContext.js');
 const { validateToken } = require('../middlewares/authMiddleware.js');
@@ -24,6 +26,8 @@ router.use((req, res, next) => {
 router.use(userRoute);
 router.use(roleRoute);
 router.use(revisionRoute);
+router.use(paymentMethodRoute);
+router.use(bankRoute);
 router.use('/excel/import', importRoute);
 
 // Debug endpoint

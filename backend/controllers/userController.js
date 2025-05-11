@@ -2,7 +2,7 @@ const { Op } = require("sequelize");
 const { User, Role } = require("../models");
 const { validateEmail } = require("../utils/validorUtil");
 const getFileUrl = require("../utils/getFileUrl");
-const { getPagination } = require("../helpers/paginationHelper");
+const { getPagination } = require("../utils/paginationUtil");
 
 // Fungsi untuk mendapatkan daftar pengguna
 // dengan parameter pencarian, halaman, dan status
@@ -190,6 +190,8 @@ const addUser = async (req, res) => {
             phone,
             roleId,
             avatar: avatarPath,
+        }, {
+            userId: req.userId, // <-- tambahkan di sini
         });
 
         // Exclude password from response
@@ -210,6 +212,121 @@ const addUser = async (req, res) => {
         });
     } catch (error) {
         console.error("Error creating user:", error);
+        res.status(500).json({ message: "Internal server error" });
+    }
+};
+
+const updateUser = async (req, res) => {
+    const { id } = req.params;
+    const {
+        name,
+        email,
+        alamat,
+        country,
+        state,
+        city,
+        district,
+        roleId,
+        village,
+        phone,
+        password
+    } = req.body;
+
+    // Validate userId
+    if (!id) {
+        return res.status(400).json({ message: "ID User tidak ditemukan" });
+    }
+
+    // Check if the user is an admin
+    const isAdmin = req.userRole === "admin";
+    if (!isAdmin) {
+        return res.status(403).json({ message: "Access denied" });
+    }
+
+    try {
+        // Find user
+        const user = await User.findByPk(id);
+        if (!user) {
+            return res.status(404).json({ message: "User tidak ditemukan" });
+        }
+
+        // If email is being changed, check if new email already exists
+        if (email && email !== user.email) {
+            if (!validateEmail(email)) {
+                return res.status(400).json({ message: "Invalid email format" });
+            }
+
+            const existingUser = await User.findOne({
+                where: {
+                    email,
+                    id: { [Op.ne]: id }
+                }
+            });
+
+            if (existingUser) {
+                return res.status(409).json({ message: "Email already in use" });
+            }
+        }
+
+        // If roleId is being changed, check if new role exists
+        if (roleId && roleId !== user.roleId) {
+            const newRole = await Role.findByPk(roleId);
+            if (!newRole) {
+                return res.status(404).json({ message: "Role not found" });
+            }
+        }
+
+        // Handle avatar update if file is uploaded
+        const avatarPath = req.file ? getFileUrl(req, req.file.filename) : user.avatar;
+
+        // Build update object
+        const updateData = {
+            name: name || user.name,
+            email: email || user.email,
+            alamat: alamat || user.alamat,
+            country: country || user.country,
+            state: state || user.state,
+            city: city || user.city,
+            district: district || user.district,
+            village: village || user.village,
+            phone: phone || user.phone,
+            roleId: roleId || user.roleId,
+            avatar: avatarPath
+        };
+
+        // Only update password if provided
+        if (password) {
+            if (password.length < 8) {
+                return res.status(400).json({
+                    message: "Password must be at least 8 characters long"
+                });
+            }
+            updateData.password = password;
+        }
+
+        // Update user with context for revision tracking
+        await user.update(updateData, {
+            userId: req.userId
+        });
+
+        // Get updated user data with role
+        const updatedUser = await User.findByPk(user.id, {
+            attributes: { exclude: ['password'] },
+            include: [{
+                model: Role,
+                as: 'role',
+                attributes: ['id', 'name']
+            }]
+        });
+
+        res.status(200).json({
+            success: true,
+            message: "User updated successfully",
+            user: updatedUser
+        });
+
+    } catch (error) {
+        console.error("Error updating user:", error);
         res.status(500).json({ message: "Internal server error" });
     }
 };
@@ -265,11 +382,51 @@ const deleteUser = async (req, res) => {
     }
 };
 
+const restoreUser = async (req, res) => {
+    if (req.userRole !== "admin") {
+        return res.status(403).json({ message: "Access denied" });
+    }
+
+    const { id } = req.params;
+
+    if (!id) {
+        return res.status(400).json({ message: "ID user tidak ditemukan" });
+    }
+
+    try {
+        const user = await User.findByPk(id, { paranoid: false });
+
+        if (!user) {
+            return res.status(404).json({ message: "User tidak ditemukan" });
+        }
+
+        // Restore the user
+        await user.restore({
+            userId: req.userId // <-- tambahkan di sini
+        });
+
+        const safeUser = {
+            ...user.toJSON(),
+            password: undefined // Exclude password from response
+        };
+
+        res.status(200).json({
+            success: true,
+            message: "User berhasil dipulihkan",
+            safeUser
+        });
+    } catch (error) {
+        console.error("Error restoring user:", error);
+        res.status(500).json({ message: "Internal server error" });
+    }
+};
 
 
 module.exports = {
     getUsers,
     getUserById,
     addUser,
-    deleteUser
+    deleteUser,
+    updateUser,
+    restoreUser
 };

@@ -1,19 +1,19 @@
-
-const { getPagination } = require("../helpers/paginationHelper");
+const { getPagination } = require("../utils/paginationUtil");
 const { Role } = require("../models");
 const { Op } = require("sequelize");
-
-
+const isAdmin = require("../helpers/validationAdmin");
 
 // Fungsi untuk mendapatkan daftar pengguna
 // dengan parameter pencarian, halaman, dan status
 const getRoles = async (req, res) => {
-    const isAdmin = req.userRole === "admin";
-    if (!isAdmin) {
-        return res.status(403).json({ message: "Access denied" });
-    }
-
     const search = req.query.search || "";
+
+    const validation = isAdmin(req.userRole, req.userId);
+
+    if (!validation.isValid) {
+        return res.status(validation.error.status)
+            .json({ message: validation.error.message });
+    }
 
     try {
         // Ambil parameter pagination dan status filter
@@ -72,11 +72,14 @@ const getRoles = async (req, res) => {
 };
 
 const createRole = async (req, res) => {
-    if (req.userRole !== "admin") {
-        return res.status(403).json({ message: "Access denied" });
-    }
-
     const { name } = req.body;
+
+    const validation = isAdmin(req.userRole, req.userId);
+
+    if (!validation.isValid) {
+        return res.status(validation.error.status)
+            .json({ message: validation.error.message });
+    }
 
     if (!name) {
         return res.status(400).json({ message: "Nama role wajib diisi" });
@@ -90,7 +93,6 @@ const createRole = async (req, res) => {
     }
 
     const lowerCaseName = name.toLowerCase();
-    const userId = req.userId;
 
     try {
         // Move duplicate check inside transaction
@@ -110,7 +112,7 @@ const createRole = async (req, res) => {
             name: lowerCaseName,
             revision: 0,
         }, {
-            userId: userId // <-- tambahkan di sini
+            userId: validation.userId  // <-- tambahkan di sini
         });
         return res.status(201).json({
             success: true,
@@ -126,12 +128,16 @@ const createRole = async (req, res) => {
 };
 
 const updateRole = async (req, res) => {
-    if (req.userRole !== "admin") {
-        return res.status(403).json({ message: "Access denied" });
-    }
-
     const { id } = req.params;
     const { name } = req.body;
+
+    const validation = isAdmin(req.userRole, req.userId);
+
+    if (!validation.isValid) {
+        return res.status(validation.error.status)
+            .json({ message: validation.error.message });
+    }
+
 
     if (!id || !name) {
         return res.status(400).json({ message: "ID dan nama role wajib diisi" });
@@ -172,7 +178,7 @@ const updateRole = async (req, res) => {
         // Update role
         role.name = lowerCaseName;
         await role.save({
-            userId: req.userId // <-- tambahkan di sini
+            userId: validation.userId  // <-- tambahkan di sini
         });
 
         return res.status(200).json({
@@ -189,19 +195,16 @@ const updateRole = async (req, res) => {
     }
 };
 
-
-
 const deleteRole = async (req, res) => {
-    if (req.userRole !== "admin") {
-        return res.status(403).json({ message: "Access denied" });
-    }
-
     const { id } = req.params;
 
-    if (!id) {
-        return res.status(400).json({ message: "ID role tidak ditemukan" });
+    const validation = isAdmin(req.userRole, req.userId);
+
+    if (!validation.isValid) {
+        return res.status(validation.error.status)
+            .json({ message: validation.error.message });
     }
-    const userId = req.userId;
+
     try {
 
         // Find role with transaction
@@ -227,7 +230,7 @@ const deleteRole = async (req, res) => {
         if (role.deletedAt) {
             await role.destroy({
                 force: true,
-                userId: userId // <-- tambahkan di sini
+                userId: validation.userId // <-- tambahkan di sini
             });
             return res.status(200).json({
                 success: true,
@@ -237,7 +240,7 @@ const deleteRole = async (req, res) => {
 
         // Perform soft delete
         await role.destroy({
-            userId: userId // <-- tambahkan di sini
+            userId: validation.userId  // <-- tambahkan di sini
         });
         return res.status(200).json({
             success: true,
@@ -255,10 +258,53 @@ const deleteRole = async (req, res) => {
     }
 };
 
+const restoreRole = async (req, res) => {
+    const { id } = req.params;
+
+    const validation = isAdmin(req.userRole, req.userId);
+
+    if (!validation.isValid) {
+        return res.status(validation.error.status)
+            .json({ message: validation.error.message });
+    }
+
+    if (!id) {
+        return res.status(400).json({ message: "ID role tidak ditemukan" });
+    }
+
+    try {
+        const role = await Role.findByPk(id, {
+            paranoid: false
+        });
+
+        if (!role) {
+            throw { status: 404, message: "Role tidak ditemukan" };
+        }
+
+        // Restore the role
+        await role.restore({
+            userId: validation.userId // <-- tambahkan di sini
+        });
+
+
+        return res.status(200).json({
+            success: true,
+            message: "Role berhasil dipulihkan",
+            role
+        });
+    } catch (error) {
+        console.error("Error restoring role:", error);
+        const status = error.status || 500;
+        const message = error.status ? error.message : "Internal server error";
+        res.status(status).json({ message });
+    }
+};
+
 
 module.exports = {
     getRoles,
     deleteRole,
     createRole,
     updateRole,
+    restoreRole
 };

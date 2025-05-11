@@ -1,6 +1,6 @@
 const { Op } = require("sequelize");
 const { Revision, RevisionChange, User } = require("../models");
-const { getPagination } = require("../helpers/paginationHelper");
+const { getPagination } = require("../utils/paginationUtil");
 
 const getAllRevisions = async (req, res) => {
     if (req.userRole !== "admin") {
