@@ -37,11 +37,11 @@ const Navbar = () => {
   };
 
   return (
-    <AppBar position="fixed" elevation={0} sx={{ backgroundColor: "#fff" }}>
+    <AppBar position="sticky" elevation={0} sx={{ backgroundColor: "#fff" }}>
       <Container maxWidth="lg">
         <Toolbar disableGutters>
           <img
-            src="img/logo/logo-kahfi.png"
+            src="img/logo/logo.png"
             alt="Logo"
             style={{ marginRight: "8px", height: "50px" }}
           />
@@ -103,7 +103,7 @@ const Navbar = () => {
           >
             <Button
               component={Link}
-              to="/registrasi"
+              to="/register"
               variant="contained"
               sx={{
                 color: "#fff",
@@ -117,7 +117,7 @@ const Navbar = () => {
             </Button>
             <Button
               component={Link}
-              to="/masuk"
+              to="/login"
               variant="contained"
               sx={{
                 color: "#fff",
@@ -185,7 +185,7 @@ const Navbar = () => {
           <MenuItem onClick={handleCloseNavMenu}>
             <Button
               component={Link}
-              to="/registrasi"
+              to="/register"
               variant="contained"
               sx={{
                 color: "white",
