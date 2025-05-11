@@ -95,7 +95,6 @@ const createRole = async (req, res) => {
     const lowerCaseName = name.toLowerCase();
 
     try {
-        // Move duplicate check inside transaction
 
         // Check for duplicates within transaction
         const existingRole = await Role.findOne({

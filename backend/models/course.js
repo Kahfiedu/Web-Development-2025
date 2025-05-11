@@ -33,7 +33,8 @@ module.exports = (sequelize, DataTypes) => {
       allowNull: false
     },
     thumbnail: {
-      type: DataTypes.STRING
+      type: DataTypes.STRING,
+      allowNull: true
     }
   }, {
     sequelize,

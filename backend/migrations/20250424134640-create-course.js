@@ -33,7 +33,8 @@ module.exports = {
         allowNull: false
       },
       thumbnail: {
-        type: Sequelize.STRING
+        type: Sequelize.STRING,
+        allowNull: true
       },
       createdAt: {
         allowNull: false,

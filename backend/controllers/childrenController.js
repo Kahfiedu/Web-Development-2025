@@ -51,7 +51,7 @@ const createChild = async (req, res) => {
         return res.status(201).json({
             success: true,
             message: "Berhasil menamabhkan data anak",
-            newChild,
+            children: newChild,
         }, {
             userId: userId
         });
@@ -71,7 +71,7 @@ const createChild = async (req, res) => {
 }
 
 const getChildrens = async (req, res) => {
-    const { page = 1, limit = 10, search = "", isActive } = req.query;
+    const { page = 1, limit = 10, search = "", isActive, parentId } = req.query;
     const { name, age, relationship, gender } = req.query;
 
     const userId = req.userId;
@@ -107,7 +107,11 @@ const getChildrens = async (req, res) => {
 
         // Different queries for parent and admin
         if (userRole === "parent") {
+            // Parent can only see their own children
             whereClause.parentId = userId;
+        } else if (userRole === "admin" && parentId) {
+            // Admin can filter by specific parentId if provided
+            whereClause.parentId = parentId;
         }
 
         const { count, rows: childrens } = await Child.findAndCountAll({

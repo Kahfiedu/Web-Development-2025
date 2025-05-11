@@ -6,8 +6,10 @@ const userRoute = require('./userRouter.js');
 const roleRoute = require('./roleRouter.js');
 const paymentMethodRoute = require('./paymentMethodRoute.js');
 const bankRoute = require('./bankRoute.js');
+const categoryRoute = require('./categoryRoute.js');
 const childrenRoute = require('./childrenRoute.js');
 const revisionRoute = require('./revisionRoute.js');
+const courseRoute = require('./courseRoute.js');
 const { namespace } = require('../config/sequelizeContext.js');
 const { validateToken } = require('../middlewares/authMiddleware.js');
 const validateDataUser = require('../helpers/validationDataUser.js');
@@ -35,6 +37,8 @@ router.use(revisionRoute);
 router.use(paymentMethodRoute);
 router.use(bankRoute);
 router.use(childrenRoute);
+router.use(categoryRoute);
+router.use(courseRoute);
 
 // Import route
 router.use('/excel/import', importRoute);

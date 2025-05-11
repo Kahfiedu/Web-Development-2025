@@ -25,15 +25,15 @@ app.use((req, res, next) => {
     next();
 });
 
-
+// 📂 (Optional) akses file upload
+app.use("/uploads", express.static("uploads"));
 
 // 🧩 Middleware umum
 app.use(corsHelper());
 app.use(express.json());
 app.use(apiKeyMiddleware);
 
-// 📂 (Optional) akses file upload
-app.use("/uploads", express.static("uploads"));
+
 
 
 // 📌 Versi API
