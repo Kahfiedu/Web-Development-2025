@@ -2,7 +2,7 @@
 /** @type {import('sequelize-cli').Migration} */
 module.exports = {
   async up(queryInterface, Sequelize) {
-    await queryInterface.createTable('children', {
+    await queryInterface.createTable('childrens', {
       id: {
         type: Sequelize.STRING(36),
         defaultValue: Sequelize.UUIDV4,
@@ -25,7 +25,7 @@ module.exports = {
         allowNull: false,
       },
       date_of_birth: {
-        type: Sequelize.DATE,
+        type: Sequelize.DATEONLY,
         allowNull: false,
       },
       age: {
@@ -55,6 +55,6 @@ module.exports = {
     });
   },
   async down(queryInterface, Sequelize) {
-    await queryInterface.dropTable('children');
+    await queryInterface.dropTable('childrens');
   }
 };

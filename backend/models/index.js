@@ -82,7 +82,7 @@ const PaperTrail = require('sequelize-paper-trail').init(sequelize, {
 PaperTrail.defineModels(db);
 
 Object.keys(db).forEach(modelName => {
-  if (modelName !== 'Revision' && modelName !== 'RevisionChange') {
+  if (modelName !== 'Revision' && modelName !== 'RevisionChange' && modelName !== 'User' && modelName !== 'Otp') {
     db[modelName].hasPaperTrail();
   }
 });

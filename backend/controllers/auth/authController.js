@@ -8,27 +8,39 @@ const jwt = require('jsonwebtoken');
 
 // Fungsi Registrasi
 const register = async (req, res) => {
-    const { name, email, password } = req.body;
+    const { name, email, password, roleId } = req.body;
 
     if (!name || !email || !password || password.length < 8) {
         return res.status(400).json({ message: 'Nama, email, dan password (minimal 8 karakter) wajib diisi!' });
+    }
+
+    if (!roleId) {
+        return res.status(400).json({ message: 'Role ID wajib diisi!' });
     }
 
     try {
         const existingUser = await User.findOne({ where: { email } });
         if (existingUser) return res.status(400).json({ message: 'Email sudah terdaftar!' });
 
-        const studentRole = await Role.findOne({ where: { name: 'student' } });
-        if (!studentRole) {
-            return res.status(500).json({ message: 'Role student tidak ditemukan di database.' });
+        const existingRole = await Role.findOne({ where: { id: roleId } });
+
+        if (!existingRole) {
+            return res.status(500).json({ message: 'Id role tidak ada' });
+        }
+
+        if (existingRole.name !== 'student' && existingRole.name !== 'parent') {
+            return res.status(400).json({ message: 'Role tidak sesuai' });
+        }
+
+        if (existingRole.name === 'admin') {
+            return res.status(400).json({ message: 'Role tidak sesuai' });
         }
 
         const newUser = await User.create({
-            id: uuidv4(),
             name,
             email,
             password,
-            roleId: studentRole.id,
+            roleId: roleId,
             emailVerified: null,
         });
 
@@ -107,26 +119,47 @@ const confirmOtp = async (req, res) => {
     }
 
     try {
-        const otpRecord = await Otp.findOne({ where: { code: otp, userId } });
+        const otpRecord = await Otp.findOne({
+            where: {
+                code: otp,
+                userId,
+                isVerified: false
+            },
+        });
         if (!otpRecord || otpRecord.isVerified) {
             return res.status(400).json({ message: 'Kode OTP tidak valid atau sudah digunakan!' });
         }
 
-        otpRecord.isVerified = true;
-        await otpRecord.save();
 
-        const user = await User.findByPk(userId);
-        if (!user) return res.status(404).json({ message: 'Pengguna tidak ditemukan!' });
+
+        const user = await User.findOne({
+            where: { id: userId },
+            include: [{
+                model: Role,
+                as: 'role',
+                attributes: ['id', 'name']
+            }],
+        });
+
+        if (!user) return res.status(404).json({
+            success: false,
+            message: 'Pengguna tidak ditemukan!'
+        });
 
         if (user.emailVerified) {
-            return res.status(400).json({ message: 'Email sudah diverifikasi!' });
+            return res.status(400).json({
+                success: false,
+                message: 'Email sudah diverifikasi!'
+            });
         }
+
+        await otpRecord.update({ isVerified: true });
 
         user.emailVerified = new Date();
         await user.save();
 
-        const token = generateToken({ userId: user.id });
-        return res.status(200).json({ message: 'Email berhasil diverifikasi!', token });
+        const token = generateToken({ userId: user.id, email: user.email, role: user.role.name });
+        return res.status(200).json({ message: 'Email berhasil diverifikasi!', token, role: user.role.name });
     } catch (error) {
         console.error('Error saat konfirmasi OTP:', error);
         return res.status(500).json({ message: 'Terjadi kesalahan server.' });

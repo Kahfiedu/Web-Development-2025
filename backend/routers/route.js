@@ -6,9 +6,11 @@ const userRoute = require('./userRouter.js');
 const roleRoute = require('./roleRouter.js');
 const paymentMethodRoute = require('./paymentMethodRoute.js');
 const bankRoute = require('./bankRoute.js');
+const childrenRoute = require('./childrenRoute.js');
 const revisionRoute = require('./revisionRoute.js');
 const { namespace } = require('../config/sequelizeContext.js');
 const { validateToken } = require('../middlewares/authMiddleware.js');
+const validateDataUser = require('../helpers/validationDataUser.js');
 
 // Wrap all requests in namespace context
 
@@ -22,21 +24,30 @@ router.use((req, res, next) => {
         validateToken(req, res, next);
     });
 });
+
+// Check Data User
+router.get('/validate/user', validateDataUser);
+
 // Protected routes
 router.use(userRoute);
 router.use(roleRoute);
 router.use(revisionRoute);
 router.use(paymentMethodRoute);
 router.use(bankRoute);
+router.use(childrenRoute);
+
+// Import route
 router.use('/excel/import', importRoute);
 
 // Debug endpoint
-router.get('/debug/context', (req, res) => {
-    const userId = namespace.get('userId');
-    res.status(200).json({
-        userId,
-        message: userId ? 'User context is set correctly' : 'User context is not set!'
+if (process.env.NODE_ENV === 'development') {
+    router.get('/debug/context', (req, res) => {
+        const userId = namespace.get('userId');
+        res.status(200).json({
+            success: true,
+            userId,
+            message: userId ? 'User context is set correctly' : 'User context is not set!'
+        });
     });
-});
-
+}
 module.exports = router;

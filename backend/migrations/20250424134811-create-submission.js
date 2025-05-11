@@ -34,7 +34,7 @@ module.exports = {
         type: Sequelize.STRING(36),
         defaultValue: Sequelize.UUIDV4,
         references: {
-          model: 'children',
+          model: 'childrens',
           key: 'id'
         },
         onDelete: 'CASCADE',

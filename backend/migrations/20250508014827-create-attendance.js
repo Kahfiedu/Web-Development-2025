@@ -43,7 +43,7 @@ module.exports = {
         type: Sequelize.STRING(36),
         allowNull: true,
         references: {
-          model: 'children',
+          model: 'childrens',
           key: 'id'
         },
         onDelete: 'CASCADE',

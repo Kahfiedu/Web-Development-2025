@@ -165,8 +165,7 @@ async function processUserRecord(item, index, rolesMap) {
 
         // Check for email uniqueness - add transaction
         const existingUser = await User.findOne({
-            where: { email: item.email },
-            transaction
+            where: { email: item.email }
         });
         if (existingUser) {
             console.warn(`⚠️ Record #${index + 1} skipped: email already exists ->`, item.email);

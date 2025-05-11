@@ -44,6 +44,10 @@ module.exports = (sequelize, DataTypes) => {
       type: DataTypes.STRING,
       allowNull: false,
     },
+    age: {
+      type: DataTypes.INTEGER,
+      allowNull: false,
+    },
     date_of_birth: {
       type: DataTypes.DATEONLY,
       allowNull: false,
@@ -63,6 +67,7 @@ module.exports = (sequelize, DataTypes) => {
     {
       sequelize,
       modelName: 'Child',
+      tableName: 'childrens',
       paranoid: true, // enable soft delete (adds deletedAt)
       timestamps: true, // default true, but better to be explicit
     }
