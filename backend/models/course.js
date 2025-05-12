@@ -32,6 +32,14 @@ module.exports = (sequelize, DataTypes) => {
       type: DataTypes.STRING,
       allowNull: false
     },
+    isFeatured: {
+      type: DataTypes.BOOLEAN,
+      allowNull: false
+    },
+    isPublish: {
+      type: DataTypes.BOOLEAN,
+      allowNull: false
+    },
     thumbnail: {
       type: DataTypes.STRING,
       allowNull: true

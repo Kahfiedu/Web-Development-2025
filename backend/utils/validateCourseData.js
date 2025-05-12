@@ -7,13 +7,15 @@ const { Category } = require('../models');
  * @param {number} data.description Course's description
  * @param {string} data.categoryId Course's categoryId
  * @param {string} data.level Course's level
+ * @param {boolean} data.isPublish Course's publish status
+ * @param {boolean} data.isFeatured Course's featured status
  * @param {string} data.thumbnail Course's thumbnail
  * @param {string} mode Operation mode ('create' or 'update')
  * @returns {Object} Validation result
  */
 
 const validateCourseData = (data, mode = 'create') => {
-    const { title, description, categoryId, level } = data;
+    const { title, description, categoryId, level, isPublish, isFeatured } = data;
     const validatedData = {};
 
     // Validate based on mode
@@ -95,6 +97,34 @@ const validateCourseData = (data, mode = 'create') => {
             validatedData.level = level.trim();
         }
 
+        if (isPublish !== undefined) {
+            if (typeof isPublish !== 'boolean' && isPublish !== 'true' && isPublish !== 'false') {
+                return {
+                    isValid: false,
+                    error: {
+                        status: 400,
+                        message: "isPublish must be a boolean value"
+                    }
+                };
+            }
+
+            validatedData.isPublish = isPublish.trim()
+        }
+
+        if (isFeatured !== undefined) {
+            if (typeof isFeatured !== 'boolean' && isFeatured !== 'true' && isFeatured !== 'false') {
+                return {
+                    isValid: false,
+                    error: {
+                        status: 400,
+                        message: "isFeatured must be a boolean value"
+                    }
+                };
+            }
+
+            validatedData.isFeatured = isFeatured.trim()
+        }
+
     }
 
     if (mode === 'update') {
@@ -152,6 +182,34 @@ const validateCourseData = (data, mode = 'create') => {
             }
             updates.level = level.trim();
         }
+
+        if (isPublish !== undefined) {
+            if (typeof isPublish !== 'boolean' && isPublish !== 'true' && isPublish !== 'false') {
+                return {
+                    isValid: false,
+                    error: {
+                        status: 400,
+                        message: "isPublish must be a boolean value"
+                    }
+                };
+            }
+            updates.isPublish = isPublish === true || isPublish === 'true';
+        }
+
+        // Validate isFeatured if provided
+        if (isFeatured !== undefined) {
+            if (typeof isFeatured !== 'boolean' && isFeatured !== 'true' && isFeatured !== 'false') {
+                return {
+                    isValid: false,
+                    error: {
+                        status: 400,
+                        message: "isFeatured must be a boolean value"
+                    }
+                };
+            }
+            updates.isFeatured = isFeatured === true || isFeatured === 'true';
+        }
+
 
         // Return the updates object even if empty
         return {

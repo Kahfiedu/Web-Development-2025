@@ -25,6 +25,7 @@ const createCourse = async (req, res) => {
 
     try {
 
+
         const courseData = {
             ...validationResult.data,
             thumbnail: thumbnailPath
@@ -34,19 +35,26 @@ const createCourse = async (req, res) => {
             userId: validation.userId,
         });
 
+        const resultCourse = await Course.findByPk(newCourse.id, {
+            include: [{
+                model: Category,
+                as: "category",
+                attributes: ["id", "name"]
+            }]
+        })
+
         return res.status(201).json({
             success: true,
             message: "Course berhasil dibuat",
-            course: newCourse
+            course: resultCourse
         });
 
     } catch (error) {
-        console.error("Error creating course:", error);
-        const status = error.status || 500;
-        const message = error.status ? error.message : "Internal server error";
-        return res.status(status).json({
+        console.error("Error getting courses:", error);
+        return res.status(500).json({
             success: false,
-            message
+            message: "Internal server error",
+            error: process.env.NODE_ENV === 'development' ? error.message : undefined
         });
     }
 
@@ -131,19 +139,20 @@ const getCourses = async (req, res) => {
 
     try {
         // Get total count first for pagination
-        const totalCount = await Course.count();
+
 
         // Get pagination settings
         const {
             limit,
             offset,
-            paranoid,
             statusCondition,
+            paranoid,
             meta
-        } = getPagination(req.query, totalCount);
+        } = getPagination(req.query);
 
         // Base where clause for search
         let whereClause = createSearchWhereClause(search, searchFields);
+
 
         // Add category filter if provided
         if (categoryId) {
@@ -154,6 +163,18 @@ const getCourses = async (req, res) => {
         if (statusCondition) {
             whereClause = { ...whereClause, ...statusCondition };
         }
+
+        const totalCount = await Course.count({
+            where: whereClause,
+            include: [{
+                model: Category,
+                as: "category",
+                attributes: ["id", "name"]
+            }]
+        })
+
+        meta.total = totalCount;
+        meta.totalPages = Math.ceil(totalCount / limit)
 
         // Get courses with pagination
         const { rows: courses } = await Course.findAndCountAll({

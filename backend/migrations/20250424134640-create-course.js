@@ -32,6 +32,14 @@ module.exports = {
         type: Sequelize.STRING,
         allowNull: false
       },
+      isFeatured: {
+        type: Sequelize.BOOLEAN,
+        allowNull: false
+      },
+      isPublish: {
+        type: Sequelize.BOOLEAN,
+        allowNull: false
+      },
       thumbnail: {
         type: Sequelize.STRING,
         allowNull: true
