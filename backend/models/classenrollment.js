@@ -10,7 +10,21 @@ module.exports = (sequelize, DataTypes) => {
      * The `models/index` file will call this method automatically.
      */
     static associate(models) {
-      // define association here
+      ClassEnrollment.belongsTo(models.User, {
+        foreignKey: 'studentId',
+        as: 'student',
+        onDelete: 'CASCADE'
+      })
+      ClassEnrollment.belongsTo(models.Child, {
+        foreignKey: 'childId',
+        as: 'child',
+        onDelete: 'CASCADE'
+      })
+      ClassEnrollment.belongsTo(models.Class, {
+        foreignKey: 'classId',
+        as: 'class',
+        onDelete: 'CASCADE'
+      })
     }
   }
   ClassEnrollment.init(
@@ -23,8 +37,7 @@ module.exports = (sequelize, DataTypes) => {
         defaultValue: DataTypes.UUIDV4,
       },
       classId: {
-        type: DataTypes.STRING,
-        defaultValue: DataTypes.UUIDV4,
+        type: DataTypes.STRING(36),
         references: {
           model: 'classes',
           key: 'id'
@@ -33,8 +46,7 @@ module.exports = (sequelize, DataTypes) => {
         allowNull: false,
       },
       studentId: {
-        type: DataTypes.STRING,
-        defaultValue: DataTypes.UUIDV4,
+        type: DataTypes.STRING(36),
         references: {
           model: 'users',
           key: 'id'
@@ -43,8 +55,7 @@ module.exports = (sequelize, DataTypes) => {
         allowNull: true,
       },
       childId: {
-        type: DataTypes.STRING,
-        defaultValue: DataTypes.UUIDV4,
+        type: DataTypes.STRING(36),
         references: {
           model: 'childrens',
           key: 'id'
@@ -57,14 +68,14 @@ module.exports = (sequelize, DataTypes) => {
         defaultValue: 0,
         allowNull: false,
       },
-      enrolled_at: {
+      enrolledAt: {
         type: DataTypes.DATE
       },
     },
     {
       sequelize,
       modelName: 'ClassEnrollment',
-      tableName: 'classenrollment',
+      tableName: 'class_enrollments',
       paranoid: true, // enable soft delete (adds deletedAt)
       timestamps: true, // default true, but better to be explicit
     }

@@ -11,6 +11,7 @@ const childrenRoute = require('./childrenRoute.js');
 const revisionRoute = require('./revisionRoute.js');
 const courseRoute = require('./courseRoute.js');
 const classRoute = require('./classRoute.js')
+const classEnrollmentRoute = require('./classEnrollmentRoute.js')
 const { namespace } = require('../config/sequelizeContext.js');
 const { validateToken } = require('../middlewares/authMiddleware.js');
 const validateDataUser = require('../helpers/validationDataUser.js');
@@ -41,6 +42,7 @@ router.use(childrenRoute);
 router.use(categoryRoute);
 router.use(courseRoute);
 router.use(classRoute);
+router.use(classEnrollmentRoute);
 
 // Import route
 router.use('/excel/import', importRoute);

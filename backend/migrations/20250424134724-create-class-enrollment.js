@@ -4,7 +4,7 @@
 /** @type {import('sequelize-cli').Migration} */
 module.exports = {
   async up(queryInterface, Sequelize) {
-    await queryInterface.createTable('ClassEnrollment', {
+    await queryInterface.createTable('class_enrollments', {
       id: {
         allowNull: false,
         unique: true,
@@ -44,7 +44,7 @@ module.exports = {
         defaultValue: 0,
         allowNull: false,
       },
-      enrolled_at: {
+      enrolledAt: {
         type: Sequelize.DATE,
         allowNull: false,
       },
@@ -68,6 +68,6 @@ module.exports = {
     });
   },
   async down(queryInterface, Sequelize) {
-    await queryInterface.dropTable('ClassEnrollment');
+    await queryInterface.dropTable('class_enrollments');
   }
 };
