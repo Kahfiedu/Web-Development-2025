@@ -25,7 +25,6 @@ const createCourse = async (req, res) => {
 
     try {
 
-
         const courseData = {
             ...validationResult.data,
             thumbnail: thumbnailPath

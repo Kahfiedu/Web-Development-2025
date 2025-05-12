@@ -35,7 +35,7 @@ const createClassEnrollment = async (req, res) => {
             class_enrollment: result
         });
     } catch (error) {
-        console.error("Error getting class:", error);
+        console.error("Error getting enrollment:", error);
         return res.status(500).json({
             success: false,
             message: "Internal server error",
@@ -160,7 +160,7 @@ const getClassEnrollmentById = async (req, res) => {
             class_enrollment: enrollment
         });
     } catch (error) {
-        console.error("Error getting class:", error);
+        console.error("Error getting enrollment:", error);
         return res.status(500).json({
             success: false,
             message: "Internal server error",
@@ -242,7 +242,7 @@ const deleteClassEnrollment = async (req, res) => {
             message: 'Pendaftaran berhasil dihapus (soft delete)'
         });
     } catch (error) {
-        console.error("Error getting class:", error);
+        console.error("Error getting enrollment:", error);
         return res.status(500).json({
             success: false,
             message: "Internal server error",
@@ -281,7 +281,7 @@ const restoreClassEnrollment = async (req, res) => {
             message: 'Pendaftaran berhasil dipulihkan kembali'
         });
     } catch (error) {
-        console.error("Error getting class:", error);
+        console.error("Error getting enrollment:", error);
         return res.status(500).json({
             success: false,
             message: "Internal server error",
