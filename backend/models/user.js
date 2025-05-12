@@ -7,7 +7,16 @@ module.exports = (sequelize, DataTypes) => {
   class User extends Model {
 
     static associate(models) {
-      User.hasMany(models.Otp, { foreignKey: 'userId', as: 'otps', onDelete: 'CASCADE' });
+      User.hasMany(models.Otp, {
+        foreignKey: 'userId',
+        as: 'otps',
+        onDelete: 'CASCADE'
+      });
+      User.hasMany(models.Class, {
+        foreignKey: 'teacherId',
+        as: 'classes',
+        onDelete: 'CASCADE'
+      });
 
       User.hasMany(models.Child, {
         foreignKey: 'parentId',
