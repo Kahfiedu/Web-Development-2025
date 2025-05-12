@@ -215,5 +215,30 @@ const changePassword = async (req, res) => {
     }
 };
 
+const logout = async (req, res) => {
+    try {
+        // Clear cookie if you're using cookie-based tokens
+        res.clearCookie('token');
 
-module.exports = { register, login, confirmOtp, resetPasswordRequest, changePassword };
+        return res.status(200).json({
+            success: true,
+            message: "Berhasil logout"
+        });
+    } catch (error) {
+        console.error('Error during logout:', error);
+        return res.status(500).json({
+            success: false,
+            message: "Terjadi kesalahan saat logout"
+        });
+    }
+};
+
+
+module.exports = {
+    register,
+    login,
+    confirmOtp,
+    resetPasswordRequest,
+    changePassword,
+    logout
+};

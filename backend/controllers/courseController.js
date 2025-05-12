@@ -92,12 +92,16 @@ const updateCourse = async (req, res) => {
             ...validationResult.data
         };
 
+        if (courseData.isPublish === false) {
+            courseData.isFeatured = false;
+        }
 
         // Only update thumbnail if new file is uploaded
         if (req.file) {
             const path = `course/${req.file.filename}`;
             courseData.thumbnail = getFileUrl(req, path);
         }
+
 
         // Update course
         await existingCourse.update(courseData, {
@@ -162,6 +166,10 @@ const getCourses = async (req, res) => {
         // Add status condition if present
         if (statusCondition) {
             whereClause = { ...whereClause, ...statusCondition };
+        }
+
+        if (req.userRole !== "admin") {
+            whereClause.isPublish = true
         }
 
         const totalCount = await Course.count({

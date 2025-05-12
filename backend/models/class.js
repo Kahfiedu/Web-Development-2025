@@ -2,27 +2,62 @@
 const {
   Model
 } = require('sequelize');
+
 module.exports = (sequelize, DataTypes) => {
   class Class extends Model {
-    /**
-     * Helper method for defining associations.
-     * This method is not a part of Sequelize lifecycle.
-     * The `models/index` file will call this method automatically.
-     */
     static associate(models) {
-      // define association here
+      // Class belongs to Course
+      Class.belongsTo(models.Course, {
+        foreignKey: 'courseId',
+        as: 'course',
+        onDelete: 'CASCADE'
+      });
+
+      // Class belongs to User (as Teacher)
+      Class.belongsTo(models.User, {
+        foreignKey: 'teacherId',
+        as: 'teacher',
+        onDelete: 'CASCADE'
+      });
     }
   }
+
   Class.init({
-    course_id: DataTypes.BIGINT,
-    teacher_id: DataTypes.BIGINT,
-    name: DataTypes.STRING,
-    schedule: DataTypes.TEXT,
-    start_date: DataTypes.DATE,
-    end_date: DataTypes.DATE
+    id: {
+      type: DataTypes.UUID,
+      defaultValue: DataTypes.UUIDV4,
+      primaryKey: true,
+    },
+    courseId: {
+      type: DataTypes.UUID,
+      allowNull: false,
+    },
+    teacherId: {
+      type: DataTypes.UUID,
+      allowNull: false,
+    },
+    name: {
+      type: DataTypes.STRING
+    },
+    schedule: {
+      type: DataTypes.TEXT
+    },
+    startDate: {
+      type: DataTypes.DATE
+    },
+    endDate: {
+      type: DataTypes.DATE
+    },
+    deletedAt: {
+      type: DataTypes.DATE
+    }
   }, {
     sequelize,
     modelName: 'Class',
+    tableName: 'classes',
+    timestamps: true,
+    paranoid: true,
   });
+
   return Class;
 };
