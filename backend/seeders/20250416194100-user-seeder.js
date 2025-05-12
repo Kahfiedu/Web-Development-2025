@@ -17,14 +17,26 @@ module.exports = {
     */
     const hashedPassword = await bcrypt.hash("12345678", 10);
 
-    const [roles] = await queryInterface.sequelize.query(
+    const [rolesAdmin] = await queryInterface.sequelize.query(
       `SELECT id FROM roles WHERE name = 'admin' LIMIT 1;`
     );
+    const [rolesTeacher] = await queryInterface.sequelize.query(
+      `SELECT id FROM roles WHERE name = 'teacher' LIMIT 1;`
+    );
+    const [rolesParent] = await queryInterface.sequelize.query(
+      `SELECT id FROM roles WHERE name = 'parent' LIMIT 1;`
+    );
+    const [rolesStudent] = await queryInterface.sequelize.query(
+      `SELECT id FROM roles WHERE name = 'student' LIMIT 1;`
+    );
 
-    const adminRoleId = roles.length ? roles[0].id : null;
+    const adminRoleId = rolesAdmin.length ? rolesAdmin[0].id : null;
+    const studentRoleId = rolesStudent.length ? rolesStudent[0].id : null;
+    const teacherRoleId = rolesTeacher.length ? rolesTeacher[0].id : null;
+    const parentRoleId = rolesParent.length ? rolesParent[0].id : null;
 
-    if (!adminRoleId) {
-      throw new Error("Role 'admin' tidak ditemukan. Pastikan seed roles sudah dijalankan.");
+    if (!adminRoleId || !studentRoleId || !teacherRoleId || !parentRoleId) {
+      throw new Error("Role tidak ditemukan. Pastikan seed roles sudah dijalankan.");
     }
     // Insert a demo user into the users table
     await queryInterface.bulkInsert('users', [
@@ -36,6 +48,39 @@ module.exports = {
         password: hashedPassword,
         emailVerified: new Date(),
         roleId: adminRoleId,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      },
+      {
+        id: uuidv4(),
+        name: "Student",
+        email: "student@example.com",
+        alamat: "Jl. Merpati No. 03, Tanjung Jabung Barat, Jambi, Indonesia",
+        password: hashedPassword,
+        emailVerified: new Date(),
+        roleId: studentRoleId,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      },
+      {
+        id: uuidv4(),
+        name: "Parent",
+        email: "parent@example.com",
+        alamat: "Jl. Merpati No. 03, Tanjung Jabung Barat, Jambi, Indonesia",
+        password: hashedPassword,
+        emailVerified: new Date(),
+        roleId: parentRoleId,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      },
+      {
+        id: uuidv4(),
+        name: "Teacher",
+        email: "teacher@example.com",
+        alamat: "Jl. Merpati No. 03, Tanjung Jabung Barat, Jambi, Indonesia",
+        password: hashedPassword,
+        emailVerified: new Date(),
+        roleId: teacherRoleId,
         createdAt: new Date(),
         updatedAt: new Date(),
       },

@@ -10,18 +10,51 @@ module.exports = (sequelize, DataTypes) => {
      * The `models/index` file will call this method automatically.
      */
     static associate(models) {
-      // define association here
+      Lesson.belongsTo(models.Course, {
+        foreignKey: 'courseId',
+        as: 'course',
+      })
     }
   }
   Lesson.init({
-    course_id: DataTypes.BIGINT,
-    title: DataTypes.STRING,
-    content: DataTypes.TEXT,
-    video_url: DataTypes.STRING,
-    order: DataTypes.INTEGER
+    id: {
+      allowNull: false,
+      unique: true,
+      primaryKey: true,
+      type: DataTypes.STRING(36),
+      defaultValue: DataTypes.UUIDV4,
+    },
+    courseId: {
+      type: DataTypes.STRING(36),
+      references: {
+        model: 'courses',
+        key: 'id'
+      },
+      onDelete: 'CASCADE',
+      allowNull: false
+    },
+    title: {
+      type: DataTypes.STRING,
+      allowNull: false
+    },
+    content: {
+      type: DataTypes.TEXT,
+      allowNull: true
+    },
+    videoUrl: {
+      type: DataTypes.STRING,
+      allowNull: true
+    },
+    order: {
+      type: DataTypes.INTEGER,
+      allowNull: false
+    },
   }, {
     sequelize,
     modelName: 'Lesson',
+    tableName: 'lessons',
+    paranoid: true,
+    timestamps: true
   });
   return Lesson;
 };
