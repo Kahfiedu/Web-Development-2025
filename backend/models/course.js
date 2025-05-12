@@ -8,6 +8,12 @@ module.exports = (sequelize, DataTypes) => {
         as: 'category',
         onDelete: 'CASCADE'
       });
+      Course.hasMany(models.Class, {
+        foreignKey: 'courseId',
+        as: 'classes',
+        onDelete: 'CASCADE'
+      });
+
     }
   }
   Course.init({
