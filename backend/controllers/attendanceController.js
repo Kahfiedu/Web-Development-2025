@@ -299,7 +299,7 @@ const getAttendances = async (req, res) => {
             meta.totalPages = 0;
             return res.status(404).json({
                 success: false,
-                message: "Tidak ada data lesson yang ditemukan",
+                message: "Tidak ada data attendance yang ditemukan",
                 attendances: [],
                 meta
             });
@@ -362,9 +362,70 @@ const getAttendances = async (req, res) => {
     }
 }
 
+const getAttendanceById = async (req, res) => {
+    const { id } = req.params;
 
+    try {
+        const attendance = await Attendance.findOne({
+            where: { id },
+            include: [
+                {
+                    model: Class,
+                    as: 'class',
+                    attributes: ["id", "name"],
+                    include: [{
+                        model: User,
+                        as: 'teacher',
+                        attributes: ["id", "name", "phone"]
+                    }]
+                },
+                {
+                    model: Lesson,
+                    as: 'lesson',
+                    attributes: ["id", "title"]
+                },
+                {
+                    model: User,
+                    as: 'student',
+                    attributes: ["id", "name"],
+                    required: false
+                },
+                {
+                    model: Child,
+                    as: 'child',
+                    attributes: ["id", "name"],
+                    required: false
+                }
+            ]
+        });
+
+        if (!attendance) {
+            return res.status(404).json({
+                success: false,
+                message: "Data attendance tidak ditemukan"
+            });
+        }
+
+        return res.status(200).json({
+            success: true,
+            message: "Berhasil mendapatkan data attendance",
+            attendance
+        });
+
+    } catch (error) {
+        console.error("Error getting attendance:", error);
+        return res.status(500).json({
+            success: false,
+            message: "Terjadi kesalahan internal",
+            error: process.env.NODE_ENV === 'development' ? error.message : undefined
+        });
+    }
+};
+
+// Don't forget to add it to module.exports
 module.exports = {
     createAttendance,
     updateAttendance,
-    getAttendances
-}
+    getAttendances,
+    getAttendanceById
+};
