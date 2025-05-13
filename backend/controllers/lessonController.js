@@ -1,6 +1,6 @@
 const { Op } = require('sequelize');
 const { createSearchWhereClause } = require('../helpers/searchQueryHelper');
-const { Lesson, Course, Category } = require('../models');
+const { Lesson, Class, Category } = require('../models');
 const { getPagination } = require('../utils/paginationUtil');
 const { validateLessonData } = require('../utils/validateLessonData');
 
@@ -21,9 +21,9 @@ const createLesson = async (req, res) => {
         const result = await Lesson.findByPk(newLesson.id, {
             include: [
                 {
-                    model: Course,
-                    as: "course",
-                    attributes: ["id", "title"]
+                    model: Class,
+                    as: "class",
+                    attributes: ["id", "name"]
                 },
             ]
         })
@@ -46,11 +46,11 @@ const createLesson = async (req, res) => {
 const getLessons = async (req, res) => {
     const {
         search = "",
-        courseId
+        classId
     } = req.query;
 
     const searchFields = ['title']; // misalnya, search hanya untuk status teks
-    const exactMatchFields = { courseId };
+    const exactMatchFields = { classId };
 
     try {
 
@@ -78,7 +78,7 @@ const getLessons = async (req, res) => {
         const totalCount = await Lesson.count({
             where: whereClause,
             include: [
-                { model: Course, as: 'course', attributes: ["id", "title"] },
+                { model: Class, as: 'class', attributes: ["id", "name"] },
             ]
         });
 
@@ -91,7 +91,7 @@ const getLessons = async (req, res) => {
             offset,
             order: [['order', 'ASC']],
             include: [
-                { model: Course, as: 'course', attributes: ["id", "title"] },
+                { model: Class, as: 'class', attributes: ["id", "name"] },
             ],
             paranoid,
             distinct: true
@@ -133,12 +133,12 @@ const getLessonById = async (req, res) => {
         const lesson = await Lesson.findByPk(id, {
             include: [
                 {
-                    model: Course,
-                    as: 'course',
+                    model: Class,
+                    as: 'class',
                     include: [{
-                        model: Category,
-                        as: 'category',
-                        attributes: ["id", "name"]
+                        model: Course,
+                        as: 'course',
+                        attributes: ["id", "title"]
                     }]
                 }
             ],
@@ -282,12 +282,12 @@ const restoreLesson = async (req, res) => {
         const result = await Lesson.findByPk(lesson.id, {
             include: [
                 {
-                    model: Course,
-                    as: 'course',
+                    model: Class,
+                    as: 'class',
                     include: [{
-                        model: Category,
-                        as: 'category',
-                        attributes: ["id", "name"]
+                        model: Course,
+                        as: 'course',
+                        attributes: ["id", "title"]
                     }]
                 }
             ],

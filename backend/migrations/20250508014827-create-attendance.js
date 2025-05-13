@@ -48,6 +48,15 @@ module.exports = {
         },
         onDelete: 'CASCADE',
       },
+      teacherId: {
+        type: Sequelize.STRING(36),
+        allowNull: true,
+        references: {
+          model: 'users',
+          key: 'id'
+        },
+        onDelete: 'CASCADE',
+      },
       scaneTime: {
         type: Sequelize.DATE,
         allowNull: false,
@@ -70,6 +79,10 @@ module.exports = {
         type: Sequelize.BOOLEAN,
         allowNull: false,
         defaultValue: false
+      },
+      scanTime: {
+        type: Sequelize.DATE,
+        allowNull: false,
       },
       code: {
         type: Sequelize.STRING(6),

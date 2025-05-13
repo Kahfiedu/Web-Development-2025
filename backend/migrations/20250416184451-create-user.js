@@ -19,15 +19,11 @@ module.exports = {
         type: Sequelize.STRING,
         allowNull: true,
       },
-      country: {
+      province: {
         type: Sequelize.STRING,
         allowNull: true,
       },
-      state: {
-        type: Sequelize.STRING,
-        allowNull: true,
-      },
-      city: {
+      regency: {
         type: Sequelize.STRING,
         allowNull: true,
       },

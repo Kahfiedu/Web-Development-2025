@@ -4,33 +4,50 @@ const { Model } = require('sequelize');
 module.exports = (sequelize, DataTypes) => {
   class District extends Model {
     static associate(models) {
-      // Relasi ke City
-      District.belongsTo(models.City, {
-        foreignKey: 'cityId',
-        as: 'city'
+      // Relasi ke Regency
+      District.belongsTo(models.Regency, {
+        foreignKey: 'regency_id',
+        as: 'regency'
       });
-
-      // Jika kamu lanjut buat model Village:
       District.hasMany(models.Village, {
-        foreignKey: 'districtId',
+        foreignKey: 'district_id',
         as: 'villages'
       });
     }
   }
 
   District.init({
+    id: {
+      type: DataTypes.BIGINT,
+      allowNull: false,
+      autoIncrement: true,
+      unique: true,
+      primaryKey: true,
+    },
     name: {
       type: DataTypes.STRING,
-      allowNull: false
+      allowNull: false,
     },
-    cityId: {
-      type: DataTypes.INTEGER,
-      allowNull: false
-    }
+    regency_id: {
+      type: DataTypes.BIGINT,
+      references: {
+        model: 'regencies',
+        key: 'id',
+      },
+      onDelete: 'CASCADE',
+      allowNull: false,
+    },
+    isActive: {
+      type: DataTypes.BOOLEAN,
+      allowNull: false,
+      defaultValue: true,
+    },
   }, {
     sequelize,
     modelName: 'District',
+    tableName: 'districts',
     paranoid: true, // Untuk mendukung soft delete (deletedAt)
+    timestamps: true,
   });
 
   return District;

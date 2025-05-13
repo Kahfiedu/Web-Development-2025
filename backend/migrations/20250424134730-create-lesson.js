@@ -10,11 +10,11 @@ module.exports = {
         type: Sequelize.STRING(36),
         defaultValue: Sequelize.UUIDV4,
       },
-      courseId: {
+      classId: {
         type: Sequelize.STRING(36),
         defaultValue: Sequelize.UUIDV4,
         references: {
-          model: 'courses',
+          model: 'classes',
           key: 'id'
         },
         onDelete: 'CASCADE',
@@ -35,6 +35,11 @@ module.exports = {
       order: {
         type: Sequelize.INTEGER,
         allowNull: false
+      },
+      code: {
+        type: Sequelize.STRING(6),
+        allowNull: true,
+        comment: 'Kode unik untuk absensi, misalnya digunakan dalam QR Code',
       },
       createdAt: {
         type: Sequelize.DATE,

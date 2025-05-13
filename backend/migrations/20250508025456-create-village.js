@@ -5,24 +5,28 @@ module.exports = {
     await queryInterface.createTable('villages', {
       id: {
         allowNull: false,
+        autoIncrement: true,
         unique: true,
         primaryKey: true,
-        type: Sequelize.STRING(36),
-        defaultValue: Sequelize.UUIDV4,
+        type: Sequelize.BIGINT,
       },
       name: {
         type: Sequelize.STRING,
         allowNull: false,
       },
-      districtId: {
-        type: Sequelize.STRING(36),
-        defaultValue: Sequelize.UUIDV4,
+      district_id: {
+        type: Sequelize.BIGINT,
         references: {
           model: 'districts',
           key: 'id',
         },
         onDelete: 'CASCADE',
         allowNull: false,
+      },
+      isActive: {
+        type: Sequelize.BOOLEAN,
+        allowNull: false,
+        defaultValue: true,
       },
       createdAt: {
         allowNull: false,

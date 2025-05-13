@@ -10,9 +10,9 @@ module.exports = (sequelize, DataTypes) => {
      * The `models/index` file will call this method automatically.
      */
     static associate(models) {
-      Lesson.belongsTo(models.Course, {
-        foreignKey: 'courseId',
-        as: 'course',
+      Lesson.belongsTo(models.Class, {
+        foreignKey: 'classId',
+        as: 'class',
       })
     }
   }
@@ -24,10 +24,10 @@ module.exports = (sequelize, DataTypes) => {
       type: DataTypes.STRING(36),
       defaultValue: DataTypes.UUIDV4,
     },
-    courseId: {
+    classId: {
       type: DataTypes.STRING(36),
       references: {
-        model: 'courses',
+        model: 'classes',
         key: 'id'
       },
       onDelete: 'CASCADE',
@@ -49,12 +49,41 @@ module.exports = (sequelize, DataTypes) => {
       type: DataTypes.INTEGER,
       allowNull: false
     },
+    code: {
+      type: DataTypes.STRING(6),
+      allowNull: true,
+      unique: true,
+    },
   }, {
     sequelize,
     modelName: 'Lesson',
     tableName: 'lessons',
     paranoid: true,
-    timestamps: true
+    timestamps: true,
+    hooks: {
+      beforeCreate: async (lesson, options) => {
+        // Fungsi generate kode acak
+        const generateCode = () => {
+          const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+          let result = '';
+          for (let i = 0; i < 6; i++) {
+            result += chars.charAt(Math.floor(Math.random() * chars.length));
+          }
+          return result;
+        };
+
+        // Cek agar kode unik (opsional)
+        let unique = false;
+        while (!unique) {
+          const newCode = generateCode();
+          const existing = await sequelize.models.Lesson.findOne({ where: { code: newCode } });
+          if (!existing) {
+            lesson.code = newCode;
+            unique = true;
+          }
+        }
+      }
+    }
   });
   return Lesson;
 };

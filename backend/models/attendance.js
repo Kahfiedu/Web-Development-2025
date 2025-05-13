@@ -31,6 +31,13 @@ module.exports = (sequelize, DataTypes) => {
   }
 
   Attendance.init({
+    id: {
+      allowNull: false,
+      unique: true,
+      primaryKey: true,
+      type: DataTypes.STRING(36),
+      defaultValue: DataTypes.UUIDV4,
+    },
     classId: {
       type: DataTypes.STRING,
       allowNull: false,
@@ -47,24 +54,26 @@ module.exports = (sequelize, DataTypes) => {
       type: DataTypes.STRING,
       allowNull: true,
     },
+    teacherId: {
+      type: DataTypes.STRING,
+      allowNull: true,
+    },
     scanTime: {
       type: DataTypes.DATE,
       allowNull: false,
     },
     status: {
       type: DataTypes.ENUM('hadir', 'izin', 'sakit', 'alfa'),
-      defaultValue: 'present',
+      defaultValue: 'hadir',
       allowNull: false,
     },
     excuseLetter: {
       type: DataTypes.STRING,
       allowNull: true,
-      comment: 'URL atau path file surat izin (jika ada)',
     },
     description: {
       type: DataTypes.TEXT,
       allowNull: true,
-      comment: 'Keterangan tambahan terkait absensi',
     },
     isVerified: {
       type: DataTypes.BOOLEAN,
@@ -74,8 +83,6 @@ module.exports = (sequelize, DataTypes) => {
     code: {
       type: DataTypes.STRING,
       allowNull: true,
-      unique: true,
-      comment: 'Kode unik untuk absensi, misalnya digunakan dalam QR Code',
     },
   }, {
     sequelize,

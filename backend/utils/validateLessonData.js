@@ -1,29 +1,29 @@
-const { Course } = require('../models')
+const { Class } = require('../models')
 
 /**
  * Validates child data for create and update operations
- * @param {Object} data Course data to validate
- * @param {string} data.courseId Course's title
- * @param {string} data.title Course's description
- * @param {string} data.content Course's categoryId
- * @param {string} data.videoUrl Course's level
- * @param {number} data.order Course's publish status
+ * @param {Object} data Class data to validate
+ * @param {string} data.classId Class's title
+ * @param {string} data.title Class's description
+ * @param {string} data.content Class's categoryId
+ * @param {string} data.videoUrl Class's level
+ * @param {number} data.order Class's publish status
  * @param {string} mode Operation mode ('create' or 'update')
  * @returns {Object} Validation result
  */
 
 
 const validateLessonData = (data, mode = 'create') => {
-    const { courseId, title, content, videoUrl, order } = data;
+    const { classId, title, content, videoUrl, order } = data;
     const validatedData = {};
 
     if (mode === 'create') {
-        if (!title || !courseId || !content || !order) {
+        if (!title || !classId || !content || !order) {
             return {
                 isValid: false,
                 error: {
                     status: 400,
-                    message: "courseId, title, content, and order are required"
+                    message: "classId, title, content, and order are required"
                 }
             };
         }
@@ -42,28 +42,28 @@ const validateLessonData = (data, mode = 'create') => {
         validatedData.title = title.trim();
     }
 
-    if (courseId !== undefined) {
-        if (typeof courseId !== 'string' || courseId.trim().length === 0) {
+    if (classId !== undefined) {
+        if (typeof classId !== 'string' || classId.trim().length === 0) {
             return {
                 isValid: false,
                 error: {
                     status: 400,
-                    message: "CourseId must be a string and cannot be empty"
+                    message: "ClassId must be a string and cannot be empty"
                 }
             };
         }
 
-        const course = Course.findOne({ where: { id: courseId } });
+        const course = Class.findOne({ where: { id: classId } });
         if (!course) {
             return {
                 isValid: false,
                 error: {
                     status: 404,
-                    message: "Course not found"
+                    message: "Class not found"
                 }
             };
         }
-        validatedData.courseId = courseId.trim();
+        validatedData.classId = classId.trim();
     }
 
     if (content !== undefined) {

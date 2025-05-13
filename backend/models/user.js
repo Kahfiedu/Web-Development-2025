@@ -64,15 +64,11 @@ module.exports = (sequelize, DataTypes) => {
         type: DataTypes.STRING,
         allowNull: true
       },
-      country: {
+      province: {
         type: DataTypes.STRING,
         allowNull: true
       },
-      state: {
-        type: DataTypes.STRING,
-        allowNull: true
-      },
-      city: {
+      regency: {
         type: DataTypes.STRING,
         allowNull: true
       },
