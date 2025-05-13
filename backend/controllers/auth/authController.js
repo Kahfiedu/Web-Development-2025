@@ -3,7 +3,7 @@ const { v4: uuidv4 } = require("uuid");
 const sendEmail = require('../../helpers/sendEmailHelper');
 const { generateOtp } = require('../../utils/generateOtp');
 const { generateToken } = require('../../helpers/jwtHelper');
-const url = process.env.APP_URL || 'http://localhost:5173';
+const url = process.env.FRONTEND_URL || 'http://localhost:5173';
 const jwt = require('jsonwebtoken');
 
 // Fungsi Registrasi
@@ -233,6 +233,52 @@ const logout = async (req, res) => {
     }
 };
 
+const loginWithGoogle = async (req, res) => {
+    const { googleToken } = req.body;
+
+    try {
+        // Verify token with Google
+        const ticket = await client.verifyIdToken({
+            idToken: googleToken,
+            audience: process.env.GOOGLE_CLIENT_ID
+        });
+
+        const { email, name, sub: googleId } = ticket.getPayload();
+
+        // Find or create user
+        const [user, created] = await User.findOrCreate({
+            where: { email },
+            defaults: {
+                name,
+                googleId,
+                emailVerified: new Date(),
+                roleId: await Role.findOne({ where: { name: 'student' } }).then(role => role.id)
+            },
+            include: [{
+                model: Role,
+                as: 'role',
+                attributes: ['id', 'name']
+            }]
+        });
+
+        const token = generateToken({
+            userId: user.id,
+            email: user.email,
+            role: user.role.name
+        });
+
+        return res.status(200).json({
+            message: 'Login berhasil!',
+            token,
+            role: user.role.name
+        });
+
+    } catch (error) {
+        console.error('Error during Google login:', error);
+        return res.status(500).json({ message: 'Terjadi kesalahan server.' });
+    }
+};
+
 
 module.exports = {
     register,
@@ -240,5 +286,6 @@ module.exports = {
     confirmOtp,
     resetPasswordRequest,
     changePassword,
-    logout
+    logout,
+    loginWithGoogle
 };

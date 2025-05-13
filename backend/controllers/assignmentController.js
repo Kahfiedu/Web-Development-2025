@@ -1,5 +1,5 @@
 const { Assignment, Class } = require('../models');
-const { createErrorResponse, createSuccessResponse } = require('../helpers/helperFunction');
+const { createSuccessResponse, handleError, AppError } = require('../helpers/helperFunction');
 const { createSearchWhereClause } = require('../helpers/searchQueryHelper');
 const { getPagination } = require('../utils/paginationUtil');
 const validateAssignmentData = require('../utils/validateAssignmentData');
@@ -8,17 +8,12 @@ const { isAdminOrTeacher } = require('../helpers/validationAdmin');
 const createAssignment = async (req, res) => {
     const validationResult = await validateAssignmentData(req.body, 'create');
     if (!validationResult.isValid) {
-        const { status, message } = validationResult.error;
-        return res.status(status).json({
-            success: false,
-            message
-        });
+        throw new AppError(validationResult.error.message, validationResult.error.status);
     }
 
     const validation = isAdminOrTeacher(req.userRole, req.userId);
     if (!validation.isValid) {
-        return res.status(validation.error.status)
-            .json({ message: validation.error.message });
+        throw new AppError(validation.error.message, validation.error.status);
     }
 
     try {
@@ -28,9 +23,7 @@ const createAssignment = async (req, res) => {
 
         const resultAssignment = await Assignment.findByPk(newAssignment.id);
         if (!resultAssignment) {
-            return res.status(404).json(createErrorResponse(
-                "Data tugas tidak ditemukan"
-            ));
+            throw new AppError("Data tugas tidak ditemukan", 404);
         }
 
         return res.status(201).json(createSuccessResponse(
@@ -39,11 +32,7 @@ const createAssignment = async (req, res) => {
         ));
 
     } catch (error) {
-        console.error("Error creating assignment:", error);
-        return res.status(500).json(createErrorResponse(
-            "Internal server error",
-            process.env.NODE_ENV === 'development' ? error.message : undefined
-        ));
+        return handleError(error, res);
     }
 };
 
@@ -92,13 +81,7 @@ const getAssignments = async (req, res) => {
         if (assignments.length === 0) {
             meta.total = 0;
             meta.totalPages = 0;
-
-            return res.status(404).json({
-                success: false,
-                message: "Tidak ada tugas yang ditemukan",
-                assignments: [],
-                meta
-            });
+            throw new AppError("Tidak ada tugas yang ditemukan", 404);
         }
 
         return res.status(200).json({
@@ -109,11 +92,7 @@ const getAssignments = async (req, res) => {
         });
 
     } catch (error) {
-        console.error("Error getting assignments:", error);
-        return res.status(500).json(createErrorResponse(
-            "Internal server error",
-            process.env.NODE_ENV === 'development' ? error.message : undefined
-        ));
+        return handleError(error, res);
     }
 };
 
@@ -128,9 +107,7 @@ const getAssignmentById = async (req, res) => {
         });
 
         if (!assignment) {
-            return res.status(404).json(createErrorResponse(
-                "Data tugas tidak ditemukan"
-            ));
+            throw new AppError("Tidak ada tugas yang ditemukan", 404);
         }
 
         return res.status(200).json(createSuccessResponse(
@@ -139,38 +116,26 @@ const getAssignmentById = async (req, res) => {
         ));
 
     } catch (error) {
-        console.error("Error getting assignment:", error);
-        return res.status(500).json(createErrorResponse(
-            "Internal server error",
-            process.env.NODE_ENV === 'development' ? error.message : undefined
-        ));
+        return handleError(error, res);
     }
 };
 
 const updateAssignment = async (req, res) => {
     const { id } = req.params;
     const validationResult = await validateAssignmentData(req.body, 'update');
-
     if (!validationResult.isValid) {
-        const { status, message } = validationResult.error;
-        return res.status(status).json({
-            success: false,
-            message
-        });
+        throw new AppError(validationResult.error.message, validationResult.error.status);
     }
 
     const validation = isAdminOrTeacher(req.userRole, req.userId);
     if (!validation.isValid) {
-        return res.status(validation.error.status)
-            .json({ message: validation.error.message });
+        throw new AppError(validation.error.message, validation.error.status);
     }
 
     try {
         const assignment = await Assignment.findByPk(id);
         if (!assignment) {
-            return res.status(404).json(createErrorResponse(
-                "Data tugas tidak ditemukan"
-            ));
+            throw new AppError("Data tugas tidak ditemukan", 404)
         }
 
         await assignment.update(validationResult.data, {
@@ -185,11 +150,7 @@ const updateAssignment = async (req, res) => {
         ));
 
     } catch (error) {
-        console.error("Error updating assignment:", error);
-        return res.status(500).json(createErrorResponse(
-            "Internal server error",
-            process.env.NODE_ENV === 'development' ? error.message : undefined
-        ));
+        return handleError(error, res);
     }
 };
 
@@ -198,8 +159,7 @@ const deleteAssignment = async (req, res) => {
 
     const validation = isAdminOrTeacher(req.userRole, req.userId);
     if (!validation.isValid) {
-        return res.status(validation.error.status)
-            .json({ message: validation.error.message });
+        throw new AppError(validation.error.message, validation.error.status);
     }
 
     try {
@@ -207,9 +167,7 @@ const deleteAssignment = async (req, res) => {
             paranoid: false
         });
         if (!assignment) {
-            return res.status(404).json(createErrorResponse(
-                "Data tugas tidak ditemukan"
-            ));
+            throw new AppError("Data tugas tidak ditemukan", 404)
         }
 
         if (assignment.deletedAt) {
@@ -230,11 +188,7 @@ const deleteAssignment = async (req, res) => {
         ));
 
     } catch (error) {
-        console.error("Error deleting assignment:", error);
-        return res.status(500).json(createErrorResponse(
-            "Internal server error",
-            process.env.NODE_ENV === 'development' ? error.message : undefined
-        ));
+        return handleError(error, res);
     }
 };
 
@@ -254,9 +208,7 @@ const restoreAssignment = async (req, res) => {
         });
 
         if (!restored) {
-            return res.status(404).json(createErrorResponse(
-                "Data tugas tidak ditemukan atau sudah aktif"
-            ));
+            throw new AppError("Data tugas tidak ditemukan", 404)
         }
 
         const assignment = await Assignment.findByPk(id);
@@ -267,11 +219,7 @@ const restoreAssignment = async (req, res) => {
         ));
 
     } catch (error) {
-        console.error("Error restoring assignment:", error);
-        return res.status(500).json(createErrorResponse(
-            "Internal server error",
-            process.env.NODE_ENV === 'development' ? error.message : undefined
-        ));
+        return handleError(error, res);
     }
 };
 

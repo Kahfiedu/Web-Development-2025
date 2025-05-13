@@ -33,6 +33,33 @@ const createGroupedResponse = (data, type) => {
     };
 };
 
+class AppError extends Error {
+    constructor(message, statusCode = 500) {
+        super(message);
+        this.name = 'AppError';
+        this.statusCode = statusCode;
+        this.success = false;
+        this.status = `${statusCode}`.startsWith('4') ? 'fail' : 'error';
+        Error.captureStackTrace(this, this.constructor);
+    }
+}
+
+const handleError = (error, res) => {
+    if (error instanceof AppError) {
+        return res.status(error.statusCode).json({
+            success: false,
+            message: error.message
+        });
+    }
+
+    console.error('Unhandled Error:', error);
+    return res.status(500).json({
+        success: false,
+        message: 'Terjadi kesalahan internal',
+        ...(process.env.NODE_ENV === 'development' && { error: error.stack })
+    });
+};
+
 const createErrorResponse = (message, error = null) => ({
     success: false,
     message,
@@ -50,5 +77,7 @@ module.exports = {
     handlePagination,
     createGroupedResponse,
     createErrorResponse,
-    createSuccessResponse
+    createSuccessResponse,
+    handleError,
+    AppError
 };

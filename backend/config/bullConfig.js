@@ -1,22 +1,37 @@
 const Bull = require('bull');
-const Redis = require('ioredis');
+const { createClient } = require('@redis/client');
 const path = require('path');
 
-// Create Redis client instances
+// Redis configuration
 const redisConfig = {
-    host: process.env.REDIS_HOST || 'localhost',
-    port: parseInt(process.env.REDIS_PORT || '6379'),
-    maxRetriesPerRequest: 3,
-    enableReadyCheck: false
+    url: `redis://${process.env.REDIS_HOST || 'localhost'}:${process.env.REDIS_PORT || '6379'}`,
+    socket: {
+        reconnectStrategy: (retries) => {
+            return Math.min(retries * 50, 2000);
+        }
+    }
 };
 
-// Create separate Redis clients for different purposes
-const redisClient = new Redis(redisConfig);
-const redisSubscriber = new Redis(redisConfig);
+// Create Redis clients
+const redisClient = createClient(redisConfig);
+const redisSubscriber = createClient(redisConfig);
 
-// Handle Redis connection events
-redisClient.on('connect', () => console.log('📌 Redis client connected'));
+// Connect Redis clients
+(async () => {
+    try {
+        await redisClient.connect();
+        console.log('📌 Redis client connected');
+
+        await redisSubscriber.connect();
+        console.log('📌 Redis subscriber connected');
+    } catch (error) {
+        console.error('❌ Redis connection error:', error);
+    }
+})();
+
+// Handle Redis errors
 redisClient.on('error', (error) => console.error('❌ Redis client error:', error));
+redisSubscriber.on('error', (error) => console.error('❌ Redis subscriber error:', error));
 
 /**
  * Create a Bull queue with consistent configuration
@@ -26,7 +41,11 @@ redisClient.on('error', (error) => console.error('❌ Redis client error:', erro
  */
 const createQueue = (name, options = {}) => {
     const defaultOptions = {
-        redis: redisConfig,
+        redis: {
+            host: process.env.REDIS_HOST || 'localhost',
+            port: parseInt(process.env.REDIS_PORT || '6379'),
+            retryStrategy: (times) => Math.min(times * 50, 2000)
+        },
         defaultJobOptions: {
             attempts: 3,
             backoff: {
@@ -59,6 +78,13 @@ const createQueue = (name, options = {}) => {
 
     return queue;
 };
+
+// Graceful shutdown
+process.on('SIGTERM', async () => {
+    await redisClient.quit();
+    await redisSubscriber.quit();
+    process.exit(0);
+});
 
 module.exports = {
     redisClient,

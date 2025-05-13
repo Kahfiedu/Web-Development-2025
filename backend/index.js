@@ -1,73 +1,69 @@
-require("dotenv").config(); // Load .env
-
+require("dotenv").config();
 const express = require("express");
 const http = require("http");
 const { sequelize } = require("./models");
 const corsHelper = require("./helpers/corsHelper");
 const apiKeyMiddleware = require("./middlewares/apiKeyMiddleware");
-const route = require("./routers/route");
+const validateEnv = require("./helpers/validateEnv");
+const {
+    configureMiddleware,
+    configureLogging,
+    configureErrorHandling
+} = require("./config/serverConfig");
 const { initSocket } = require("./config/socketConfig");
 const { redisClient } = require("./config/bullConfig");
+const route = require("./routers/route");
+
+// Validate environment variables
+validateEnv();
 
 const app = express();
-const server = http.createServer(app); // Dibutuhkan untuk Socket.IO
+const server = http.createServer(app);
 
-// ✅ Validasi variabel lingkungan
-if (!process.env.JWT_SECRET) {
-    console.error("❌ JWT_SECRET tidak ditemukan di file .env");
-    process.exit(1);
-}
-
-// 📝 Logging setiap request
-app.use((req, res, next) => {
-    // Set namespace untuk setiap request
-    console.log(`[${new Date().toISOString()}] ${req.method} ${req.url}`);
-    next();
-});
-
-// 📂 (Optional) akses file upload
-app.use("/uploads", express.static("uploads"));
-
-// 🧩 Middleware umum
+// Configure middleware
+configureLogging(app);
 app.use(corsHelper());
-app.use(express.json());
 app.use(apiKeyMiddleware);
+configureMiddleware(app, redisClient);
 
-
-
-
-// 📌 Versi API
+// API routes
 const v = process.env.API_VERSION || "v1";
 app.use(`/api/${v}/`, route);
 
-// 🧨 Global error handler
-app.use((err, req, res, next) => {
-    console.error(err.stack);
-    res.status(500).json({ message: "Internal Server Error", error: err.message });
-});
+// Error handling
+configureErrorHandling(app);
 
-// 🚀 Jalankan server
+// Start server
 const PORT = process.env.PORT || 5000;
 server.listen(PORT, async () => {
     try {
+        // Database connection
         await sequelize.authenticate();
         console.log("✅ Database connected");
 
-        // 🔌 Inisialisasi Socket.IO
-        initSocket(server);
+        // Socket.IO initialization
+        await initSocket(server);
         console.log("📡 Socket.IO initialized");
 
-        // 🧠 Cek koneksi Redis
+        // Redis health check
         const redisStatus = await redisClient.ping();
-        if (redisStatus === "PONG") {
-            console.log("🟥 Redis connected");
-        } else {
-            console.warn("⚠️ Redis tidak merespons dengan benar:", redisStatus);
-        }
+        console.log(redisStatus === "PONG"
+            ? "🟥 Redis connected"
+            : "⚠️ Redis connection issue"
+        );
 
         console.log(`🚀 Server running at http://localhost:${PORT}`);
     } catch (error) {
         console.error("❌ Startup error:", error);
         process.exit(1);
     }
+});
+
+// Graceful shutdown
+process.on('SIGTERM', async () => {
+    console.log('📝 Shutting down gracefully...');
+    await server.close();
+    await sequelize.close();
+    await redisClient.quit();
+    process.exit(0);
 });

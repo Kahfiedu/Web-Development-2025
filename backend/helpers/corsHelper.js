@@ -1,11 +1,20 @@
-require("dotenv").config(); // Menggunakan dotenv untuk mengakses variabel dari .env
+require("dotenv").config();
 const cors = require('cors');
 
 const corsOptions = {
-    origin: "*",
-    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-    allowedHeaders: ['Content-Type', 'Authorization', 'x-api-key'],
-    credentials: true,
+    origin: process.env.FRONTEND_URL || 'http://localhost:3000',
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
+    allowedHeaders: [
+        'Content-Type',
+        'Authorization',
+        'x-api-key',
+        'Access-Control-Allow-Headers',
+        'Origin',
+        'Accept'
+    ],
+    exposedHeaders: ['Content-Range', 'X-Content-Range'],
+    credentials: process.env.CORS_CREDENTIALS === 'true',
+    maxAge: 86400 // 24 hours
 };
 
 const corsHelper = () => cors(corsOptions);

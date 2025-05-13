@@ -23,11 +23,13 @@ const {
     regionRoute,
     blogRoute,
     assignmentRoute,
-    submissionRoute
+    submissionRoute,
+    googleAuthRoute
 } = require('./routeImports.js');
 
 // Public routes
 router.use('/auth', authRoute);
+router.use(googleAuthRoute)
 
 // Token validation middleware
 router.use((req, res, next) => {

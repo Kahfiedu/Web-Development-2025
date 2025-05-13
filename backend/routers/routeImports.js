@@ -16,5 +16,6 @@ module.exports = {
     regionRoute: require('./regionRoute.js'),
     blogRoute: require('./blogRoute.js'),
     assignmentRoute: require('./assignmentRoute.js'),
-    submissionRoute: require('./submissionRoute.js')
+    submissionRoute: require('./submissionRoute.js'),
+    googleAuthRoute: require('./googleAuthRoute')
 };
