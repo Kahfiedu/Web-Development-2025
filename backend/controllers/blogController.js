@@ -238,6 +238,17 @@ const deleteBlog = async (req, res) => {
             ));
         }
 
+        if (blog.deletedAt) {
+            await blog.destroy({
+                force: true,
+                userId: validation.userId
+            });
+
+            return res.status(200).json(createSuccessResponse(
+                "Blog berhasil dihapus permanen"
+            ));
+        }
+
         await blog.destroy({
             userId: validation.userId
         });

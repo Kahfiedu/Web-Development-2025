@@ -1,6 +1,6 @@
 const { Op } = require('sequelize');
 const { createSearchWhereClause } = require('../helpers/searchQueryHelper');
-const { Lesson, Class, Category } = require('../models');
+const { Lesson, Class } = require('../models');
 const { getPagination } = require('../utils/paginationUtil');
 const { validateLessonData } = require('../utils/validateLessonData');
 

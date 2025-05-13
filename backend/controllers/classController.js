@@ -1,4 +1,4 @@
-const isAdmin = require('../helpers/validationAdmin');
+const { isAdmin } = require('../helpers/validationAdmin');
 const { Class, Course, User, Category, Role } = require('../models')
 const validateClassData = require('../utils/validateClassData')
 const { getPagination } = require('../utils/paginationUtil');
@@ -48,7 +48,7 @@ const createClass = async (req, res) => {
         return res.status(201).json({
             success: true,
             message: "Class berhasil dibuat",
-            course: resultClass
+            class: resultClass
         });
 
 

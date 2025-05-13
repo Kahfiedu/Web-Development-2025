@@ -1,5 +1,5 @@
 const { createSearchWhereClause } = require('../helpers/searchQueryHelper');
-const isAdmin = require('../helpers/validationAdmin');
+const { isAdmin } = require('../helpers/validationAdmin');
 const { Course, Category } = require('../models');
 const getFileUrl = require('../utils/getFileUrl');
 const { getPagination } = require('../utils/paginationUtil');

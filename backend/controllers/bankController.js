@@ -1,5 +1,5 @@
 const { Op } = require("sequelize");
-const isAdmin = require("../helpers/validationAdmin");
+const { isAdmin } = require("../helpers/validationAdmin");
 const { PaymentMethod, Bank } = require("../models");
 const { createSearchWhereClause } = require("../helpers/searchQueryHelper");
 

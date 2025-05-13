@@ -29,5 +29,33 @@ const isAdmin = (role, userId) => {
 
     return { isValid: true, userId };
 };
+const isAdminOrTeacher = (role, userId) => {
+    const lowerCaseRole = role.toLowerCase();
 
-module.exports = isAdmin;
+    if (lowerCaseRole !== "admin" && lowerCaseRole !== "teacher") {
+        return {
+            isValid: false,
+            error: {
+                status: 403,
+                message: "Access denied"
+            }
+        };
+    }
+
+    if (!userId) {
+        return {
+            isValid: false,
+            error: {
+                status: 400,
+                message: "Token User tidak ditemukan"
+            }
+        };
+    }
+
+    return { isValid: true, userId };
+};
+
+module.exports = {
+    isAdmin,
+    isAdminOrTeacher
+};

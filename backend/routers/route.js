@@ -21,7 +21,9 @@ const {
     lessonRoute,
     attendanceRoute,
     regionRoute,
-    blogRoute
+    blogRoute,
+    assignmentRoute,
+    submissionRoute
 } = require('./routeImports.js');
 
 // Public routes
@@ -58,7 +60,9 @@ router.use([
     classRoute,
     classEnrollmentRoute,
     lessonRoute,
-    attendanceRoute
+    attendanceRoute,
+    assignmentRoute,
+    submissionRoute
 ]);
 
 // Protected routes - Additional features

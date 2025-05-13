@@ -1,7 +1,7 @@
 const { getPagination } = require("../utils/paginationUtil");
 const { Role } = require("../models");
 const { Op } = require("sequelize");
-const isAdmin = require("../helpers/validationAdmin");
+const { isAdmin } = require("../helpers/validationAdmin");
 
 // Fungsi untuk mendapatkan daftar pengguna
 // dengan parameter pencarian, halaman, dan status

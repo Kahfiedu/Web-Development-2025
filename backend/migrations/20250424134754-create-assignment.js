@@ -26,7 +26,7 @@ module.exports = {
       description: {
         type: Sequelize.TEXT
       },
-      due_date: {
+      dueDate: {
         type: Sequelize.DATE
       },
       createdAt: {
@@ -35,6 +35,10 @@ module.exports = {
       },
       updatedAt: {
         allowNull: false,
+        type: Sequelize.DATE
+      },
+      deletedAt: {
+        allowNull: true,
         type: Sequelize.DATE
       }
     });

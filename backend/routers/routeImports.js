@@ -14,5 +14,7 @@ module.exports = {
     lessonRoute: require('./lessonRoute.js'),
     attendanceRoute: require('./attendanceRoute.js'),
     regionRoute: require('./regionRoute.js'),
-    blogRoute: require('./blogRoute.js')
+    blogRoute: require('./blogRoute.js'),
+    assignmentRoute: require('./assignmentRoute.js'),
+    submissionRoute: require('./submissionRoute.js')
 };

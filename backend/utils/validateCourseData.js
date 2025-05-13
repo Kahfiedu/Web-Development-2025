@@ -4,7 +4,7 @@ const { Category } = require('../models');
  * Validates child data for create and update operations
  * @param {Object} data Course data to validate
  * @param {string} data.title Course's title
- * @param {number} data.description Course's description
+ * @param {string} data.description Course's description
  * @param {string} data.categoryId Course's categoryId
  * @param {string} data.level Course's level
  * @param {boolean} data.isPublish Course's publish status

@@ -40,10 +40,10 @@ module.exports = {
         onDelete: 'CASCADE',
         allowNull: true
       },
-      file_url: {
+      fileUrl: {
         type: Sequelize.STRING
       },
-      submitted_at: {
+      submittedAt: {
         type: Sequelize.DATE
       },
       grade: {
