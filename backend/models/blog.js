@@ -10,34 +10,38 @@ module.exports = (sequelize, DataTypes) => {
   }
   Blog.init({
     id: {
-      type: DataTypes.UUID,
+      allowNull: false,
+      unique: true,
+      primaryKey: true,
+      type: DataTypes.STRING(36),
       defaultValue: DataTypes.UUIDV4,
-      primaryKey: true
     },
     title: {
       type: DataTypes.STRING,
       allowNull: false,
-      unique: true
     },
     description: {
       type: DataTypes.TEXT,
       allowNull: false,
-      unique: true
+    },
+    thumbnail: {
+      type: DataTypes.STRING,
+      allowNull: false,
     },
     isPublish: {
       type: DataTypes.BOOLEAN,
       allowNull: false,
-      defaultValue: false
+      defaultValue: false,
     },
     isFeatured: {
       type: DataTypes.BOOLEAN,
       allowNull: false,
-      defaultValue: false
+      defaultValue: false,
     },
     tags: {
       type: DataTypes.JSON,
-      allowNull: true
-    }
+      allowNull: true,
+    },
   }, {
     sequelize,
     modelName: 'Blog',

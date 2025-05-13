@@ -141,9 +141,6 @@ const getCourses = async (req, res) => {
     const searchFields = ['title'];
 
     try {
-        // Get total count first for pagination
-
-
         // Get pagination settings
         const {
             limit,

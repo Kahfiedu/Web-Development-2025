@@ -14,12 +14,14 @@ module.exports = {
       title: {
         type: Sequelize.STRING,
         allowNull: false,
-        unique: true
       },
       description: {
         type: Sequelize.TEXT,
         allowNull: false,
-        unique: true
+      },
+      thumbnail: {
+        type: Sequelize.STRING,
+        allowNull: false,
       },
       isPublish: {
         type: Sequelize.BOOLEAN,

@@ -1,67 +1,87 @@
 const express = require('express');
 const router = express.Router();
-const authRoute = require('./auth/authRoute.js');
-const importRoute = require('./import/importRoute.js');
-const userRoute = require('./userRouter.js');
-const roleRoute = require('./roleRouter.js');
-const paymentMethodRoute = require('./paymentMethodRoute.js');
-const bankRoute = require('./bankRoute.js');
-const categoryRoute = require('./categoryRoute.js');
-const childrenRoute = require('./childrenRoute.js');
-const revisionRoute = require('./revisionRoute.js');
-const courseRoute = require('./courseRoute.js');
-const classRoute = require('./classRoute.js')
-const classEnrollmentRoute = require('./classEnrollmentRoute.js')
-const lessonRoute = require('./lessonRoute.js');
-const attendanceRoute = require('./attendanceRoute.js');
-const regionRoute = require('./regionRoute.js');
 const { namespace } = require('../config/sequelizeContext.js');
 const { validateToken } = require('../middlewares/authMiddleware.js');
 const validateDataUser = require('../helpers/validationDataUser.js');
 
-// Wrap all requests in namespace context
-
+// Route imports
+const {
+    authRoute,
+    importRoute,
+    userRoute,
+    roleRoute,
+    paymentMethodRoute,
+    bankRoute,
+    categoryRoute,
+    childrenRoute,
+    revisionRoute,
+    courseRoute,
+    classRoute,
+    classEnrollmentRoute,
+    lessonRoute,
+    attendanceRoute,
+    regionRoute,
+    blogRoute
+} = require('./routeImports.js');
 
 // Public routes
 router.use('/auth', authRoute);
 
+// Token validation middleware
 router.use((req, res, next) => {
     namespace.run(() => {
-        // Jalankan validateToken DI DALAM context
         validateToken(req, res, next);
     });
 });
 
-// Check Data User
-router.get('/validate/user', validateDataUser);
+// User validation route
+router.use('/validate/user', validateDataUser);
 
-// Protected routes
-router.use(userRoute);
-router.use(roleRoute);
-router.use(revisionRoute);
-router.use(paymentMethodRoute);
-router.use(bankRoute);
-router.use(childrenRoute);
-router.use(categoryRoute);
-router.use(courseRoute);
-router.use(classRoute);
-router.use(classEnrollmentRoute);
-router.use(lessonRoute);
-router.use(attendanceRoute);
-router.use(regionRoute);
+// Protected routes - Core features
+router.use([
+    userRoute,
+    roleRoute,
+    revisionRoute
+]);
 
-// Import route
+// Protected routes - Payment related
+router.use([
+    paymentMethodRoute,
+    bankRoute
+]);
+
+// Protected routes - Educational features
+router.use([
+    childrenRoute,
+    categoryRoute,
+    courseRoute,
+    classRoute,
+    classEnrollmentRoute,
+    lessonRoute,
+    attendanceRoute
+]);
+
+// Protected routes - Additional features
+router.use([
+    regionRoute,
+    blogRoute
+]);
+
+// Import functionality
 router.use('/excel/import', importRoute);
 
-// Debug endpoint
+// Development only routes
 if (process.env.NODE_ENV === 'development') {
     router.get('/debug/context', (req, res) => {
         const userId = namespace.get('userId');
         res.status(200).json({
             success: true,
             userId,
-            message: userId ? 'User context is set correctly' : 'User context is not set!'
+            message: userId
+                ? 'User context is set correctly'
+                : 'User context is not set!'
         });
     });
 }
+
 module.exports = router;
