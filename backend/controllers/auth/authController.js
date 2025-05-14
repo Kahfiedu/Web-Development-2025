@@ -96,13 +96,14 @@ const login = async (req, res) => {
 
         // Check user exists and is not deleted
         if (!user || user.deletedAt !== null) {
-            throw new AppError('Email atau password salah, atau akun dinonaktifkan!', 401);
+            throw new AppError('Akun dinonaktifkan!', 400);
         }
 
         // Verify password
         const isMatch = await User.verifyPassword(password, user.password);
+
         if (!isMatch) {
-            throw new AppError('Email atau password salah!', 401);
+            throw new AppError('Email atau password salah!', 400);
         }
 
         // Handle unverified email

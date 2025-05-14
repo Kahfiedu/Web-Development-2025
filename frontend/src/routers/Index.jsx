@@ -9,10 +9,15 @@ import Blog from '../pages/Guest/Blog'
 import Otp from '../pages/Guest/Otp'
 import ResetPassword from '../pages/Guest/ResetPassword'
 import ForgotPassword from '../pages/Guest/ForgotPassword'
+import AdminLayout from '../layouts/AdminLayout'
+import LoginAdmin from '../pages/Admin/LoginAdmin'
+import ProtectedRoute from '../hooks/ProtectedRoute'
+import DashboardAdmin from '../pages/Admin/dashboard/DashboardAdmin'
 
 const AppRouter = () => {
     return (
         <Routes>
+            {/* Route for guest layout */}
             <Route element={<GuestLayout />} >
                 <Route path="/" element={<Beranda />} />
                 <Route path="/login" element={<Login />} />
@@ -23,6 +28,19 @@ const AppRouter = () => {
                 <Route path="/forgot-password" element={<ForgotPassword />} />
                 <Route path="/tentangkami" element={<TentangKami />} />
                 <Route path="/testing" element={<TestingSocketIo />} />
+            </Route>
+
+            {/* Route for admin layout */}
+            <Route path="/admin/login" element={<LoginAdmin />} />
+            <Route
+                path="/admin"
+                element={
+                    <ProtectedRoute>
+                        <AdminLayout />
+                    </ProtectedRoute>
+                }
+            >
+                <Route path="dashboard" element={<DashboardAdmin />} />
             </Route>
         </Routes>
     )
