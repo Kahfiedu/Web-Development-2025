@@ -1,8 +1,9 @@
-const { isAdmin } = require('../helpers/validationAdmin');
+const { isAdmin } = require('../helpers/validationRole');
 const { Class, Course, User, Category, Role } = require('../models')
 const validateClassData = require('../utils/validateClassData')
 const { getPagination } = require('../utils/paginationUtil');
 const { createSearchWhereClause } = require('../helpers/searchQueryHelper');
+const { AppError, handleError, createSuccessResponse } = require('../helpers/helperFunction');
 
 
 const createClass = async (req, res) => {
@@ -10,16 +11,12 @@ const createClass = async (req, res) => {
 
     if (!validationResult.isValid) {
         const { status, message } = validationResult.error;
-        return res.status(status).json({
-            success: false,
-            message
-        });
+        throw new AppError(message, status)
     }
 
     const validation = isAdmin(req.userRole, req.userId);
     if (!validation.isValid) {
-        return res.status(validation.error.status)
-            .json({ message: validation.error.message });
+        throw new AppError(validation.error.message, validation.error.status);
     }
 
     try {
@@ -53,12 +50,7 @@ const createClass = async (req, res) => {
 
 
     } catch (error) {
-        console.error("Error getting class:", error);
-        return res.status(500).json({
-            success: false,
-            message: "Internal server error",
-            error: process.env.NODE_ENV === 'development' ? error.message : undefined
-        });
+        return handleError(error, res)
     }
 }
 
@@ -96,6 +88,10 @@ const getClasses = async (req, res) => {
             paranoid
         });
 
+        if (classes.length === 0) {
+            throw new AppError("Data kelas tidak ditemukan", 404)
+        }
+
         return res.status(200).json({
             success: true,
             message: "Berhasil mendapatkan data kelas",
@@ -103,8 +99,7 @@ const getClasses = async (req, res) => {
             meta
         });
     } catch (error) {
-        console.error("Error getting classes:", error);
-        return res.status(500).json({ success: false, message: "Internal server error" });
+        return handleError(error, res)
     }
 };
 
@@ -130,7 +125,7 @@ const getClassById = async (req, res) => {
         });
 
         if (!cls) {
-            return res.status(404).json({ success: false, message: "Class tidak ditemukan" });
+            throw new AppError("Data class tidak ditemukan", 404)
         }
 
         return res.status(200).json({
@@ -139,8 +134,7 @@ const getClassById = async (req, res) => {
             class: cls
         });
     } catch (error) {
-        console.error("Error getting class by ID:", error);
-        return res.status(500).json({ success: false, message: "Internal server error" });
+        return handleError(error, res)
     }
 };
 
@@ -149,7 +143,7 @@ const updateClass = async (req, res) => {
     const validationResult = await validateClassData(req.body, 'update');
     if (!validationResult.isValid) {
         const { status, message } = validationResult.error;
-        return res.status(status).json({ success: false, message });
+        throw new AppError(message, status)
     }
 
     const validation = isAdmin(req.userRole, req.userId);
@@ -160,7 +154,7 @@ const updateClass = async (req, res) => {
     try {
         const cls = await Class.findByPk(id);
         if (!cls) {
-            return res.status(404).json({ success: false, message: "Class tidak ditemukan" });
+            throw new AppError("Data class tidak ditemukan", 404)
         }
 
         await cls.update(validationResult.data, { userId: validation.userId });
@@ -178,8 +172,7 @@ const updateClass = async (req, res) => {
             class: updatedClass
         });
     } catch (error) {
-        console.error("Error updating class:", error);
-        return res.status(500).json({ success: false, message: "Internal server error" });
+        return handleError(error, res)
     }
 };
 
@@ -188,25 +181,29 @@ const deleteClass = async (req, res) => {
 
     const validation = isAdmin(req.userRole, req.userId);
     if (!validation.isValid) {
-        return res.status(validation.error.status).json({ message: validation.error.message });
+        throw new AppError(validation.error.message, validation.error.status)
     }
 
     try {
         const cls = await Class.findByPk(id, { paranoid: false });
+
         if (!cls) {
-            return res.status(404).json({ success: false, message: "Class tidak ditemukan" });
+            throw new AppError("Data class tidak ditemukan", 404)
         }
 
         if (cls.deletedAt) {
             await cls.destroy({ force: true, userId: validation.userId });
-            return res.status(200).json({ success: true, message: "Class berhasil dihapus permanent" });
+            return res.status(200).json(createSuccessResponse(
+                "Class berhasil dihapus permanen"
+            ));
         }
 
         await cls.destroy({ userId: validation.userId });
-        return res.status(200).json({ success: true, message: "Class berhasil dihapus" });
+        return res.status(200).json(createSuccessResponse(
+            "Class berhasil dihapus"
+        ));
     } catch (error) {
-        console.error("Error deleting class:", error);
-        return res.status(500).json({ success: false, message: "Internal server error" });
+        return handleError(error, res)
     }
 };
 
@@ -215,17 +212,14 @@ const restoreClass = async (req, res) => {
 
     const validation = isAdmin(req.userRole, req.userId);
     if (!validation.isValid) {
-        return res.status(validation.error.status).json({ message: validation.error.message });
+        throw new AppError(validation.error.message, validation.error.status)
     }
 
     try {
         const cls = await Class.findByPk(id, { paranoid: false });
-        if (!cls) {
-            return res.status(404).json({ success: false, message: "Class tidak ditemukan" });
-        }
 
-        if (!cls.deletedAt) {
-            return res.status(400).json({ success: false, message: "Class belum dihapus" });
+        if (!cls && !cls.deletedAt) {
+            throw new AppError("Class tidak ditemukan atau masih aktif", 404)
         }
 
         await cls.restore({ userId: validation.userId });
@@ -243,8 +237,7 @@ const restoreClass = async (req, res) => {
             class: restoredClass
         });
     } catch (error) {
-        console.error("Error restoring class:", error);
-        return res.status(500).json({ success: false, message: "Internal server error" });
+        return handleError(error, res)
     }
 };
 

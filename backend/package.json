@@ -20,7 +20,6 @@
     "backend": "file:",
     "bcryptjs": "^3.0.2",
     "bull": "^4.16.5",
-    "cls-hooked": "^4.2.2",
     "connect-redis": "^8.0.3",
     "cors": "^2.8.5",
     "dotenv": "^16.5.0",

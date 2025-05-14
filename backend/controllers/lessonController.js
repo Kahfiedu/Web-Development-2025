@@ -1,16 +1,20 @@
 const { Op } = require('sequelize');
 const { createSearchWhereClause } = require('../helpers/searchQueryHelper');
-const { Lesson, Class } = require('../models');
+const { Lesson, Class, Course } = require('../models');
 const { getPagination } = require('../utils/paginationUtil');
 const { validateLessonData } = require('../utils/validateLessonData');
+const { AppError, handleError } = require('../helpers/helperFunction');
+const { isAdminOrTeacher } = require('../helpers/validationRole');
 
 const createLesson = async (req, res) => {
     const validationResult = await validateLessonData(req.body, 'create');
     if (!validationResult.isValid) {
-        return res.status(validationResult.error.status).json({
-            success: false,
-            message: validationResult.error.message
-        });
+        throw new AppError(validationResult.error.message, validationResult.error.status)
+    }
+
+    const validation = isAdminOrTeacher(req.userRole, req.userId);
+    if (!validation.isValid) {
+        throw new AppError(validation.error.message, validation.error.status)
     }
 
     try {
@@ -34,34 +38,41 @@ const createLesson = async (req, res) => {
             lesson: result
         })
     } catch (error) {
-        console.error("Error deleting course:", error);
-        return res.status(500).json({
-            success: false,
-            message: "Internal server error",
-            error: process.env.NODE_ENV === 'development' ? error.message : undefined
-        });
+        return handleError(error, res)
     }
 }
 
 const getLessons = async (req, res) => {
-    const {
-        search = "",
-        classId
-    } = req.query;
-
-    const searchFields = ['title']; // misalnya, search hanya untuk status teks
-    const exactMatchFields = { classId };
-
     try {
+        const {
+            search = "",
+            classId
+        } = req.query;
 
+        const searchFields = ['title'];
+        const exactMatchFields = { classId };
+
+        const validation = isAdminOrTeacher(req.userRole, req.userId);
+        if (!validation.isValid) {
+            throw new AppError(validation.error.message, validation.error.status)
+        }
+
+        // Get pagination settings only for admin
         const {
             limit,
             offset,
             statusCondition,
             paranoid,
             meta
-        } = getPagination(req.query);
+        } = isAdmin ? getPagination(req.query) : {
+            limit: null,
+            offset: 0,
+            statusCondition: null,
+            paranoid: true,
+            meta: {}
+        };
 
+        // Build filters
         const additionalFilters = {};
         for (const [key, value] of Object.entries(exactMatchFields)) {
             if (value) {
@@ -71,60 +82,51 @@ const getLessons = async (req, res) => {
 
         let whereClause = createSearchWhereClause(search, searchFields, additionalFilters);
 
-        if (statusCondition) {
+        if (statusCondition && validation.userRole) {
             whereClause = { ...whereClause, ...statusCondition };
         }
 
-        const totalCount = await Lesson.count({
-            where: whereClause,
-            include: [
-                { model: Class, as: 'class', attributes: ["id", "name"] },
-            ]
-        });
+        // Get total count for admin pagination
+        if (isAdmin) {
+            const totalCount = await Lesson.count({
+                where: whereClause,
+                include: [
+                    { model: Class, as: 'class', attributes: ["id", "name"] },
+                ],
+                paranoid
+            });
 
-        meta.total = totalCount;
-        meta.totalPages = Math.ceil(totalCount / limit)
+            meta.total = totalCount;
+            meta.totalPages = Math.ceil(totalCount / limit);
+        }
 
+        // Get lessons with or without pagination
         const lessons = await Lesson.findAll({
             where: whereClause,
-            limit,
-            offset,
+            ...(validation.userRole && { limit, offset }),
             order: [['order', 'ASC']],
             include: [
                 { model: Class, as: 'class', attributes: ["id", "name"] },
             ],
-            paranoid,
+            paranoid: validation.userRole ? paranoid : true,
             distinct: true
         });
 
         if (lessons.length === 0) {
-            meta.total = 0;
-            meta.totalPages = 0;
-            return res.status(404).json({
-                success: false,
-                message: "Tidak ada data lesson yang ditemukan",
-                lessons: [],
-                meta
-            });
+            throw new AppError("Data lesson tidak ditemukan", 404);
         }
 
         return res.status(200).json({
             success: true,
             message: "Berhasil mendapatkan data lesson",
-            lessons: lessons,
-            meta
+            lessons,
+            ...(validation.userRole && { meta })
         });
 
     } catch (error) {
-        console.error("Error getting class enrollments:", err);
-        return res.status(500).json({
-            success: false,
-            message: "Terjadi kesalahan internal",
-            error: process.env.NODE_ENV === 'development' ? err.message : undefined
-        });
+        return handleError(error, res);
     }
-
-}
+};
 
 const getLessonById = async (req, res) => {
     const { id } = req.params;
@@ -135,6 +137,7 @@ const getLessonById = async (req, res) => {
                 {
                     model: Class,
                     as: 'class',
+                    attributes: ["id", "name"],
                     include: [{
                         model: Course,
                         as: 'course',
@@ -143,48 +146,34 @@ const getLessonById = async (req, res) => {
                 }
             ],
             paranoid: false
-        })
+        });
 
         if (!lesson) {
-            return res.status(404).json({
-                success: false,
-                message: 'Lesson tidak ditemukan'
-            });
+            throw new AppError("Data lesson tidak ditemukan", 404);
         }
 
         return res.status(200).json({
             success: true,
-            message: "Data Pendaftaran di dapatkan",
-            lesson: lesson
+            message: "Data lesson ditemukan", // Fixed message
+            lesson
         });
     } catch (error) {
-        console.error("Error getting lesson:", error);
-        return res.status(500).json({
-            success: false,
-            message: "Internal server error",
-            error: process.env.NODE_ENV === 'development' ? error.message : undefined
-        });
+        return handleError(error, res);
     }
-}
+};
 
 const updateLesson = async (req, res) => {
     const { id } = req.params;
 
     const validationResult = await validateLessonData(req.body, 'update');
     if (!validationResult.isValid) {
-        return res.status(validationResult.error.status).json({
-            success: false,
-            message: validationResult.error.message
-        });
+        throw new AppError(validationResult.error.message, validationResult.error.status)
     }
 
     try {
         const lesson = await Lesson.findByPk(id);
         if (!lesson) {
-            return res.status(404).json({
-                success: false,
-                message: 'Data Lesson tidak ditemukan'
-            });
+            throw new AppError("Data lesson tidak ditemukan", 404)
         }
 
         await lesson.update(validationResult.data, {
@@ -198,12 +187,7 @@ const updateLesson = async (req, res) => {
         });
 
     } catch (error) {
-        console.error("Error getting class:", error);
-        return res.status(500).json({
-            success: false,
-            message: "Internal server error",
-            error: process.env.NODE_ENV === 'development' ? error.message : undefined
-        });
+        return handleError(error, res)
     }
 }
 
@@ -216,10 +200,7 @@ const deleteLesson = async (req, res) => {
         });
 
         if (!lesson) {
-            return res.status(404).json({
-                success: false,
-                message: 'Lesson tidak ditemukan'
-            });
+            throw new AppError("Data lesson tidak ditemukan", 404)
         }
 
         if (lesson.deletedAt) {
@@ -243,12 +224,7 @@ const deleteLesson = async (req, res) => {
             message: 'Lesson berhasil dihapus (soft delete)'
         });
     } catch (error) {
-        console.error("Error getting lesson:", error);
-        return res.status(500).json({
-            success: false,
-            message: "Internal server error",
-            error: process.env.NODE_ENV === 'development' ? error.message : undefined
-        });
+        return handleError(error, res)
     }
 }
 
@@ -262,17 +238,11 @@ const restoreLesson = async (req, res) => {
         });
 
         if (!lesson) {
-            return res.status(404).json({
-                success: false,
-                message: 'Lesson tidak ditemukan'
-            });
+            throw new AppError("Data lesson tidak ditemukan", 404)
         }
 
         if (!lesson.deletedAt) {
-            return res.status(400).json({
-                success: false,
-                message: 'Lesson belum dihapus'
-            });
+            throw new AppError("Lesson belum dihapus", 400)
         }
 
         await lesson.restore({
@@ -300,12 +270,7 @@ const restoreLesson = async (req, res) => {
             lesson: result
         });
     } catch (error) {
-        console.error("Error getting lesson:", error);
-        return res.status(500).json({
-            success: false,
-            message: "Internal server error",
-            error: process.env.NODE_ENV === 'development' ? error.message : undefined
-        });
+        return handleError(error, res)
     }
 }
 

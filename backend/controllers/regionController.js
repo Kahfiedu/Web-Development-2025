@@ -1,66 +1,56 @@
 
-const { createErrorResponse, createSuccessResponse } = require('../helpers/helperFunction');
+const { createSuccessResponse, AppError, handleError } = require('../helpers/helperFunction');
 const { getVillages, getDistricts, getRegencies, getProvinces } = require('../helpers/regionDataHelper');
 const { getPagination } = require('../utils/paginationUtil');
 const { Province, Regency, District, Village } = require('../models');
+const { isAdmin } = require('../helpers/validationRole');
 
 const getRegions = async (req, res) => {
-    const { provinceId, regencyId, districtId, group = false } = req.query;
-    const isAdmin = req.userRole === 'admin';
-
     try {
+        const { provinceId, regencyId, districtId, group = false } = req.query;
+        const isAdmin = req.userRole === 'admin';
+
         const { limit, offset, meta } = getPagination(req.query);
         const paginationOptions = { limit, offset, meta, isAdmin };
 
-        // Village level query
+        let result;
         if (districtId) {
-            const result = await getVillages(districtId, group, paginationOptions);
-            return res.status(result.status).json(result.data);
+            result = await getVillages(districtId, group, paginationOptions);
+        } else if (regencyId) {
+            result = await getDistricts(regencyId, group, paginationOptions);
+        } else if (provinceId) {
+            result = await getRegencies(provinceId, group, paginationOptions);
+        } else {
+            result = await getProvinces(paginationOptions);
         }
 
-        // District level query
-        if (regencyId) {
-            const result = await getDistricts(regencyId, group, paginationOptions);
-            return res.status(result.status).json(result.data);
-        }
-
-        // Regency level query
-        if (provinceId) {
-            const result = await getRegencies(provinceId, group, paginationOptions);
-            return res.status(result.status).json(result.data);
-        }
-
-        // Province level query (base case)
-        const result = await getProvinces(paginationOptions);
-        return res.status(result.status).json(result.data);
-
+        return res.status(200).json(result);
     } catch (error) {
-        console.error("Error getting regions:", error);
-        return res.status(500).json(createErrorResponse(
-            "Terjadi kesalahan internal",
-            process.env.NODE_ENV === 'development' ? error.message : undefined
-        ));
+        return handleError(error, res);
     }
 };
 
 const createRegion = async (req, res) => {
-    const { type, name, provinceId, regencyId, districtId } = req.body;
-    const isAdmin = req.userRole === 'admin';
-    const userId = req.userId;
-
-    if (!isAdmin) {
-        return res.status(403).json(createErrorResponse("Tidak memiliki akses"));
-    }
-
-    if (type !== "province" && type !== "regency" && type !== "district" && type !== "village") {
-        return res.status(401).json(createErrorResponse("Type harus province, regency, district atau village"));
-    }
-
-    if (!type || !name) {
-        return res.status(401).json(createErrorResponse("Type dan name harus diisi"));
-    }
-
     try {
+        const { type, name, provinceId, regencyId, districtId } = req.body;
+        const isAdmin = req.userRole === 'admin';
+
+        const validation = isAdmin(req.userRole, req.userId);
+        if (!validation.isValid) {
+            throw new AppError(validation.error.message, validation.error.status);
+        }
+
+        const userId = validation.userId
+
+        if (!['province', 'regency', 'district', 'village'].includes(type)) {
+            throw new AppError("Type harus province, regency, district atau village", 400);
+        }
+
+        if (!type || !name) {
+            throw new AppError("Type dan name harus diisi", 400);
+        }
+
+
         let newRegion;
         switch (type) {
             case 'province':
@@ -70,47 +60,37 @@ const createRegion = async (req, res) => {
                 break;
             case 'regency':
                 if (!provinceId) {
-                    return res.status(400).json(createErrorResponse("Province ID diperlukan"));
+                    throw new AppError("Province ID diperlukan", 400);
                 }
 
                 const existingProvince = await Province.findByPk(provinceId);
                 if (!existingProvince) {
-                    return res.status(404).json(createErrorResponse("Data province tidak ditemukan"));
+                    throw new AppError("Data province tidak ditemukan", 404);
                 }
 
-                // Find the highest regency ID for this province
                 const lastRegency = await Regency.findOne({
-                    where: {
-                        province_id: provinceId
-                    },
+                    where: { province_id: provinceId },
                     order: [['id', 'DESC']]
                 });
 
-                let newRegencyId;
-                if (lastRegency) {
-                    // If there are existing regencies, increment the last ID
-                    const lastId = lastRegency.id.toString();
-                    const sequence = parseInt(lastId.slice(-2)) + 1;
-                    newRegencyId = parseInt(`${provinceId}${sequence.toString().padStart(2, '0')}`);
-                } else {
-                    // If this is the first regency, start with 01
-                    newRegencyId = parseInt(`${provinceId}01`);
-                }
+                const newRegencyId = lastRegency
+                    ? parseInt(`${provinceId}${(parseInt(lastRegency.id.toString().slice(-2)) + 1).toString().padStart(2, '0')}`)
+                    : parseInt(`${provinceId}01`);
 
                 newRegion = await Regency.create({
                     id: newRegencyId,
                     name,
                     province_id: provinceId
-                }, { userId: userId });
+                }, { userId });
                 break;
             case 'district':
                 if (!regencyId) {
-                    return res.status(400).json(createErrorResponse("Regency ID diperlukan"));
+                    throw new AppError("Regency ID diperlukan", 400)
                 }
 
                 const existingRegency = await Regency.findByPk(regencyId);
                 if (!existingRegency) {
-                    return res.status(404).json(createErrorResponse("Data regency tidak ditemukan"));
+                    throw new AppError("Regency id tidak ditemukan", 404)
                 }
 
                 // Find the highest district ID for this regency
@@ -141,12 +121,12 @@ const createRegion = async (req, res) => {
 
             case 'village':
                 if (!districtId) {
-                    return res.status(400).json(createErrorResponse("District ID diperlukan"));
+                    throw new AppError("District id diperlukan", 400)
                 }
 
                 const existingDistrict = await District.findByPk(districtId);
                 if (!existingDistrict) {
-                    return res.status(404).json(createErrorResponse("Data district tidak ditemukan"));
+                    throw new AppError("District id tidak ditemukan", 404)
                 }
 
                 // Find the highest village ID for this district
@@ -175,7 +155,7 @@ const createRegion = async (req, res) => {
                 }, { userId: userId });
                 break;
             default:
-                return res.status(400).json(createErrorResponse("Tipe wilayah tidak valid"));
+                throw new AppError("Tipe wilayah tidak valid", 400)
         }
 
         return res.status(201).json(createSuccessResponse(
@@ -184,78 +164,65 @@ const createRegion = async (req, res) => {
         ));
 
     } catch (error) {
-        console.error("Error creating region:", error);
-        return res.status(500).json(createErrorResponse(
-            "Terjadi kesalahan internal",
-            process.env.NODE_ENV === 'development' ? error.message : undefined
-        ));
-    }
-};
+        return handleError(error, res)
+    };
+}
 
 const updateRegion = async (req, res) => {
-    const { id } = req.params;
-    const { type, name, isActive } = req.body;
-    const isAdmin = req.userRole === 'admin';
-    const userId = req.userId
-
-    if (!isAdmin) {
-        return res.status(403).json(createErrorResponse("Tidak memiliki akses"));
-    }
-
-    if (type !== "province" && type !== "regency" && type !== "district" && type !== "village") {
-        return res.status(401).json(createErrorResponse("Type harus province, regency, district atau village"));
-    }
-
     try {
-        let Model;
-        switch (type) {
-            case 'province': Model = Province; break;
-            case 'regency': Model = Regency; break;
-            case 'district': Model = District; break;
-            case 'village': Model = Village; break;
-            default:
-                return res.status(400).json(createErrorResponse("Tipe wilayah tidak valid"));
+        const { id } = req.params;
+        const { type, name, isActive } = req.body;
+
+        const validation = isAdmin(req.userRole, req.userId);
+        if (!validation.isValid) {
+            throw new AppError(validation.error.message, validation.error.status);
         }
+
+        if (!['province', 'regency', 'district', 'village'].includes(type)) {
+            throw new AppError("Type harus province, regency, district atau village", 400);
+        }
+
+        const Model = {
+            province: Province,
+            regency: Regency,
+            district: District,
+            village: Village
+        }[type];
 
         const region = await Model.findByPk(id);
         if (!region) {
-            return res.status(404).json(createErrorResponse("Data wilayah tidak ditemukan"));
+            throw new AppError("Data wilayah tidak ditemukan", 404);
         }
 
         const updateData = {};
         if (name !== undefined) updateData.name = name;
         if (isActive !== undefined) updateData.isActive = isActive;
 
-        await region.update(updateData, {
-            userId: userId
+        await region.update(updateData, { userId: validation.userId });
+
+        return res.status(200).json({
+            success: true,
+            message: "Data wilayah berhasil diperbarui",
+            region
         });
 
-        return res.status(200).json(createSuccessResponse(
-            "Data wilayah berhasil diperbarui",
-            { region }
-        ));
-
     } catch (error) {
-        console.error("Error updating region:", error);
-        return res.status(500).json(createErrorResponse(
-            "Terjadi kesalahan internal",
-            process.env.NODE_ENV === 'development' ? error.message : undefined
-        ));
+        return handleError(error, res);
     }
 };
 
 const deleteRegion = async (req, res) => {
     const { id } = req.params;
     const { type } = req.body;
-    const isAdmin = req.userRole === 'admin';
-    const userId = req.userId
 
-    if (!isAdmin) {
-        return res.status(403).json(createErrorResponse("Tidak memiliki akses"));
+    const validation = isAdmin(req.userRole, req.userId);
+    if (!validation.isValid) {
+        throw new AppError(validation.error.message, validation.error.status);
     }
 
-    if (type !== "province" && type !== "regency" && type !== "district" && type !== "village") {
-        return res.status(401).json(createErrorResponse("Type harus province, regency, district atau village"));
+
+    if (!['province', 'regency', 'district', 'village'].includes(type)) {
+        throw new AppError("Type harus province, regency, district atau village", 400);
     }
 
     try {
@@ -266,29 +233,30 @@ const deleteRegion = async (req, res) => {
             case 'district': Model = District; break;
             case 'village': Model = Village; break;
             default:
-                return res.status(400).json(createErrorResponse("Tipe wilayah tidak valid"));
+                throw new AppError("Tipe wilayah tidak valid", 400);
         }
-
-
 
         const region = await Model.findByPk(id, {
             paranoid: false,
         });
 
         if (!region) {
-            return res.status(404).json(createErrorResponse("Data wilayah tidak ditemukan"));
+            throw new AppError("Data wilayah tidak ditemukan", 404)
         }
 
         if (region.deletedAt) {
             await region.destroy({
                 force: true,
-                userId
+                userId: validation.userId
             })
-            return res.status(200).json(createSuccessResponse("Data wilayah berhasil dihapus permanen"))
+            return res.status(200).json(
+                createSuccessResponse(
+                    "Data wilayah berhasil dihapus permanen")
+            )
         }
 
         await region.destroy({
-            userId: userId
+            userId: validation.userId
         }); // Soft delete karena paranoid: true
 
         return res.status(200).json(createSuccessResponse(
@@ -296,26 +264,21 @@ const deleteRegion = async (req, res) => {
         ));
 
     } catch (error) {
-        console.error("Error deleting region:", error);
-        return res.status(500).json(createErrorResponse(
-            "Terjadi kesalahan internal",
-            process.env.NODE_ENV === 'development' ? error.message : undefined
-        ));
+        return handleError(error, res)
     }
 };
 
 const restoreRegion = async (req, res) => {
     const { id } = req.params;
     const { type } = req.body;
-    const isAdmin = req.userRole === 'admin';
-    const userId = req.userId
 
-    if (!isAdmin) {
-        return res.status(403).json(createErrorResponse("Tidak memiliki akses"));
+    const validation = isAdmin(req.userRole, req.userId);
+    if (!validation.isValid) {
+        throw new AppError(validation.error.message, validation.error.status);
     }
 
-    if (type !== "province" && type !== "regency" && type !== "district" && type !== "village") {
-        return res.status(401).json(createErrorResponse("Type harus province, regency, district atau village"));
+    if (!['province', 'regency', 'district', 'village'].includes(type)) {
+        throw new AppError("Type harus province, regency, district atau village", 400);
     }
 
     try {
@@ -326,17 +289,17 @@ const restoreRegion = async (req, res) => {
             case 'district': Model = District; break;
             case 'village': Model = Village; break;
             default:
-                return res.status(400).json(createErrorResponse("Tipe wilayah tidak valid"));
+                throw new AppError("Tipe wilayah tidak valid", 400);
         }
 
         const restored = await Model.restore({
             where: { id }
         }, {
-            userId: userId
+            userId: validation.userId
         });
 
         if (!restored) {
-            return res.status(404).json(createErrorResponse("Data wilayah tidak ditemukan"));
+            throw new AppError("Data wilayah tidak ditemukan", 404);
         }
 
         const region = await Model.findByPk(id);
@@ -347,11 +310,7 @@ const restoreRegion = async (req, res) => {
         ));
 
     } catch (error) {
-        console.error("Error restoring region:", error);
-        return res.status(500).json(createErrorResponse(
-            "Terjadi kesalahan internal",
-            process.env.NODE_ENV === 'development' ? error.message : undefined
-        ));
+        return handleError(error, res)
     }
 };
 

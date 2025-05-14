@@ -8,7 +8,7 @@ module.exports = (sequelize, DataTypes) => {
       RevisionChange.belongsTo(models.Revision, {
         foreignKey: 'revisionId',
         as: 'revision',
-        onDelete: 'CASCADE', // Menghapus perubahan jika revisi dihapus
+        onDelete: 'CASCADE',
       });
     }
   }

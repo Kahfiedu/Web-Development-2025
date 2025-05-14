@@ -1,22 +1,19 @@
 const { Op } = require("sequelize");
-const { isAdmin } = require("../helpers/validationAdmin");
+const { isAdmin } = require("../helpers/validationRole");
 const { PaymentMethod, Bank } = require("../models");
 const { createSearchWhereClause } = require("../helpers/searchQueryHelper");
+const { AppError, handleError } = require("../helpers/helperFunction");
 
 const createBank = async (req, res) => {
     const { name, noRek, an, isActive, paymentMethodId } = req.body;
 
     const validation = isAdmin(req.userRole, req.userId);
     if (!validation.isValid) {
-        return res.status(validation.error.status)
-            .json({ message: validation.error.message });
+        throw new AppError(validation.error.message, validation.error.status);
     }
 
     if (!name || !noRek || !an || isActive === undefined || !paymentMethodId) {
-        return res.status(400).json({
-            success: false,
-            message: "Name, noRek, an, isActive dan paymentMethodId harus diisi"
-        });
+        throw new AppError("Name, noRek, an, isActive dan paymentMethodId harus diisi", 400)
     }
 
     const toLowerCaseName = name.toLowerCase();
@@ -28,10 +25,7 @@ const createBank = async (req, res) => {
         });
 
         if (existingBank) {
-            return res.status(400).json({
-                success: false,
-                message: "Nama bank telah tersedia"
-            });
+            throw new AppError("Nama bank telah tersedia")
         }
 
         const existingPaymentMethod = await PaymentMethod.findOne({
@@ -40,10 +34,11 @@ const createBank = async (req, res) => {
         });
 
         if (!existingPaymentMethod) {
-            return res.status(404).json({
-                success: false,
-                message: "Payment method tidak ditemukan"
-            });
+            throw new AppError("Payment method tidak ditemukan", 404)
+        }
+
+        if (existingPaymentMethod.deletedAt) {
+            throw new AppError("Payment method telah dihapus", 404)
         }
 
         const bank = await Bank.create({
@@ -62,25 +57,30 @@ const createBank = async (req, res) => {
             bank
         });
     } catch (error) {
-        console.error("Error creating bank:", error);
-        const status = error.status || 500;
-        const message = error.status ? error.message : "Internal server error";
-        return res.status(status).json({
-            success: false,
-            message
-        });
+        return handleError(error, res)
     }
 };
 
 const getBanks = async (req, res) => {
-    const { page = 1, limit = 10, search = "", isActive } = req.query;
+    const {
+        page = 1,
+        limit = 10,
+        search = "",
+        isActive,
+        status = 'active' // Default to active records
+    } = req.query;
+
     const validation = isAdmin(req.userRole, req.userId);
     if (!validation.isValid) {
-        return res.status(validation.error.status)
-            .json({ message: validation.error.message });
+        throw new AppError(validation.error.message, validation.error.status);
     }
-    const offset = (page - 1) * limit;
 
+    // Validate status parameter
+    if (!['all', 'active', 'deleted'].includes(status)) {
+        throw new AppError("Status tidak valid. Gunakan: all, active, atau deleted", 400);
+    }
+
+    const offset = (page - 1) * limit;
     const searchFields = ['name', 'noRek', 'an'];
 
     // Create additional filters
@@ -93,29 +93,37 @@ const getBanks = async (req, res) => {
     const whereClause = createSearchWhereClause(search, searchFields, additionalFilters);
 
     try {
-        const { count, rows: banks } = await Bank.findAndCountAll({
+        // Set paranoid based on status
+        const queryOptions = {
             where: whereClause,
             order: [['createdAt', 'DESC']],
             limit,
             offset,
-            paranoid: false
-        });
+            paranoid: status === 'active'  // true for active, false for all/deleted
+        };
+
+        // Add deletedAt filter for deleted records
+        if (status === 'deleted') {
+            queryOptions.where = {
+                ...queryOptions.where,
+                deletedAt: { [Op.ne]: null }
+            };
+        }
+
+        const { count, rows: banks } = await Bank.findAndCountAll(queryOptions);
+
         const totalPages = Math.ceil(count / limit);
         const meta = {
             total: count,
             page: parseInt(page),
             limit: parseInt(limit),
-            totalPages
+            totalPages,
         };
 
         if (banks.length === 0) {
-            return res.status(404).json({
-                success: false,
-                message: "Data bank tidak ditemukan",
-                banks: [],
-                meta
-            });
+            throw new AppError("Data bank tidak ditemukan", 404)
         }
+
         return res.status(200).json({
             success: true,
             message: "Data bank berhasil diambil",
@@ -123,13 +131,7 @@ const getBanks = async (req, res) => {
             meta
         });
     } catch (error) {
-        console.error("Error fetching banks:", error);
-        const status = error.status || 500;
-        const message = error.status ? error.message : "Internal server error";
-        return res.status(status).json({
-            success: false,
-            message
-        });
+        return handleError(error, res);
     }
 };
 
@@ -139,24 +141,13 @@ const updateBank = async (req, res) => {
 
     const validation = isAdmin(req.userRole, req.userId);
     if (!validation.isValid) {
-        return res.status(validation.error.status)
-            .json({ message: validation.error.message });
-    }
-
-    if (!id) {
-        return res.status(400).json({
-            success: false,
-            message: "ID bank harus diisi"
-        });
+        throw new AppError(validation.error.message, validation.error.status)
     }
 
     try {
         const bank = await Bank.findByPk(id);
         if (!bank) {
-            return res.status(404).json({
-                success: false,
-                message: "Bank tidak ditemukan"
-            });
+            throw new AppError("Data bank tidak ditemukan", 404)
         }
 
         // Build update data
@@ -172,10 +163,7 @@ const updateBank = async (req, res) => {
             });
 
             if (existingBank) {
-                return res.status(400).json({
-                    success: false,
-                    message: "Nama bank telah tersedia"
-                });
+                throw new AppError("Nama bank telah tersedia", 400)
             }
             updateData.name = toLowerCaseName;
         }
@@ -183,10 +171,7 @@ const updateBank = async (req, res) => {
         if (paymentMethodId) {
             const existingPaymentMethod = await PaymentMethod.findByPk(paymentMethodId);
             if (!existingPaymentMethod) {
-                return res.status(404).json({
-                    success: false,
-                    message: "Payment method tidak ditemukan"
-                });
+                throw new AppError("Payment method tidak ditemukan", 404)
             }
             updateData.paymentMethodId = paymentMethodId;
         }
@@ -207,13 +192,7 @@ const updateBank = async (req, res) => {
             bank: updatedBank
         });
     } catch (error) {
-        console.error("Error updating bank:", error);
-        const status = error.status || 500;
-        const message = error.status ? error.message : "Internal server error";
-        return res.status(status).json({
-            success: false,
-            message
-        });
+        return handleError(error, res)
     }
 };
 
@@ -222,8 +201,7 @@ const deleteBank = async (req, res) => {
 
     const validation = isAdmin(req.userRole, req.userId);
     if (!validation.isValid) {
-        return res.status(validation.error.status)
-            .json({ message: validation.error.message });
+        throw new AppError(validation.error.message, validation.error.status)
     }
 
     try {
@@ -233,17 +211,11 @@ const deleteBank = async (req, res) => {
         });
 
         if (!bank) {
-            return res.status(404).json({
-                success: false,
-                message: "Bank tidak ditemukan"
-            });
+            throw new AppError("Data bank tidak ditemukan", 404)
         }
 
         if (bank.isActive) {
-            return res.status(400).json({
-                success: false,
-                message: "Bank tidak dapat dihapus karena masih aktif"
-            });
+            throw new AppError("Bank tidak dapat dihapus karena masih aktif", 400)
         }
 
         if (bank.deletedAt) {
@@ -266,13 +238,7 @@ const deleteBank = async (req, res) => {
             message: "Bank berhasil dihapus"
         });
     } catch (error) {
-        console.error("Error deleting bank:", error);
-        const status = error.status || 500;
-        const message = error.status ? error.message : "Internal server error";
-        return res.status(status).json({
-            success: false,
-            message
-        });
+        return handleError(error, res)
     }
 };
 
@@ -281,8 +247,7 @@ const restoreBank = async (req, res) => {
 
     const validation = isAdmin(req.userRole, req.userId);
     if (!validation.isValid) {
-        return res.status(validation.error.status)
-            .json({ message: validation.error.message });
+        throw new AppError(validation.error.message, validation.error.status)
     }
 
     try {
@@ -291,10 +256,7 @@ const restoreBank = async (req, res) => {
         });
 
         if (!bank) {
-            return res.status(404).json({
-                success: false,
-                message: "Bank tidak ditemukan"
-            });
+            throw new AppError("Data bank tidak ditemukan", 404)
         }
 
         await bank.restore({
@@ -309,13 +271,7 @@ const restoreBank = async (req, res) => {
             bank: restoredBank
         });
     } catch (error) {
-        console.error("Error restoring bank:", error);
-        const status = error.status || 500;
-        const message = error.status ? error.message : "Internal server error";
-        return res.status(status).json({
-            success: false,
-            message
-        });
+        return handleError(error, res)
     }
 };
 

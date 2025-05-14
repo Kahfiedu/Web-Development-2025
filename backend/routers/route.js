@@ -1,6 +1,5 @@
 const express = require('express');
 const router = express.Router();
-const { namespace } = require('../config/sequelizeContext.js');
 const { validateToken } = require('../middlewares/authMiddleware.js');
 const validateDataUser = require('../helpers/validationDataUser.js');
 
@@ -30,12 +29,13 @@ const {
 // Public routes
 router.use('/auth', authRoute);
 router.use(googleAuthRoute)
-
+router.use([
+    courseRoute,
+    blogRoute
+])
 // Token validation middleware
 router.use((req, res, next) => {
-    namespace.run(() => {
-        validateToken(req, res, next);
-    });
+    validateToken(req, res, next);
 });
 
 // User validation route
@@ -58,7 +58,6 @@ router.use([
 router.use([
     childrenRoute,
     categoryRoute,
-    courseRoute,
     classRoute,
     classEnrollmentRoute,
     lessonRoute,
@@ -70,7 +69,6 @@ router.use([
 // Protected routes - Additional features
 router.use([
     regionRoute,
-    blogRoute
 ]);
 
 // Import functionality
@@ -78,8 +76,8 @@ router.use('/excel/import', importRoute);
 
 // Development only routes
 if (process.env.NODE_ENV === 'development') {
-    router.get('/debug/context', (req, res) => {
-        const userId = namespace.get('userId');
+    router.get('/debug/jwt', (req, res) => {
+        const userId = req.user.id;
         res.status(200).json({
             success: true,
             userId,

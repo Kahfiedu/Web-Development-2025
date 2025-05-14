@@ -2,6 +2,7 @@ const { Op } = require('sequelize')
 const { Attendance, Lesson, User, Class, Child, ClassEnrollment } = require('../models')
 const { getPagination } = require('../utils/paginationUtil')
 const { createSearchWhereClause } = require('../helpers/searchQueryHelper')
+const { handleError, AppError } = require('../helpers/helperFunction')
 
 const createAttendance = async (req, res) => {
     const { code, execuseLetter, description, status } = req.body
@@ -9,17 +10,11 @@ const createAttendance = async (req, res) => {
     const userRole = req.userRole
 
     if (!code || !status) {
-        return res.status(401).json({
-            success: false,
-            message: "Code and status is required"
-        })
+        throw new AppError("code dan status dibutuhkan", 400)
     }
 
     if (status !== 'izin' && status !== 'sakit' && status !== 'hadir') {
-        return res.status(401).json({
-            success: false,
-            message: "status harus (izin, sakit, hadir)"
-        })
+        throw new AppError("status harus (izin, sakit, hadir)", 400)
     }
 
     try {
@@ -29,19 +24,13 @@ const createAttendance = async (req, res) => {
         });
 
         if (!lesson) {
-            return res.status(404).json({
-                success: false,
-                message: `Lesson dengan code (${code}) tidak ada`
-            });
+            throw new AppError(`Lesson dengan code (${code}) tidak ada`, 404)
         }
 
         const existingUser = await User.findByPk(userId);
 
         if (!existingUser) {
-            return res.status(404).json({
-                success: false,
-                message: "Data user tidak ditemukan"
-            });
+            throw new AppError("Data pengguna tidak ditemukan", 404)
         }
 
         // Handle student or parent
@@ -55,10 +44,7 @@ const createAttendance = async (req, res) => {
             });
 
             if (!isEnrolled) {
-                return res.status(403).json({
-                    success: false,
-                    message: "Siswa tidak terdaftar di kelas ini"
-                });
+                throw new AppError("Siswa tidak terdaftar di kelas ini", 403)
             }
 
             attendanceData.studentId = userId;
@@ -71,10 +57,7 @@ const createAttendance = async (req, res) => {
             });
 
             if (!existingChild) {
-                return res.status(404).json({
-                    success: false,
-                    message: "Data anak tidak ditemukan"
-                });
+                throw new AppError("Data anak tidak ditemukan", 404)
             }
 
             // Check if child is enrolled in the class
@@ -86,10 +69,7 @@ const createAttendance = async (req, res) => {
             });
 
             if (!isEnrolled) {
-                return res.status(403).json({
-                    success: false,
-                    message: "Anak tidak terdaftar di kelas ini"
-                });
+                throw new AppError("Anak tidak terdaftar di kelas ini", 403)
             }
 
             attendanceData.childId = existingChild.id;
@@ -102,18 +82,12 @@ const createAttendance = async (req, res) => {
             })
 
             if (!isTeacherClass) {
-                return res.status(403).json({
-                    success: false,
-                    message: "Anda bukan guru di kelas ini"
-                });
+                throw new AppError("Anda bukan guru di kelas ini", 403)
             }
 
             attendanceData.teacherId = userId
         } else {
-            return res.status(403).json({
-                success: false,
-                message: "Hanya siswa, guru atau orang tua yang dapat membuat absensi"
-            });
+            throw new AppError("Hanya siswa, guru atau orang tua yang dapat membuat absensi", 403)
         }
 
         // Add other attendance data
@@ -136,12 +110,7 @@ const createAttendance = async (req, res) => {
         });
 
     } catch (error) {
-        console.error("Error create attendance:", error);
-        return res.status(500).json({
-            success: false,
-            message: "Internal server error",
-            error: process.env.NODE_ENV === 'development' ? error.message : undefined
-        });
+        return handleError(error, res);
     }
 }
 
@@ -152,36 +121,21 @@ const updateAttendance = async (req, res) => {
     const userId = req.userId
 
     if (!isVerified) {
-        return res.status(401).json({
-            success: false,
-            message: "isVerified is required"
-        })
+        throw new AppError("isVerified is required", 400)
     }
     if (typeof isVerified !== 'boolean' && isVerified !== 'true' && isVerified !== 'false') {
-        return {
-            isValid: false,
-            error: {
-                status: 400,
-                message: "isVerified must be a boolean value"
-            }
-        };
+        throw new AppError("isVerified must be a boolean value", 400)
     }
 
     if (userRole !== 'admin' && userRole !== 'teacher') {
-        return res.status(403).json({
-            success: false,
-            message: "Hanya admin atau teacher yang dapat akses"
-        })
+        throw new AppError("Hanya admin atau teacher yang dapat akses", 403)
     }
     try {
 
         const existingAttendance = await Attendance.findByPk(id)
 
         if (!existingAttendance) {
-            return res.status(404).json({
-                success: false,
-                message: "Attendance tidak di temukan"
-            })
+            throw new AppError("Attendance tidak ditemukan", 404)
         }
 
         if (userRole === 'teacher') {
@@ -193,18 +147,12 @@ const updateAttendance = async (req, res) => {
             })
 
             if (!isTeacher) {
-                return res.status(403).json({
-                    success: false,
-                    message: "Anda bukan guru dikelas sini"
-                })
+                throw new AppError("Anda bukan guru dikelas sini", 403)
             }
         }
 
         if (existingAttendance.teacherId === userId) {
-            return res.status(401).json({
-                success: false,
-                message: "Anda tidak dapat menyetujui attendance ini"
-            })
+            throw new AppError("Anda tidak dapat menyetujui absensi ini", 403)
         }
 
         existingAttendance.isVerified = isVerified
@@ -218,12 +166,7 @@ const updateAttendance = async (req, res) => {
         })
 
     } catch (error) {
-        console.error("Error create attendance:", error);
-        return res.status(500).json({
-            success: false,
-            message: "Internal server error",
-            error: process.env.NODE_ENV === 'development' ? error.message : undefined
-        });
+        return handleError(error, res);
     }
 }
 
@@ -295,14 +238,7 @@ const getAttendances = async (req, res) => {
         });
 
         if (attendances.length === 0) {
-            meta.total = 0;
-            meta.totalPages = 0;
-            return res.status(404).json({
-                success: false,
-                message: "Tidak ada data attendance yang ditemukan",
-                attendances: [],
-                meta
-            });
+            throw new AppError("Data absensi tidak ditemukan", 404)
         }
 
         const groupedAttendances = attendances.reduce((acc, attendance) => {
@@ -353,12 +289,7 @@ const getAttendances = async (req, res) => {
             meta
         });
     } catch (error) {
-        console.error("Error getting attendance:", error);
-        return res.status(500).json({
-            success: false,
-            message: "Terjadi kesalahan internal",
-            error: process.env.NODE_ENV === 'development' ? error.message : undefined
-        });
+        return handleError(error, res);
     }
 }
 
@@ -400,10 +331,7 @@ const getAttendanceById = async (req, res) => {
         });
 
         if (!attendance) {
-            return res.status(404).json({
-                success: false,
-                message: "Data attendance tidak ditemukan"
-            });
+            throw new AppError("Data absensi tidak ditemukan", 404)
         }
 
         return res.status(200).json({
@@ -413,12 +341,7 @@ const getAttendanceById = async (req, res) => {
         });
 
     } catch (error) {
-        console.error("Error getting attendance:", error);
-        return res.status(500).json({
-            success: false,
-            message: "Terjadi kesalahan internal",
-            error: process.env.NODE_ENV === 'development' ? error.message : undefined
-        });
+        return handleError(error, res);
     }
 };
 

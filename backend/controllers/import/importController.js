@@ -2,6 +2,7 @@
 const path = require('path');
 const fs = require('fs');
 const userImportQueue = require('../../queues/jobs/userImportQueue');
+const { AppError, handleError } = require('../../helpers/helperFunction');
 
 /**
  * Handle Excel file import for users
@@ -12,14 +13,14 @@ const importUsers = async (req, res) => {
     try {
         // Check if file exists in request
         if (!req.file) {
-            return res.status(400).json({ message: 'No file uploaded' });
+            throw new AppError("tidak ada file yang diupload", 400)
         }
 
         const { socketId } = req.body;
 
         // Validate socketId is provided
         if (!socketId) {
-            return res.status(400).json({ message: 'Socket ID is required for real-time updates' });
+            throw new AppError("Socket ID is required for real-time updates", 400)
         }
 
         console.log(`📤 Adding import job to queue for socket ID: ${socketId}`);
@@ -43,17 +44,10 @@ const importUsers = async (req, res) => {
             jobId: job.id
         });
     } catch (error) {
-        console.error('❌ Error in import controller:', error);
-
-        // Clean up file if there was an error
         if (req.file && req.file.path) {
             try { fs.unlinkSync(req.file.path); } catch (e) { /* ignore deletion errors */ }
         }
-
-        return res.status(500).json({
-            message: 'Failed to process import request',
-            error: error.message
-        });
+        return handleError(error, res)
     }
 };
 

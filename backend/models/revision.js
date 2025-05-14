@@ -10,9 +10,10 @@ module.exports = (sequelize, DataTypes) => {
         as: 'user',
         onDelete: 'CASCADE',
       });
+
       Revision.hasMany(models.RevisionChange, {
         foreignKey: 'revisionId',
-        as: 'changes',
+        as: 'RevisionChanges',
         onDelete: 'CASCADE',
       });
     }
@@ -51,11 +52,13 @@ module.exports = (sequelize, DataTypes) => {
     },
     userId: {
       type: DataTypes.STRING(36),
-      defaultValue: DataTypes.UUIDV4,
-      references: { model: 'users', key: 'id' },
       allowNull: true,
+      references: {
+        model: 'users',
+        key: 'id'
+      },
       onDelete: 'SET NULL'
-    },
+    }
   }, {
     sequelize,
     modelName: 'Revision',

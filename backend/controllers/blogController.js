@@ -1,39 +1,25 @@
-const { createErrorResponse, createSuccessResponse } = require('../helpers/helperFunction');
+const { createSuccessResponse, AppError, handleError } = require('../helpers/helperFunction');
 const { createSearchWhereClause } = require('../helpers/searchQueryHelper');
-const isAdmin = require('../helpers/validationAdmin');
+const isAdmin = require('../helpers/validationRole');
 const { Blog } = require('../models');
 const getFileUrl = require('../utils/getFileUrl');
 const { getPagination } = require('../utils/paginationUtil');
 const validateBlogData = require('../utils/validateBlogData');
 
 const createBlog = async (req, res) => {
-    console.log('Received request body:', JSON.stringify(req.body, null, 2));
-    console.log('Received file:', req.file);
-    const validationResult = await validateBlogData(req.body, 'create', req.file);
-    console.log('Validation result:', {
-        isValid: validationResult.isValid,
-        error: validationResult.error,
-        validatedData: validationResult.data
-    });
-
+    const validationResult = await validateBlogData(req.body, 'create');
     if (!validationResult.isValid) {
         const { status, message } = validationResult.error;
-        console.log(validationResult.data)
-        return res.status(status).json({
-            success: false,
-            message
-        });
+        throw new AppError(message, status)
     }
 
     const validation = isAdmin(req.userRole, req.userId);
     if (!validation.isValid) {
-        return res.status(validation.error.status)
-            .json({ message: validation.error.message });
+        throw new AppError(validation.error.message, validation.error.status);
     }
+
     const thumbnailPath = req.file ? getFileUrl(req, `blog/${req.file.filename}`) : null;
     try {
-
-        console.log("thumbnailPath", thumbnailPath)
 
         const blogData = {
             ...validationResult.data,
@@ -45,10 +31,9 @@ const createBlog = async (req, res) => {
         });
 
         const resultBlog = await Blog.findByPk(newBlog.id);
+
         if (!resultBlog) {
-            return res.status(404).json(createErrorResponse(
-                "Data blog tidak ditemukan"
-            ));
+            throw new AppError("Data blog tidak ditemukan", 404)
         }
 
         return res.status(201).json(createSuccessResponse(
@@ -57,11 +42,7 @@ const createBlog = async (req, res) => {
         ));
 
     } catch (error) {
-        console.error("Error creating blog:", error);
-        return res.status(500).json(createErrorResponse(
-            "Internal server error",
-            process.env.NODE_ENV === 'development' ? error.message : undefined
-        ));
+        return handleError(error, res)
     }
 };
 
@@ -114,15 +95,7 @@ const getBlogs = async (req, res) => {
         });
 
         if (blogs.length === 0) {
-            meta.total = 0;
-            meta.totalPages = 0;
-
-            return res.status(404).json({
-                success: false,
-                message: "Tidak ada blog yang ditemukan",
-                blogs: [],
-                meta
-            });
+            throw new AppError("Data blog tidak ditemukan", 404)
         }
 
         return res.status(200).json({
@@ -133,11 +106,7 @@ const getBlogs = async (req, res) => {
         });
 
     } catch (error) {
-        console.error("Error getting blogs:", error);
-        return res.status(500).json(createErrorResponse(
-            "Internal server error",
-            process.env.NODE_ENV === 'development' ? error.message : undefined
-        ));
+        return handleError(error, res)
     }
 
 }
@@ -151,9 +120,7 @@ const getBlogById = async (req, res) => {
         })
 
         if (!blog) {
-            return res.status(404).json(createErrorResponse(
-                "Data blog tidak ditemukan",
-            ))
+            throw new AppError("Data blog tidak ditemukan", 404)
         }
 
         return res.status(200).json(createSuccessResponse(
@@ -162,11 +129,7 @@ const getBlogById = async (req, res) => {
         ))
 
     } catch (error) {
-        console.error("Error getting course by id:", error);
-        return res.status(500).json(createErrorResponse(
-            "Internal server error",
-            process.env.NODE_ENV === 'development' ? error.message : undefined
-        ))
+        return handleError(error, res)
     }
 }
 
@@ -176,24 +139,18 @@ const updateBlog = async (req, res) => {
 
     if (!validationResult.isValid) {
         const { status, message } = validationResult.error;
-        return res.status(status).json({
-            success: false,
-            message
-        });
+        throw new AppError(message, status)
     }
 
     const validation = isAdmin(req.userRole, req.userId);
     if (!validation.isValid) {
-        return res.status(validation.error.status)
-            .json({ message: validation.error.message });
+        throw new AppError(validation.error.message, validation.error.status);
     }
 
     try {
         const blog = await Blog.findByPk(id);
         if (!blog) {
-            return res.status(404).json(createErrorResponse(
-                "Data blog tidak ditemukan"
-            ));
+            throw new AppError("Data blog tidak di temukan", 404)
         }
 
         const updateData = { ...validationResult.data };
@@ -213,11 +170,7 @@ const updateBlog = async (req, res) => {
         ));
 
     } catch (error) {
-        console.error("Error updating blog:", error);
-        return res.status(500).json(createErrorResponse(
-            "Internal server error",
-            process.env.NODE_ENV === 'development' ? error.message : undefined
-        ));
+        return handleError(error, res)
     }
 };
 
@@ -226,16 +179,13 @@ const deleteBlog = async (req, res) => {
 
     const validation = isAdmin(req.userRole, req.userId);
     if (!validation.isValid) {
-        return res.status(validation.error.status)
-            .json({ message: validation.error.message });
+        throw new AppError(validation.error.message, validation.error.status);
     }
 
     try {
         const blog = await Blog.findByPk(id);
         if (!blog) {
-            return res.status(404).json(createErrorResponse(
-                "Data blog tidak ditemukan"
-            ));
+            throw new AppError("Data blog tidak ditemukan", 404)
         }
 
         if (blog.deletedAt) {
@@ -258,11 +208,7 @@ const deleteBlog = async (req, res) => {
         ));
 
     } catch (error) {
-        console.error("Error deleting blog:", error);
-        return res.status(500).json(createErrorResponse(
-            "Internal server error",
-            process.env.NODE_ENV === 'development' ? error.message : undefined
-        ));
+        return handleError(error, res)
     }
 };
 
@@ -271,8 +217,7 @@ const restoreBlog = async (req, res) => {
 
     const validation = isAdmin(req.userRole, req.userId);
     if (!validation.isValid) {
-        return res.status(validation.error.status)
-            .json({ message: validation.error.message });
+        throw new AppError(validation.error.message, validation.error.status);
     }
 
     try {
@@ -280,24 +225,11 @@ const restoreBlog = async (req, res) => {
         const blog = await Blog.findByPk(id, { paranoid: false });
 
         if (!blog) {
-            return res.status(404).json({
-                success: false,
-                message: "Blog tidak ditemukan"
-            });
-        }
-
-        if (!blog) {
-            return res.status(404).json({
-                success: false,
-                message: "Blog tidak ditemukan"
-            });
+            throw new AppError("Data blog tidak ditemukan", 404)
         }
 
         if (!blog.deletedAt) {
-            return res.status(400).json({
-                success: false,
-                message: "Course belum dihapus"
-            });
+            throw new AppError("Blog belum dihapus", 400)
         }
 
 
@@ -313,11 +245,7 @@ const restoreBlog = async (req, res) => {
         ));
 
     } catch (error) {
-        console.error("Error restoring blog:", error);
-        return res.status(500).json(createErrorResponse(
-            "Internal server error",
-            process.env.NODE_ENV === 'development' ? error.message : undefined
-        ));
+        return handleError(error, res)
     }
 };
 

@@ -34,7 +34,6 @@ module.exports = {
       },
       userId: {
         type: Sequelize.STRING(36),
-        defaultValue: Sequelize.UUIDV4,
         references: { model: 'users', key: 'id' },
         allowNull: true,
         onDelete: 'SET NULL'

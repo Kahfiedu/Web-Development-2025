@@ -1,22 +1,19 @@
 const { Op } = require('sequelize');
-const { isAdmin } = require('../helpers/validationAdmin');
+const { isAdmin } = require('../helpers/validationRole');
 const { Category } = require('../models');
 const { createSearchWhereClause } = require('../helpers/searchQueryHelper');
+const { AppError, handleError } = require('../helpers/helperFunction');
 
 const createCategory = async (req, res) => {
     const { name, isActive } = req.body;
 
     const validation = isAdmin(req.userRole, req.userId);
     if (!validation.isValid) {
-        return res.status(validation.error.status)
-            .json({ message: validation.error.message });
+        throw new AppError(validation.error.message, validation.error.status);
     }
 
     if (!name) {
-        return res.status(400).json({
-            success: false,
-            message: "Name is required"
-        });
+        throw new AppError("Name diperlukan")
     }
 
     // Convert isActive to boolean
@@ -31,10 +28,7 @@ const createCategory = async (req, res) => {
         });
 
         if (existingCategory) {
-            return res.status(400).json({
-                success: false,
-                message: "Category already exists"
-            });
+            throw new AppError("Name category telah tersedia")
         }
 
         const newCategory = await Category.create({
@@ -51,12 +45,7 @@ const createCategory = async (req, res) => {
         });
 
     } catch (error) {
-        console.error("Error creating category:", error);
-        return res.status(500).json({
-            success: false,
-            message: "Internal server error",
-            error: process.env.NODE_ENV === 'development' ? error.message : undefined
-        });
+        return handleError(error, res)
     }
 }
 
@@ -93,12 +82,7 @@ const getCategories = async (req, res) => {
         };
 
         if (categories.length === 0) {
-            return res.status(404).json({
-                success: false,
-                message: "No categories found",
-                categories: [],
-                meta
-            });
+            throw new AppError("Data category tidak ditemukan", 404)
         }
 
         return res.status(200).json({
@@ -109,12 +93,7 @@ const getCategories = async (req, res) => {
         });
 
     } catch (error) {
-        console.error("Error fetching category:", error);
-        return res.status(500).json({
-            success: false,
-            message: "Internal server error",
-            error: process.env.NODE_ENV === 'development' ? error.message : undefined
-        });
+        return handleError(error, res)
     }
 }
 
@@ -124,8 +103,7 @@ const updateCategory = async (req, res) => {
 
     const validation = isAdmin(req.userRole, req.userId);
     if (!validation.isValid) {
-        return res.status(validation.error.status)
-            .json({ message: validation.error.message });
+        throw new AppError(validation.error.message, validation.error.status);
     }
 
     try {
@@ -135,10 +113,7 @@ const updateCategory = async (req, res) => {
         });
 
         if (!existingCategory) {
-            return res.status(404).json({
-                success: false,
-                message: "Category not found"
-            });
+            throw new AppError("Data Category tidak ditemukan", 404)
         }
 
         // Prepare update data
@@ -157,10 +132,7 @@ const updateCategory = async (req, res) => {
             });
 
             if (nameExists) {
-                return res.status(400).json({
-                    success: false,
-                    message: "Category name already exists"
-                });
+                throw new AppError("Name category telah tersedia", 400)
             }
             updateData.name = lowerCaseName;
         }
@@ -173,10 +145,7 @@ const updateCategory = async (req, res) => {
 
         // Update only if there are changes
         if (Object.keys(updateData).length === 0) {
-            return res.status(400).json({
-                success: false,
-                message: "No changes provided for update"
-            });
+            throw new AppError("Tidak ada data yang dikirim", 400)
         }
 
         await existingCategory.update(updateData, {
@@ -192,12 +161,7 @@ const updateCategory = async (req, res) => {
         });
 
     } catch (error) {
-        console.error("Error updating category:", error);
-        return res.status(500).json({
-            success: false,
-            message: "Internal server error",
-            error: process.env.NODE_ENV === 'development' ? error.message : undefined
-        });
+        return handleError(error, res)
     }
 }
 
@@ -206,8 +170,7 @@ const deleteCategory = async (req, res) => {
 
     const validation = isAdmin(req.userRole, req.userId);
     if (!validation.isValid) {
-        return res.status(validation.error.status)
-            .json({ message: validation.error.message });
+        throw new AppError(validation.error.message, validation.error.status);
     }
 
     try {
@@ -217,17 +180,11 @@ const deleteCategory = async (req, res) => {
         });
 
         if (!category) {
-            return res.status(404).json({
-                success: false,
-                message: "Category not found"
-            });
+            throw new AppError("Data category tidak ditemukan")
         }
 
         if (category.isActive) {
-            return res.status(400).json({
-                success: false,
-                message: "Category is active and cannot be deleted"
-            });
+            throw new AppError("Categoy masih aktid tidak dapat dihapus", 400)
         }
 
         if (category.isDeleted) {
@@ -251,12 +208,7 @@ const deleteCategory = async (req, res) => {
         });
 
     } catch (error) {
-        console.error("Error deleting category:", error);
-        return res.status(500).json({
-            success: false,
-            message: "Internal server error",
-            error: process.env.NODE_ENV === 'development' ? error.message : undefined
-        });
+        return handleError(error, res)
     }
 }
 
@@ -265,8 +217,7 @@ const restoreCategory = async (req, res) => {
 
     const validation = isAdmin(req.userRole, req.userId);
     if (!validation.isValid) {
-        return res.status(validation.error.status)
-            .json({ message: validation.error.message });
+        throw new AppError(validation.error.message, validation.error.status);
     }
 
     try {
@@ -276,10 +227,11 @@ const restoreCategory = async (req, res) => {
         });
 
         if (!category) {
-            return res.status(404).json({
-                success: false,
-                message: "Category not found"
-            });
+            throw new AppError("Data category tidak ditemukan", 404)
+        }
+
+        if (!category.deletedAt) {
+            throw new AppError("Category belum dihapus atau masih aktif", 400)
         }
 
         await category.restore({
@@ -293,12 +245,7 @@ const restoreCategory = async (req, res) => {
         });
 
     } catch (error) {
-        console.error("Error restoring category:", error);
-        return res.status(500).json({
-            success: false,
-            message: "Internal server error",
-            error: process.env.NODE_ENV === 'development' ? error.message : undefined
-        });
+        return handleError(error, res)
     }
 }
 

@@ -2,146 +2,97 @@ const { createSearchWhereClause } = require("../helpers/searchQueryHelper");
 const { Child, User } = require("../models");
 const { Op } = require('sequelize');
 const { validateChildData } = require("../utils/validateChildData");
-
+const { AppError, handleError } = require("../helpers/helperFunction");
+const { isParentOrAdmin, isParentOrAdminOrTeacher } = require('../helpers/validationRole');
 
 const createChild = async (req, res) => {
-    const validation = validateChildData(req.body, 'create');
-    if (!validation.isValid) {
-        return res.status(validation.error.status).json({
-            success: false,
-            message: validation.error.message
-        });
-    }
-
-    const userId = req.userId;
-    const userRole = req.userRole;
-
-    if (!userId) {
-        return res.status(401).json({
-            success: false,
-            message: "Unauthorized"
-        });
-    }
-
-    if (userRole !== "parent") {
-        return res.status(403).json({
-            success: false,
-            message: "Anda bukan orang tua"
-        });
-    }
-
     try {
-
-        const user = await User.findByPk(userId);
-
-        if (!user) {
-            return res.status(404).json({
-                success: false,
-                message: "User tidak ditemukan atau sudah dihapus"
-            });
+        // Validate data
+        const validation = validateChildData(req.body, 'create');
+        if (!validation.isValid) {
+            throw new AppError(validation.error.message, validation.error.status);
         }
 
+        // Validate parent role
+        const parentValidation = isParent(req.userRole, req.userId);
+        if (!parentValidation.isValid) {
+            throw new AppError(parentValidation.error.message, parentValidation.error.status);
+        }
+
+        // Create child
         const newChild = await Child.create({
             ...validation.data,
-            parentId: userId
+            parentId: parentValidation.userId
         }, {
-            userId: userId
+            userId: parentValidation.userId
         });
 
         return res.status(201).json({
             success: true,
-            message: "Berhasil menamabhkan data anak",
-            children: newChild,
-        }, {
-            userId: userId
+            message: "Berhasil menambahkan data anak",
+            children: newChild
         });
-
 
     } catch (error) {
-        console.error("Error creating Child:", error);
-        const status = error.status || 500;
-        const message = error.status ? error.message : "Internal server error";
-        return res.status(status).json({
-            success: false,
-            message
-        });
+        return handleError(error, res);
     }
-
-
-}
+};
 
 const getChildrens = async (req, res) => {
-    const { page = 1, limit = 10, search = "", isActive, parentId } = req.query;
-    const { name, age, relationship, gender } = req.query;
-
-    const userId = req.userId;
-    const userRole = req.userRole;
-
-    if (!userId) {
-        return res.status(401).json({
-            success: false,
-            message: "Unauthorized"
-        });
-    }
-
-    if (userRole !== "parent" && userRole !== "admin") {
-        return res.status(403).json({
-            success: false,
-            message: "Anda bukan orang tua atau admin"
-        });
-    }
-
-    const offset = (parseInt(page) - 1) * parseInt(limit);
-    const searchFields = ['name', 'relationship', 'gender'];
-
     try {
-        // Base where clause for search
+        const { page = 1, limit = 10, search = "", isActive, parentId } = req.query;
+        const { name, age, relationship, gender } = req.query;
+
+        // Validate parent/admin role
+        const roleValidation = isParentOrAdmin(req.userRole, req.userId);
+        if (!roleValidation.isValid) {
+            throw new AppError(roleValidation.error.message, roleValidation.error.status);
+        }
+
+        const offset = (parseInt(page) - 1) * parseInt(limit);
+        const searchFields = ['name', 'relationship', 'gender'];
+
+        // Build where clause
         let whereClause = createSearchWhereClause(search, searchFields);
 
-        // Add additional filters if provided
+        // Add filters
         if (name) whereClause.name = { [Op.like]: `%${name}%` };
         if (age) whereClause.age = age;
         if (relationship) whereClause.relationship = relationship;
         if (gender) whereClause.gender = gender;
         if (isActive !== undefined) whereClause.isActive = isActive === 'true';
 
-        // Different queries for parent and admin
-        if (userRole === "parent") {
-            // Parent can only see their own children
-            whereClause.parentId = userId;
-        } else if (userRole === "admin" && parentId) {
-            // Admin can filter by specific parentId if provided
+        // Role-based filtering
+        if (req.userRole === "parent") {
+            whereClause.parentId = roleValidation.userId;
+        } else if (req.userRole === "admin" && parentId) {
             whereClause.parentId = parentId;
         }
 
         const { count, rows: childrens } = await Child.findAndCountAll({
             where: whereClause,
             limit: parseInt(limit),
-            offset: offset,
+            offset,
             order: [['createdAt', 'DESC']],
-            include: [
-                {
-                    model: User,
-                    as: 'parent',
-                    attributes: ['id', 'name', 'email', 'phone'],
-                }
-            ],
+            include: [{
+                model: User,
+                as: 'parent',
+                attributes: ['id', 'name', 'email', 'phone'],
+            }],
             distinct: true
         });
-
-        const totalPages = Math.ceil(count / parseInt(limit));
 
         const meta = {
             page: parseInt(page),
             limit: parseInt(limit),
             totalItems: count,
-            totalPages,
+            totalPages: Math.ceil(count / parseInt(limit))
         };
 
         if (childrens.length === 0) {
-            return res.status(404).json({
-                success: false,
-                message: "Data anak tidak ditemukan",
+            return res.status(200).json({
+                success: true,
+                message: "Tidak ada data anak yang ditemukan",
                 childrens: [],
                 meta
             });
@@ -155,53 +106,31 @@ const getChildrens = async (req, res) => {
         });
 
     } catch (error) {
-        console.error("Error getting children:", error);
-        return res.status(500).json({
-            success: false,
-            message: "Internal server error",
-            error: process.env.NODE_ENV === 'development' ? error.message : undefined
-        });
+        return handleError(error, res);
     }
 };
 
 const getChildById = async (req, res) => {
-    const { id } = req.params;
-
-    const userId = req.userId;
-    const userRole = req.userRole;
-
-    if (!userId) {
-        return res.status(401).json({
-            success: false,
-            message: "Unauthorized"
-        });
-    }
-
-    if (userRole !== "parent" && userRole !== "admin") {
-        return res.status(403).json({
-            success: false,
-            message: "Anda bukan orang tua atau admin"
-        });
-    }
-
     try {
+        const { id } = req.params;
+
+        // Validate parent/admin role
+        const roleValidation = isParentOrAdminOrTeacher(req.userRole, req.userId);
+        if (!roleValidation.isValid) {
+            throw new AppError(roleValidation.error.message, roleValidation.error.status);
+        }
+
         const children = await Child.findOne({
             where: { id },
-            include: [
-                {
-                    model: User,
-                    as: 'parent',
-                    attributes: ['id', 'name', 'email', 'phone'],
-                }
-            ]
+            include: [{
+                model: User,
+                as: 'parent',
+                attributes: ['id', 'name', 'email', 'phone'],
+            }]
         });
 
         if (!children) {
-            return res.status(404).json({
-                success: false,
-                message: "Data anak tidak ditemukan",
-                children: null
-            });
+            throw new AppError("Data anak tidak ditemukan", 404);
         }
 
         return res.status(200).json({
@@ -211,54 +140,34 @@ const getChildById = async (req, res) => {
         });
 
     } catch (error) {
-        console.error("Error getting child by ID:", error);
-        return res.status(500).json({
-            success: false,
-            message: "Internal server error",
-            error: process.env.NODE_ENV === 'development' ? error.message : undefined
-        });
+        return handleError(error, res);
     }
 };
 
 const updateChild = async (req, res) => {
-    const { id } = req.params;
-    const validation = validateChildData(req.body, 'update');
-    if (!validation.isValid) {
-        return res.status(validation.error.status).json({
-            success: false,
-            message: validation.error.message
-        });
-    }
-
-    const userId = req.userId;
-    const userRole = req.userRole;
-
-    if (!userId) {
-        return res.status(401).json({
-            success: false,
-            message: "Unauthorized"
-        });
-    }
-
-    if (userRole !== "parent" && userRole !== "admin") {
-        return res.status(403).json({
-            success: false,
-            message: "Anda bukan orang tua atau admin"
-        });
-    }
-
     try {
-        const child = await Child.findByPk(id);
+        const { id } = req.params;
 
-        if (!child) {
-            return res.status(404).json({
-                success: false,
-                message: "Data anak tidak ditemukan",
-                child: null
-            });
+        // Validate data
+        const validation = validateChildData(req.body, 'update');
+        if (!validation.isValid) {
+            throw new AppError(validation.error.message, validation.error.status);
         }
 
-        await child.update(validation.data);
+        // Validate parent/admin role
+        const roleValidation = isParentOrAdmin(req.userRole, req.userId);
+        if (!roleValidation.isValid) {
+            throw new AppError(roleValidation.error.message, roleValidation.error.status);
+        }
+
+        const child = await Child.findByPk(id);
+        if (!child) {
+            throw new AppError("Data anak tidak ditemukan", 404);
+        }
+
+        await child.update(validation.data, {
+            userId: roleValidation.userId
+        });
 
         return res.status(200).json({
             success: true,
@@ -267,117 +176,73 @@ const updateChild = async (req, res) => {
         });
 
     } catch (error) {
-        console.error("Error updating child:", error);
-        return res.status(500).json({
-            success: false,
-            message: "Internal server error",
-            error: process.env.NODE_ENV === 'development' ? error.message : undefined
-        });
+        return handleError(error, res);
     }
 };
 
 const deleteChild = async (req, res) => {
-    const { id } = req.params;
-
-    const userId = req.userId;
-    const userRole = req.userRole;
-
-    if (!userId) {
-        return res.status(401).json({
-            success: false,
-            message: "Unauthorized"
-        });
-    }
-
-    if (userRole !== "parent" && userRole !== "admin") {
-        return res.status(403).json({
-            success: false,
-            message: "Anda bukan orang tua atau admin"
-        });
-    }
-
     try {
-        const children = await Child.findByPk(id,
-            {
-                paranoid: false
-            }
-        );
+        const { id } = req.params;
+
+        // Validate parent/admin role
+        const roleValidation = isParentOrAdmin(req.userRole, req.userId);
+        if (!roleValidation.isValid) {
+            throw new AppError(roleValidation.error.message, roleValidation.error.status);
+        }
+
+        const children = await Child.findByPk(id, {
+            paranoid: false
+        });
 
         if (!children) {
-            return res.status(404).json({
-                success: false,
-                message: "Data anak tidak ditemukan",
-                children: null
-            });
+            throw new AppError("Data anak tidak ditemukan", 404);
         }
 
         if (children.deletedAt) {
             await children.destroy({
                 force: true,
-                userId: userId
+                userId: roleValidation.userId
             });
             return res.status(200).json({
                 success: true,
-                message: "Data anak dihapus permanen",
+                message: "Data anak dihapus permanen"
             });
         }
 
-        await children.destroy(
-            {
-                userId: userId
-            }
-        );
+        await children.destroy({
+            userId: roleValidation.userId
+        });
 
         return res.status(200).json({
             success: true,
-            message: "Berhasil menghapus data anak",
+            message: "Berhasil menghapus data anak"
         });
 
     } catch (error) {
-        console.error("Error deleting child:", error);
-        return res.status(500).json({
-            success: false,
-            message: "Internal server error",
-            error: process.env.NODE_ENV === 'development' ? error.message : undefined
-        });
+        return handleError(error, res);
     }
 };
 
 const restoreChild = async (req, res) => {
-    const { id } = req.params;
-
-    const userId = req.userId;
-    const userRole = req.userRole;
-
-    if (!userId) {
-        return res.status(401).json({
-            success: false,
-            message: "Unauthorized"
-        });
-    }
-
-    if (userRole !== "parent" && userRole !== "admin") {
-        return res.status(403).json({
-            success: false,
-            message: "Anda bukan orang tua atau admin"
-        });
-    }
-
     try {
+        const { id } = req.params;
+
+        // Validate parent/admin role
+        const roleValidation = isParentOrAdmin(req.userRole, req.userId);
+        if (!roleValidation.isValid) {
+            throw new AppError(roleValidation.error.message, roleValidation.error.status);
+        }
+
         const child = await Child.findByPk(id, {
             paranoid: false
         });
 
         if (!child) {
-            return res.status(404).json({
-                success: false,
-                message: "Data anak tidak ditemukan",
-                child: null
-            });
+            throw new AppError("Data anak tidak ditemukan", 404);
         }
 
         await child.restore({
-            userId: userId
+            userId: roleValidation.userId
         });
 
         return res.status(200).json({
@@ -387,12 +252,7 @@ const restoreChild = async (req, res) => {
         });
 
     } catch (error) {
-        console.error("Error restoring child:", error);
-        return res.status(500).json({
-            success: false,
-            message: "Internal server error",
-            error: process.env.NODE_ENV === 'development' ? error.message : undefined
-        });
+        return handleError(error, res);
     }
 };
 
@@ -402,5 +262,5 @@ module.exports = {
     getChildById,
     updateChild,
     deleteChild,
-    restoreChild,
-}
+    restoreChild
+};

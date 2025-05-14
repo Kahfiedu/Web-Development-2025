@@ -14,7 +14,7 @@ const { Category } = require('../models');
  * @returns {Object} Validation result
  */
 
-const validateCourseData = (data, mode = 'create') => {
+const validateCourseData = async (data, mode = 'create') => {
     const { title, description, categoryId, level, isPublish, isFeatured } = data;
     const validatedData = {};
 
@@ -70,7 +70,7 @@ const validateCourseData = (data, mode = 'create') => {
                     }
                 };
             }
-            const category = Category.findOne({ where: { id: categoryId } });
+            const category = await Category.findOne({ where: { id: categoryId } });
             if (!category) {
                 return {
                     isValid: false,

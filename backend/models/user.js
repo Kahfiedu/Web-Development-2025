@@ -32,7 +32,7 @@ module.exports = (sequelize, DataTypes) => {
 
       User.hasMany(models.Revision, {
         foreignKey: 'userId',
-        as: 'revisions',
+        as: 'revisions',  // Changed back to lowercase 'revisions'
         onDelete: 'CASCADE',
       });
     }
@@ -104,6 +104,10 @@ module.exports = (sequelize, DataTypes) => {
         allowNull: false
       },
       phone: {
+        type: DataTypes.STRING,
+        allowNull: true,
+      },
+      gender: {
         type: DataTypes.STRING,
         allowNull: true,
       },

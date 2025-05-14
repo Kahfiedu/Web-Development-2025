@@ -60,11 +60,6 @@ const handleError = (error, res) => {
     });
 };
 
-const createErrorResponse = (message, error = null) => ({
-    success: false,
-    message,
-    ...(error && process.env.NODE_ENV === 'development' && { error })
-});
 
 const createSuccessResponse = (message, data, meta = null) => ({
     success: true,
@@ -76,7 +71,6 @@ const createSuccessResponse = (message, data, meta = null) => ({
 module.exports = {
     handlePagination,
     createGroupedResponse,
-    createErrorResponse,
     createSuccessResponse,
     handleError,
     AppError

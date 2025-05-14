@@ -1,13 +1,13 @@
 const { verifyToken } = require('../helpers/jwtHelper');
-const { namespace } = require("../config/sequelizeContext");
 const { User } = require("../models");
+const { AppError } = require('../helpers/helperFunction');
 
 const validateToken = async (req, res, next) => {
     try {
         let token = req.headers["authorization"];
 
         if (!token) {
-            return res.status(403).json({ message: "No token provided" });
+            throw new AppError("No token provided", 403);
         }
 
         // Remove Bearer prefix if present
@@ -36,10 +36,6 @@ const validateToken = async (req, res, next) => {
         req.user = decoded;
         req.userId = decoded.userId;
         req.userRole = decoded.role;
-
-        // Set userId in namespace within CLS context
-        namespace.set('userId', decoded.userId);
-        console.log('Set userId in namespace:', decoded.userId);
 
         next();
     } catch (error) {

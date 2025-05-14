@@ -2,32 +2,27 @@ const { createSearchWhereClause } = require('../helpers/searchQueryHelper');
 const { ClassEnrollment, User, Child, Class } = require('../models');
 const { getPagination } = require('../utils/paginationUtil');
 const { validateClassEnrollmentData } = require('../utils/validateClassEnrollmentData');
+const { AppError, handleError } = require('../helpers/helperFunction');
 const { Op } = require('sequelize');
 
 const createClassEnrollment = async (req, res) => {
-    const validationResult = await validateClassEnrollmentData(req.body, 'create');
-    if (!validationResult.isValid) {
-        return res.status(validationResult.error.status).json({
-            success: false,
-            message: validationResult.error.message
-        });
-    }
-
     try {
+        const validationResult = await validateClassEnrollmentData(req.body, 'create');
+        if (!validationResult.isValid) {
+            throw new AppError(validationResult.error.message, validationResult.error.status);
+        }
 
         const newEnrollment = await ClassEnrollment.create(validationResult.data, {
             userId: req.userId
         });
 
         const result = await ClassEnrollment.findByPk(newEnrollment.id, {
-            include: [
-                {
-                    model: Class,
-                    as: "class",
-                    attributes: ["id", "name"]
-                },
-            ]
-        })
+            include: [{
+                model: Class,
+                as: "class",
+                attributes: ["id", "name"]
+            }]
+        });
 
         return res.status(201).json({
             success: true,
@@ -35,27 +30,16 @@ const createClassEnrollment = async (req, res) => {
             class_enrollment: result
         });
     } catch (error) {
-        console.error("Error getting enrollment:", error);
-        return res.status(500).json({
-            success: false,
-            message: "Internal server error",
-            error: process.env.NODE_ENV === 'development' ? error.message : undefined
-        });
+        return handleError(error, res);
     }
 };
 
 const getClassEnrollments = async (req, res) => {
-    const {
-        search = "",
-        classId,
-        studentId,
-        childId
-    } = req.query;
-
-    const searchFields = ['status']; // misalnya, search hanya untuk status teks
-    const exactMatchFields = { classId, studentId, childId };
-
     try {
+        const { search = "", classId, studentId, childId } = req.query;
+        const searchFields = ['status'];
+        const exactMatchFields = { classId, studentId, childId };
+
         const {
             limit,
             offset,
@@ -64,7 +48,7 @@ const getClassEnrollments = async (req, res) => {
             meta
         } = getPagination(req.query);
 
-        // Build exact match filter
+        // Build filters
         const additionalFilters = {};
         for (const [key, value] of Object.entries(exactMatchFields)) {
             if (value) {
@@ -72,10 +56,7 @@ const getClassEnrollments = async (req, res) => {
             }
         }
 
-        // Build full where clause
         let whereClause = createSearchWhereClause(search, searchFields, additionalFilters);
-
-        // Tambahkan status jika ada
         if (statusCondition) {
             whereClause = { ...whereClause, ...statusCondition };
         }
@@ -85,7 +66,7 @@ const getClassEnrollments = async (req, res) => {
             include: [
                 { model: Class, as: 'class' },
                 { model: User, as: 'student' },
-                { model: Child, as: 'child' },
+                { model: Child, as: 'child' }
             ]
         });
 
@@ -100,7 +81,7 @@ const getClassEnrollments = async (req, res) => {
             include: [
                 { model: Class, as: 'class' },
                 { model: User, as: 'student' },
-                { model: Child, as: 'child' },
+                { model: Child, as: 'child' }
             ],
             paranoid,
             distinct: true
@@ -109,12 +90,7 @@ const getClassEnrollments = async (req, res) => {
         if (enrollments.length === 0) {
             meta.total = 0;
             meta.totalPages = 0;
-            return res.status(404).json({
-                success: false,
-                message: "Tidak ada data pendaftaran yang ditemukan",
-                class_enrollments: [],
-                meta
-            });
+            throw new AppError("Tidak ada data pendaftaran yang ditemukan", 404);
         }
 
         return res.status(200).json({
@@ -124,34 +100,26 @@ const getClassEnrollments = async (req, res) => {
             meta
         });
 
-    } catch (err) {
-        console.error("Error getting class enrollments:", err);
-        return res.status(500).json({
-            success: false,
-            message: "Terjadi kesalahan internal",
-            error: process.env.NODE_ENV === 'development' ? err.message : undefined
-        });
+    } catch (error) {
+        return handleError(error, res);
     }
 };
-
 
 const getClassEnrollmentById = async (req, res) => {
     try {
         const { id } = req.params;
+
         const enrollment = await ClassEnrollment.findByPk(id, {
             include: [
                 { model: Class, as: 'class' },
                 { model: User, as: 'student' },
-                { model: Child, as: 'child' },
+                { model: Child, as: 'child' }
             ],
             paranoid: false
         });
 
         if (!enrollment) {
-            return res.status(404).json({
-                success: false,
-                message: 'Pendaftaran tidak ditemukan'
-            });
+            throw new AppError('Pendaftaran tidak ditemukan', 404);
         }
 
         return res.status(200).json({
@@ -160,32 +128,22 @@ const getClassEnrollmentById = async (req, res) => {
             class_enrollment: enrollment
         });
     } catch (error) {
-        console.error("Error getting enrollment:", error);
-        return res.status(500).json({
-            success: false,
-            message: "Internal server error",
-            error: process.env.NODE_ENV === 'development' ? error.message : undefined
-        });
+        return handleError(error, res);
     }
 };
 
 const updateClassEnrollment = async (req, res) => {
     try {
         const { id } = req.params;
+
         const validationResult = await validateClassEnrollmentData(req.body, 'update');
         if (!validationResult.isValid) {
-            return res.status(validationResult.error.status).json({
-                success: false,
-                message: validationResult.error.message
-            });
+            throw new AppError(validationResult.error.message, validationResult.error.status);
         }
 
         const enrollment = await ClassEnrollment.findByPk(id);
         if (!enrollment) {
-            return res.status(404).json({
-                success: false,
-                message: 'Pendaftaran tidak ditemukan'
-            });
+            throw new AppError('Pendaftaran tidak ditemukan', 404);
         }
 
         await enrollment.update(validationResult.data, {
@@ -199,94 +157,74 @@ const updateClassEnrollment = async (req, res) => {
         });
 
     } catch (error) {
-        console.error("Error getting class:", error);
-        return res.status(500).json({
-            success: false,
-            message: "Internal server error",
-            error: process.env.NODE_ENV === 'development' ? error.message : undefined
-        });
+        return handleError(error, res);
     }
 };
 
 const deleteClassEnrollment = async (req, res) => {
     try {
         const { id } = req.params;
+
         const enrollment = await ClassEnrollment.findByPk(id, {
             paranoid: false
         });
+
         if (!enrollment) {
-            return res.status(404).json({
-                success: false,
-                message: 'Pendaftaran tidak ditemukan'
-            });
+            throw new AppError('Pendaftaran tidak ditemukan', 404);
         }
 
         if (enrollment.deletedAt) {
             await enrollment.destroy({
                 force: true,
                 userId: req.userId
-            })
+            });
 
             return res.status(200).json({
                 success: true,
                 message: "Pendaftaran berhasil di hapus permanent"
-            })
+            });
         }
 
         await enrollment.destroy({
             userId: req.userId
         });
-        // soft delete
+
         return res.status(200).json({
             success: true,
-            message: 'Pendaftaran berhasil dihapus (soft delete)'
+            message: 'Pendaftaran berhasil dihapus'
         });
     } catch (error) {
-        console.error("Error getting enrollment:", error);
-        return res.status(500).json({
-            success: false,
-            message: "Internal server error",
-            error: process.env.NODE_ENV === 'development' ? error.message : undefined
-        });
+        return handleError(error, res);
     }
 };
 
 const restoreClassEnrollment = async (req, res) => {
     try {
         const { id } = req.params;
+
         const enrollment = await ClassEnrollment.findOne({
             where: { id },
             paranoid: false
         });
 
         if (!enrollment) {
-            return res.status(404).json({
-                success: false,
-                message: 'Pendaftaran tidak ditemukan'
-            });
+            throw new AppError('Pendaftaran tidak ditemukan', 404);
         }
 
         if (!enrollment.deletedAt) {
-            return res.status(400).json({
-                success: false,
-                message: 'Pendaftaran belum dihapus'
-            });
+            throw new AppError('Pendaftaran belum dihapus', 400);
         }
 
         await enrollment.restore({
             userId: req.userId
         });
+
         return res.status(200).json({
             success: true,
             message: 'Pendaftaran berhasil dipulihkan kembali'
         });
     } catch (error) {
-        console.error("Error getting enrollment:", error);
-        return res.status(500).json({
-            success: false,
-            message: "Internal server error",
-            error: process.env.NODE_ENV === 'development' ? error.message : undefined
-        });
+        return handleError(error, res);
     }
 };
 

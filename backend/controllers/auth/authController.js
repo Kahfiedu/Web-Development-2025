@@ -2,111 +2,144 @@ const { User, Otp, Role } = require('../../models');
 const { v4: uuidv4 } = require("uuid");
 const sendEmail = require('../../helpers/sendEmailHelper');
 const { generateOtp } = require('../../utils/generateOtp');
-const { generateToken } = require('../../helpers/jwtHelper');
+const { generateToken, verifyToken } = require('../../helpers/jwtHelper');
 const url = process.env.FRONTEND_URL || 'http://localhost:5173';
 const jwt = require('jsonwebtoken');
+const { handleError, AppError } = require('../../helpers/helperFunction');
 
 // Fungsi Registrasi
 const register = async (req, res) => {
-    const { name, email, password, roleId } = req.body;
-
-    if (!name || !email || !password || password.length < 8) {
-        return res.status(400).json({ message: 'Nama, email, dan password (minimal 8 karakter) wajib diisi!' });
-    }
-
-    if (!roleId) {
-        return res.status(400).json({ message: 'Role ID wajib diisi!' });
-    }
-
     try {
+        const { name, email, password, roleId } = req.body;
+
+        // Validate required fields
+        if (!name || !email || !password) {
+            throw new AppError('Nama, email, dan password wajib diisi!', 400);
+        }
+
+        if (password.length < 8) {
+            throw new AppError('Password minimal 8 karakter!', 400);
+        }
+
+        if (!roleId) {
+            throw new AppError('Role ID wajib diisi!', 400);
+        }
+
+        // Check existing user
         const existingUser = await User.findOne({ where: { email } });
-        if (existingUser) return res.status(400).json({ message: 'Email sudah terdaftar!' });
+        if (existingUser) {
+            throw new AppError('Email sudah terdaftar!', 400);
+        }
 
+        // Validate role
         const existingRole = await Role.findOne({ where: { id: roleId } });
-
         if (!existingRole) {
-            return res.status(500).json({ message: 'Id role tidak ada' });
+            throw new AppError('Id role tidak ada', 404);
         }
 
-        if (existingRole.name !== 'student' && existingRole.name !== 'parent') {
-            return res.status(400).json({ message: 'Role tidak sesuai' });
+        if (existingRole.name === 'admin' ||
+            (existingRole.name !== 'student' && existingRole.name !== 'parent')) {
+            throw new AppError('Role tidak sesuai', 400);
         }
 
-        if (existingRole.name === 'admin') {
-            return res.status(400).json({ message: 'Role tidak sesuai' });
-        }
-
+        // Create user
         const newUser = await User.create({
             name,
             email,
             password,
-            roleId: roleId,
+            roleId,
             emailVerified: null,
         });
 
+        // Generate and send OTP
         const otp = generateOtp();
-        await Otp.create({ id: uuidv4(), userId: newUser.id, code: otp, isVerified: false });
+        await Otp.create({
+            id: uuidv4(),
+            userId: newUser.id,
+            code: otp,
+            isVerified: false
+        });
 
-        await sendEmail(email, 'Verifikasi Email', `<h2>Kode OTP Anda</h2><p>${otp}</p>`);
+        await sendEmail(
+            email,
+            'Verifikasi Email',
+            `<h2>Kode OTP Anda</h2><p>${otp}</p>`
+        );
 
-        return res.status(201).json({ message: 'Kode OTP telah dikirim ke email Anda.', userId: newUser.id });
+        return res.status(201).json({
+            success: true,
+            message: 'Kode OTP telah dikirim ke email Anda.',
+            userId: newUser.id
+        });
     } catch (error) {
-        console.error('Error saat registrasi:', error);
-        return res.status(500).json({ message: 'Terjadi kesalahan server.' });
+        return handleError(error, res);
     }
 };
 
-// Fungsi Login
 const login = async (req, res) => {
-    const { email, password } = req.body;
-
-    if (!email || !password) {
-        return res.status(400).json({ message: 'Email dan password wajib diisi!' });
-    }
-
     try {
+        const { email, password } = req.body;
+
+        if (!email || !password) {
+            throw new AppError('Email dan password wajib diisi!', 400);
+        }
+
+        // Find user with role
         const user = await User.findOne({
             where: { email },
-            include: [
-                {
-                    model: Role,
-                    as: 'role',
-                    attributes: ['id', 'name']
-                }
-            ]
+            include: [{
+                model: Role,
+                as: 'role',
+                attributes: ['id', 'name']
+            }]
         });
+
+        // Check user exists and is not deleted
         if (!user || user.deletedAt !== null) {
-            return res.status(401).json({ message: 'Email atau password salah, atau akun dinonaktifkan!' });
+            throw new AppError('Email atau password salah, atau akun dinonaktifkan!', 401);
         }
 
+        // Verify password
         const isMatch = await User.verifyPassword(password, user.password);
-        if (!isMatch) return res.status(401).json({ message: 'Email atau password salah!' });
+        if (!isMatch) {
+            throw new AppError('Email atau password salah!', 401);
+        }
 
+        // Handle unverified email
         if (!user.emailVerified) {
             const otp = generateOtp();
-            await Otp.upsert({ userId: user.id, code: otp, isVerified: false });
-            await sendEmail(email, 'Verifikasi Email', `<h2>Kode OTP Anda</h2><p>${otp}</p>`);
+            await Otp.upsert({
+                userId: user.id,
+                code: otp,
+                isVerified: false
+            });
 
-            return res.status(401).json({ message: 'Email belum diverifikasi! Kode OTP telah dikirim ulang.', userId: user.id });
+            await sendEmail(
+                email,
+                'Verifikasi Email',
+                `<h2>Kode OTP Anda</h2><p>${otp}</p>`
+            );
+
+            throw new AppError('Email belum diverifikasi! Kode OTP telah dikirim ulang.', 401, {
+                userId: user.id
+            });
         }
 
+        // Generate token
         const token = generateToken({
             userId: user.id,
             email: user.email,
             role: user.role.name
         });
 
-        if (!token) {
-            return res.status(500).json({ message: 'Gagal membuat token!' });
-        }
         return res.status(200).json({
+            success: true,
             message: 'Login berhasil!',
             token,
             role: user.role.name
         });
     } catch (error) {
-        console.error('Error saat login:', error);
-        return res.status(500).json({ message: 'Terjadi kesalahan server.' });
+        return handleError(error, res);
     }
 };
 
@@ -168,50 +201,101 @@ const confirmOtp = async (req, res) => {
 
 // Fungsi Reset Password Request
 const resetPasswordRequest = async (req, res) => {
-    const { email } = req.body;
-
-    if (!email) return res.status(400).json({ message: 'Email wajib diisi!' });
-
     try {
-        const user = await User.findOne({ where: { email } });
-        if (!user) return res.status(404).json({ message: 'Pengguna tidak ditemukan!' });
+        const { email } = req.body;
 
-        const token = generateToken({ userId: user.id });
+        if (!email) {
+            throw new AppError('Email wajib diisi!', 400);
+        }
+
+        const user = await User.findOne({
+            where: { email },
+            include: [{
+                model: Role,
+                as: 'role',
+                attributes: ['id', 'name']
+            }]
+        });
+
+        if (!user) {
+            throw new AppError('Pengguna tidak ditemukan!', 404);
+        }
+
+        if (!user.emailVerified) {
+            throw new AppError('Email belum diverifikasi!', 400);
+        }
+
+        // Generate password reset token
+        const token = generateToken({ userId: user.id }, true);
+
         const resetLink = `${url}/reset-password?token=${token}&userId=${user.id}`;
 
-        await sendEmail(email, 'Reset Password', `<h2>Reset Password</h2><p>Klik link berikut untuk mereset password Anda:</p><a href="${resetLink}">Reset Password</a>`);
+        await sendEmail(
+            email,
+            'Reset Password',
+            `<h2>Reset Password</h2>
+            <p>Anda telah meminta untuk mereset password akun Anda.</p>
+            <p>Klik link berikut untuk mereset password:</p>
+            <a href="${resetLink}" style="padding: 10px 20px; background-color: #4CAF50; color: white; text-decoration: none; border-radius: 5px;">
+                Reset Password
+            </a>
+            <p>Link ini akan kadaluarsa dalam 1 jam.</p>
+            <p>Jika Anda tidak meminta reset password, abaikan email ini.</p>`
+        );
 
-        return res.status(200).json({ message: 'Link password reset telah dikirim ke email Anda.' });
+        return res.status(200).json({
+            success: true,
+            message: 'Link password reset telah dikirim ke email Anda.'
+        });
     } catch (error) {
-        console.error('Error saat reset password request:', error);
-        return res.status(500).json({ message: 'Terjadi kesalahan server.' });
+        return handleError(error, res);
     }
 };
 
 // Fungsi Ubah Password
 const changePassword = async (req, res) => {
-    const { newPassword, token, userId } = req.body;
-
-    if (!newPassword || newPassword.length < 8 || !token || !userId) {
-        return res.status(400).json({ message: 'Password wajib diisi (minimal 8 karakter)' });
-    }
-
     try {
-        const decoded = jwt.verify(token, process.env.JWT_SECRET);
-        if (decoded.userId !== userId) {
-            return res.status(401).json({ message: 'Token tidak valid!' });
+        const { newPassword, token, userId } = req.body;
+
+        if (!newPassword || !token || !userId) {
+            throw new AppError('Password baru dan token wajib diisi!', 400);
+        }
+
+        if (newPassword.length < 8) {
+            throw new AppError('Password minimal 8 karakter!', 400);
+        }
+
+        try {
+            const decoded = verifyToken(token);
+
+            if (decoded.userId !== userId) {
+                throw new AppError('Token tidak valid!', 401);
+            }
+
+            if (!decoded.isPasswordReset) {
+                throw new AppError('Token bukan untuk reset password!', 401);
+            }
+        } catch (jwtError) {
+            throw new AppError('Token tidak valid atau kadaluarsa!', 401);
         }
 
         const user = await User.findByPk(userId);
-        if (!user) return res.status(404).json({ message: 'Pengguna tidak ditemukan!' });
+        if (!user) {
+            throw new AppError('Pengguna tidak ditemukan!', 404);
+        }
 
-        user.password = newPassword;
-        await user.save();
+        await user.update({
+            password: newPassword
+        }, {
+            userId: userId // For revision tracking
+        });
 
-        return res.status(200).json({ message: 'Password berhasil diubah.' });
+        return res.status(200).json({
+            success: true,
+            message: 'Password berhasil diubah.'
+        });
     } catch (error) {
-        console.error('Error saat mengubah password:', error);
-        return res.status(500).json({ message: 'Terjadi kesalahan server.' });
+        return handleError(error, res);
     }
 };
 

@@ -3,7 +3,7 @@ const { createSuccessResponse, handleError, AppError } = require('../helpers/hel
 const { createSearchWhereClause } = require('../helpers/searchQueryHelper');
 const { getPagination } = require('../utils/paginationUtil');
 const validateAssignmentData = require('../utils/validateAssignmentData');
-const { isAdminOrTeacher } = require('../helpers/validationAdmin');
+const { isAdminOrTeacher } = require('../helpers/validationRole');
 
 const createAssignment = async (req, res) => {
     const validationResult = await validateAssignmentData(req.body, 'create');
@@ -79,8 +79,6 @@ const getAssignments = async (req, res) => {
         });
 
         if (assignments.length === 0) {
-            meta.total = 0;
-            meta.totalPages = 0;
             throw new AppError("Tidak ada tugas yang ditemukan", 404);
         }
 

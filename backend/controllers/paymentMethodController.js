@@ -1,21 +1,18 @@
 const { Op } = require("sequelize");
-const { isAdmin } = require("../helpers/validationAdmin");
+const { isAdmin } = require("../helpers/validationRole");
 const { PaymentMethod, Bank } = require("../models");
+const { AppError, handleError } = require("../helpers/helperFunction");
 
 const createPaymentMethod = async (req, res) => {
     const { name, description } = req.body;
 
     const validation = isAdmin(req.userRole, req.userId);
     if (!validation.isValid) {
-        return res.status(validation.error.status)
-            .json({ message: validation.error.message });
+        throw new AppError(validation.error.message, validation.error.status)
     }
 
     if (!name || !description) {
-        return res.status(400).json({
-            success: false,
-            message: "Name dan description metode pembayaran harus diisi"
-        });
+        throw new AppError("Name dan description metode pembayaran harus diisi", 400)
     }
 
     const toLowerCaseName = name.toLowerCase();
@@ -28,10 +25,7 @@ const createPaymentMethod = async (req, res) => {
         });
 
         if (existingPayment) {
-            return res.status(400).json({
-                success: false,
-                message: "Nama methode telah tersedia"
-            });
+            throw new AppError("Nama payment method telah tersedia")
         }
 
         // Create payment method with transaction and context
@@ -58,37 +52,52 @@ const createPaymentMethod = async (req, res) => {
         });
 
     } catch (error) {
-        console.error("Error creating payment method:", error);
-        const status = error.status || 500;
-        const message = error.status ? error.message : "Internal server error";
-        return res.status(status).json({
-            success: false,
-            message
-        });
+        return handleError(error, res)
     }
 };
 
 const getPaymentMethods = async (req, res) => {
+    const { status = 'active' } = req.query;  // Changed from req.body to req.query
 
     const validation = isAdmin(req.userRole, req.userId);
     if (!validation.isValid) {
-        return res.status(validation.error.status)
-            .json({ message: validation.error.message });
+        throw new AppError(validation.error.message, validation.error.status);
+    }
+
+    if (!['all', 'active', 'deleted'].includes(status)) {
+        throw new AppError("Status tidak valid. Gunakan: all, active, atau deleted", 400);
     }
 
     try {
-        const paymentMethods = await PaymentMethod.findAll({
+        // Set query options
+        const queryOptions = {
             include: [
                 {
                     model: Bank,
                     as: 'banks',
                     attributes: ['id', 'name', 'noRek', 'an', 'isActive'],
-                    order: [['createdAt', 'DESC']],
-                    paranoid: false,
                 }
             ],
-            order: [['createdAt', 'DESC']]
-        });
+            order: [['createdAt', 'DESC']],
+            paranoid: status === 'active'
+        };
+
+        // Add deletedAt filter for deleted records
+        if (status === 'deleted') {
+            queryOptions.where = {
+                deletedAt: { [Op.ne]: null }
+            };
+        }
+
+        const paymentMethods = await PaymentMethod.findAll(queryOptions);
+
+        if (paymentMethods.length === 0) {
+            return res.status(200).json({
+                success: true,
+                message: "Tidak ada data metode pembayaran",
+                paymentMethods: []
+            });
+        }
 
         return res.status(200).json({
             success: true,
@@ -96,12 +105,9 @@ const getPaymentMethods = async (req, res) => {
             paymentMethods
         });
     } catch (error) {
-        console.error("Error fetching payment methods:", error);
-        const status = error.status || 500;
-        const message = error.status ? error.message : "Internal server error";
-        res.status(status).json({ message });
+        return handleError(error, res);
     }
-}
+};
 
 const updatePaymentMethod = async (req, res) => {
     const { id } = req.params;
@@ -109,12 +115,11 @@ const updatePaymentMethod = async (req, res) => {
 
     const validation = isAdmin(req.userRole, req.userId);
     if (!validation.isValid) {
-        return res.status(validation.error.status)
-            .json({ message: validation.error.message });
+        throw new AppError(validation.error.message, validation.error.status)
     }
 
     if (!name || !description) {
-        return res.status(400).json({ message: "Name dan description metode pembayaran harus diisi" });
+        throw new AppError("Name dan description metode pembayaran harus diisi", 400)
     }
 
     const toLowerCaseName = name.toLowerCase();
@@ -123,10 +128,7 @@ const updatePaymentMethod = async (req, res) => {
         const paymentMethod = await PaymentMethod.findByPk(id);
 
         if (!paymentMethod) {
-            return res.status(404).json({
-                success: false,
-                message: "Metode pembayaran tidak ditemukan"
-            });
+            throw new AppError("Data payment method tidak ditemukan", 404)
         }
 
         const existingPayment = await PaymentMethod.findOne({
@@ -138,17 +140,14 @@ const updatePaymentMethod = async (req, res) => {
         });
 
         if (existingPayment) {
-            return res.status(400).json({
-                success: false,
-                message: "Nama metode pembayaran telah tersedia"
-            });
+            throw new AppError("Nama payment method telah tesedia", 400)
         }
 
         await paymentMethod.update({
             name: toLowerCaseName,
             description
         }, {
-            userId: validation.userId // <-- tambahkan di sini
+            userId: validation.userId
         });
 
         return res.status(200).json({
@@ -157,10 +156,7 @@ const updatePaymentMethod = async (req, res) => {
             paymentMethod
         });
     } catch (error) {
-        console.error("Error updating payment method:", error);
-        const status = error.status || 500;
-        const message = error.status ? error.message : "Internal server error";
-        res.status(status).json({ message });
+        return handleError(error, res)
     }
 }
 
@@ -169,28 +165,35 @@ const deletePaymentMethod = async (req, res) => {
 
     const validation = isAdmin(req.userRole, req.userId);
     if (!validation.isValid) {
-        return res.status(validation.error.status)
-            .json({ message: validation.error.message });
+        throw new AppError(validation.error.message, validation.error.status);
     }
 
     try {
-        const paymentMethod = await PaymentMethod.findOne({
-            id,
-            paranoid: false,
+        const paymentMethod = await PaymentMethod.findByPk(id, {
+            include: [{
+                model: Bank,
+                as: 'banks',
+                attributes: ['id']
+            }],
+            paranoid: false
         });
 
         if (!paymentMethod) {
-            return res.status(404).json({
-                success: false,
-                message: "Metode pembayaran tidak ditemukan"
-            });
+            throw new AppError("Data payment method tidak ditemukan", 404);
+        }
+
+        // Check if payment method has associated banks
+        if (paymentMethod.banks && paymentMethod.banks.length > 0) {
+            throw new AppError(
+                "Metode pembayaran tidak dapat dihapus karena masih memiliki bank yang terkait",
+                400
+            );
         }
 
         if (paymentMethod.deletedAt) {
-            // Jika metode pembayaran sudah dihapus, maka kita akan menghapusnya secara permanen
             await paymentMethod.destroy({
                 force: true,
-                userId: validation.userId // <-- tambahkan di sini
+                userId: validation.userId
             });
             return res.status(200).json({
                 success: true,
@@ -199,7 +202,7 @@ const deletePaymentMethod = async (req, res) => {
         }
 
         await paymentMethod.destroy({
-            userId: validation.userId // <-- tambahkan di sini
+            userId: validation.userId
         });
 
         return res.status(200).json({
@@ -207,20 +210,16 @@ const deletePaymentMethod = async (req, res) => {
             message: "Metode pembayaran berhasil dihapus"
         });
     } catch (error) {
-        console.error("Error deleting payment method:", error);
-        const status = error.status || 500;
-        const message = error.status ? error.message : "Internal server error";
-        res.status(status).json({ message });
+        return handleError(error, res);
     }
-}
+};
 
 const restorePaymentMethod = async (req, res) => {
     const { id } = req.params;
 
     const validation = isAdmin(req.userRole, req.userId);
     if (!validation.isValid) {
-        return res.status(validation.error.status)
-            .json({ message: validation.error.message });
+        throw new AppError(validation.error.message, validation.error.status)
     }
 
     try {
@@ -229,10 +228,7 @@ const restorePaymentMethod = async (req, res) => {
         });
 
         if (!paymentMethod) {
-            return res.status(404).json({
-                success: false,
-                message: "Metode pembayaran tidak ditemukan"
-            });
+            throw new AppError("Data payment method tidak ditemukan", 404)
         }
 
         // Restore the payment method
@@ -246,10 +242,7 @@ const restorePaymentMethod = async (req, res) => {
             paymentMethod
         });
     } catch (error) {
-        console.error("Error restoring payment method:", error);
-        const status = error.status || 500;
-        const message = error.status ? error.message : "Internal server error";
-        res.status(status).json({ message });
+        return handleError(error, res)
     }
 }
 

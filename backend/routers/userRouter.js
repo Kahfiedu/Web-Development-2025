@@ -3,7 +3,7 @@ const router = express.Router();
 const { createUpload } = require('../config/multerConfig');
 const { getUsers, getUserById, addUser, deleteUser, updateUser, restoreUser } = require('../controllers/userController');
 
-const uploadImage = createUpload("uploads/", [
+const uploadImage = createUpload("uploads/profil/", [
     "image/jpeg",
     "image/png",
     "image/jpg",

@@ -27,7 +27,7 @@ const userImportProcessor = async (job) => {
 
     // Define expected headers
     const headers = [
-        "name", "alamat", "country", "state", "city",
+        "name", "alamat", "province", "regency",
         "district", "village", "email", "emailVerified",
         "role", "gender", "phone", "password", "avatar"
     ];
@@ -202,9 +202,8 @@ async function processUserRecord(item, index, rolesMap) {
             id: uuidv4(),
             name: item.name,
             alamat: item.alamat,
-            country: item.country,
-            state: item.state,
-            city: item.city,
+            province: item.province,
+            regency: item.regency,
             district: item.district,
             village: item.village,
             email: item.email,

@@ -13,7 +13,7 @@ const { Class } = require('../models')
  */
 
 
-const validateLessonData = (data, mode = 'create') => {
+const validateLessonData = async (data, mode = 'create') => {
     const { classId, title, content, videoUrl, order } = data;
     const validatedData = {};
 
@@ -53,7 +53,12 @@ const validateLessonData = (data, mode = 'create') => {
             };
         }
 
-        const course = Class.findOne({ where: { id: classId } });
+        // Add await here
+        const course = await Class.findOne({
+            where: { id: classId.trim() },
+            paranoid: false
+        });
+
         if (!course) {
             return {
                 isValid: false,

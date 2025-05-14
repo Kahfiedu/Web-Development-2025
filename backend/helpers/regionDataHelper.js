@@ -1,12 +1,6 @@
 const { Province, Regency, District, Village } = require('../models');
-const {
-    handlePagination,
-    createErrorResponse,
-    createGroupedResponse,
-    createSuccessResponse
-} = require('./helperFunction');
+const { handlePagination, createSuccessResponse, AppError } = require('./helperFunction');
 
-// Level-specific query handlers
 const getVillages = async (districtId, group, { limit, offset, meta, isAdmin }) => {
     const whereClause = { district_id: districtId, isActive: true };
     await handlePagination(Village, whereClause, { limit, meta, isAdmin });
@@ -33,24 +27,18 @@ const getVillages = async (districtId, group, { limit, offset, meta, isAdmin }) 
     });
 
     if (villages.length === 0) {
-        return {
-            status: 404,
-            data: createErrorResponse("Data desa/kelurahan tidak ditemukan")
-        };
+        throw new AppError("Data desa/kelurahan tidak ditemukan", 404);
     }
 
     const responseData = group
-        ? { data: createGroupedResponse(villages, 'village') }
+        ? { data: villages.map(village => ({ ...village.toJSON() })) }
         : { villages };
 
-    return {
-        status: 200,
-        data: createSuccessResponse(
-            "Data desa/kelurahan berhasil didapat",
-            responseData,
-            isAdmin ? meta : null
-        )
-    };
+    return createSuccessResponse(
+        "Data desa/kelurahan berhasil didapat",
+        responseData,
+        isAdmin ? meta : null
+    );
 };
 
 const getDistricts = async (regencyId, group, { limit, offset, meta, isAdmin }) => {
@@ -74,24 +62,18 @@ const getDistricts = async (regencyId, group, { limit, offset, meta, isAdmin }) 
     });
 
     if (districts.length === 0) {
-        return {
-            status: 404,
-            data: createErrorResponse("Data kecamatan tidak ditemukan")
-        };
+        throw new AppError("Data kecamatan tidak ditemukan", 404);
     }
 
     const responseData = group
-        ? { data: createGroupedResponse(districts, 'district') }
+        ? { data: districts.map(district => ({ ...district.toJSON() })) }
         : { districts };
 
-    return {
-        status: 200,
-        data: createSuccessResponse(
-            "Data kecamatan berhasil didapat",
-            responseData,
-            isAdmin ? meta : null
-        )
-    };
+    return createSuccessResponse(
+        "Data kecamatan berhasil didapat",
+        responseData,
+        isAdmin ? meta : null
+    );
 };
 
 const getRegencies = async (provinceId, group, { limit, offset, meta, isAdmin }) => {
@@ -110,24 +92,18 @@ const getRegencies = async (provinceId, group, { limit, offset, meta, isAdmin })
     });
 
     if (regencies.length === 0) {
-        return {
-            status: 404,
-            data: createErrorResponse("Data kabupaten tidak ditemukan")
-        };
+        throw new AppError("Data kabupaten tidak ditemukan", 404);
     }
 
     const responseData = group
-        ? { data: createGroupedResponse(regencies, 'regency') }
+        ? { data: regencies.map(regency => ({ ...regency.toJSON() })) }
         : { regencies };
 
-    return {
-        status: 200,
-        data: createSuccessResponse(
-            "Data kabupaten berhasil didapat",
-            responseData,
-            isAdmin ? meta : null
-        )
-    };
+    return createSuccessResponse(
+        "Data kabupaten berhasil didapat",
+        responseData,
+        isAdmin ? meta : null
+    );
 };
 
 const getProvinces = async ({ limit, offset, meta, isAdmin }) => {
@@ -141,20 +117,14 @@ const getProvinces = async ({ limit, offset, meta, isAdmin }) => {
     });
 
     if (provinces.length === 0) {
-        return {
-            status: 404,
-            data: createErrorResponse("Data provinsi tidak ditemukan")
-        };
+        throw new AppError("Data provinsi tidak ditemukan", 404);
     }
 
-    return {
-        status: 200,
-        data: createSuccessResponse(
-            "Data provinsi ditemukan",
-            { provinces },
-            isAdmin ? meta : null
-        )
-    };
+    return createSuccessResponse(
+        "Data provinsi ditemukan",
+        { provinces },
+        isAdmin ? meta : null
+    );
 };
 
 module.exports = {

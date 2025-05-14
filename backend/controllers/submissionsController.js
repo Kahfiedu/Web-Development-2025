@@ -1,7 +1,7 @@
 const { Submission, Assignment, User, Child } = require('../models');
-const { createErrorResponse, createSuccessResponse } = require('../helpers/helperFunction');
+const { createSuccessResponse, handleError, AppError } = require('../helpers/helperFunction');
 const { getPagination } = require('../utils/paginationUtil');
-const { isAdminOrTeacher } = require('../helpers/validationAdmin');
+const { isAdminOrTeacher } = require('../helpers/validationRole');
 const getFileUrl = require('../utils/getFileUrl');
 const { Op } = require('sequelize');
 
@@ -9,63 +9,46 @@ const { Op } = require('sequelize');
  * Create a new submission
  */
 const createSubmission = async (req, res) => {
-    const { assignmentId, childId } = req.body;
-    const studentId = req.userId;
-
     try {
-        // Role-based validation
+        const { assignmentId, childId } = req.body;
+        const studentId = req.userId;
+
         switch (req.userRole) {
             case 'parent':
                 if (!childId) {
-                    return res.status(400).json(createErrorResponse(
-                        "ChildId diperlukan untuk parent"
-                    ));
+                    throw new AppError("ChildId diperlukan untuk parent", 400);
                 }
-                // Verify child belongs to parent (you need to implement this check)
                 break;
 
             case 'student':
                 if (childId) {
-                    return res.status(400).json(createErrorResponse(
-                        "Student tidak dapat mengirim tugas untuk child"
-                    ));
+                    throw new AppError("Student tidak dapat mengirim tugas untuk child", 400);
                 }
                 break;
 
             case 'admin':
             case 'teacher':
-                return res.status(403).json(createErrorResponse(
-                    "Admin/Teacher tidak dapat membuat submission"
-                ));
+                throw new AppError("Admin/Teacher tidak dapat membuat submission", 403);
 
             default:
-                return res.status(403).json(createErrorResponse(
-                    "Role tidak valid untuk membuat submission"
-                ));
+                throw new AppError("Role tidak valid untuk membuat submission", 403);
         }
 
-        // Validate assignmentId
         if (!assignmentId) {
-            return res.status(400).json(createErrorResponse(
-                "AssignmentId diperlukan"
-            ));
+            throw new AppError("AssignmentId diperlukan", 400);
         }
 
-        // Check if assignment exists and is still active
         const assignment = await Assignment.findOne({
             where: {
                 id: assignmentId,
-                dueDate: { [Op.gt]: new Date() } // Check if not past due
+                dueDate: { [Op.gt]: new Date() }
             }
         });
 
         if (!assignment) {
-            return res.status(404).json(createErrorResponse(
-                "Assignment tidak ditemukan atau sudah melewati batas waktu"
-            ));
+            throw new AppError("Assignment tidak ditemukan atau sudah melewati batas waktu", 404);
         }
 
-        // Check for existing submission
         const existingSubmission = await Submission.findOne({
             where: {
                 assignmentId,
@@ -77,19 +60,13 @@ const createSubmission = async (req, res) => {
         });
 
         if (existingSubmission) {
-            return res.status(400).json(createErrorResponse(
-                "Submission untuk assignment ini sudah ada"
-            ));
+            throw new AppError("Submission untuk assignment ini sudah ada", 400);
         }
 
-        // Validate file upload
         if (!req.file) {
-            return res.status(400).json(createErrorResponse(
-                "File submission diperlukan"
-            ));
+            throw new AppError("File submission diperlukan", 400);
         }
 
-        // Create submission
         const fileUrl = getFileUrl(req, `submissions/${req.file.filename}`);
         const submissionData = {
             assignmentId,
@@ -103,18 +80,14 @@ const createSubmission = async (req, res) => {
             userId: req.userId
         });
 
-        // Return success response with created submission
-        return res.status(201).json(createSuccessResponse(
-            "Submission berhasil dibuat",
-            { submission }
-        ));
+        return res.status(201).json({
+            success: true,
+            message: "Submission berhasil dibuat",
+            submission
+        });
 
     } catch (error) {
-        console.error("Error creating submission:", error);
-        return res.status(500).json(createErrorResponse(
-            "Internal server error",
-            process.env.NODE_ENV === 'development' ? error.message : undefined
-        ));
+        return handleError(error, res);
     }
 };
 
@@ -149,32 +122,27 @@ const getSubmissions = async (req, res) => {
         // Handle role-based filtering
         switch (req.userRole) {
             case 'parent':
-                // Parents must provide childId
                 if (!childId) {
-                    return res.status(400).json(createErrorResponse(
-                        "ChildId diperlukan untuk melihat submission anak"
-                    ));
+                    throw new AppError("ChildId diperlukan untuk melihat submission anak", 400);
                 }
                 whereClause.childId = childId;
                 break;
 
             case 'student':
-                // Students can only see their own submissions
                 whereClause.studentId = req.userId;
                 break;
 
             case 'admin':
             case 'teacher':
-                // Can see all submissions
-                // Add optional filters if provided
+                if (!validation.isValid) {
+                    throw new AppError(validation.error.message, validation.error.status);
+                }
                 if (childId) whereClause.childId = childId;
                 if (studentId) whereClause.studentId = studentId;
                 break;
 
             default:
-                return res.status(403).json(createErrorResponse(
-                    "Role tidak valid untuk mengakses submission"
-                ));
+                throw new AppError("Role tidak valid untuk mengakses submission", 403);
         }
 
         // Get submissions with related data
@@ -200,7 +168,7 @@ const getSubmissions = async (req, res) => {
             limit,
             offset,
             order: [['submittedAt', 'DESC']],
-            paranoid: !isTeacherOrAdmin && paranoid,
+            paranoid: !validation.isValid && paranoid,
             distinct: true
         });
 
@@ -212,13 +180,7 @@ const getSubmissions = async (req, res) => {
         if (submissions.length === 0) {
             meta.total = 0;
             meta.totalPages = 0;
-
-            return res.status(404).json({
-                success: false,
-                message: "Tidak ada submission yang ditemukan",
-                submissions: [],
-                meta
-            });
+            throw new AppError("Tidak ada submission yang ditemukan", 404);
         }
 
         // Return successful response
@@ -230,11 +192,7 @@ const getSubmissions = async (req, res) => {
         });
 
     } catch (error) {
-        console.error("Error getting submissions:", error);
-        return res.status(500).json(createErrorResponse(
-            "Internal server error",
-            process.env.NODE_ENV === 'development' ? error.message : undefined
-        ));
+        return handleError(error, res);
     }
 };
 
@@ -270,31 +228,23 @@ const getSubmissionById = async (req, res) => {
         });
 
         if (!submission) {
-            return res.status(404).json(createErrorResponse(
-                "Submission tidak ditemukan"
-            ));
+            throw new AppError("Data submission tidak ditemukan", 404)
         }
 
         // Role-based access control
         switch (req.userRole) {
             case 'parent':
                 if (!childId) {
-                    return res.status(400).json(createErrorResponse(
-                        "ChildId diperlukan untuk melihat submission anak"
-                    ));
+                    throw new AppError("ChildId diperlukan untuk melihat submission anak", 400);
                 }
                 if (submission.childId !== childId) {
-                    return res.status(403).json(createErrorResponse(
-                        "Anda tidak memiliki akses ke submission ini"
-                    ));
+                    throw new AppError("Anda tidak memiliki akses ke submission ini", 403);
                 }
                 break;
 
             case 'student':
                 if (submission.studentId !== req.userId) {
-                    return res.status(403).json(createErrorResponse(
-                        "Anda tidak memiliki akses ke submission ini"
-                    ));
+                    throw new AppError("Anda tidak memiliki akses ke submission ini", 403);
                 }
                 break;
 
@@ -304,9 +254,7 @@ const getSubmissionById = async (req, res) => {
                 break;
 
             default:
-                return res.status(403).json(createErrorResponse(
-                    "Role tidak valid untuk mengakses submission"
-                ));
+                throw new AppError("Role tidak valid untuk mengakses submission", 403);
         }
 
         return res.status(200).json(createSuccessResponse(
@@ -315,11 +263,7 @@ const getSubmissionById = async (req, res) => {
         ));
 
     } catch (error) {
-        console.error("Error getting submission:", error);
-        return res.status(500).json(createErrorResponse(
-            "Internal server error",
-            process.env.NODE_ENV === 'development' ? error.message : undefined
-        ));
+        return handleError(error, res)
     }
 };
 
@@ -332,37 +276,24 @@ const gradeSubmission = async (req, res) => {
 
     const validation = isAdminOrTeacher(req.userRole, req.userId);
     if (!validation.isValid) {
-        return res.status(validation.error.status)
-            .json({ message: validation.error.message });
+        throw new AppError(validation.error.message, validation.error.status)
     }
 
     try {
         const submission = await Submission.findByPk(id);
         if (!submission) {
-            return res.status(404).json(createErrorResponse(
-                "Submission tidak ditemukan"
-            ));
+            throw new AppError("Data submisson tidak ditemukan", 404)
         }
 
         // Validate grade
         if (!grade) {
-            if (typeof grade === 'number' && Number.isFinite(grade)) {
-                return res.status(400).json(createErrorResponse(
-                    "Grade harus berupa angka"
-                ))
-            }
-
-            if (grade < 0 || grade > 100) {
-                return res.status(400).json(createErrorResponse(
-                    "Grade harus berupa angka antara 0 dan 100"
-                ))
+            if (typeof grade === 'number' && Number.isFinite(grade) && grade < 0 || grade > 100) {
+                throw new AppError("Grade harus berupa angka antara 0 dan 100", 400)
             }
         }
 
         if (!feedback) {
-            return res.status(400).json(createErrorResponse(
-                "Mohon memberikan feedback"
-            ));
+            throw new AppError("Feedback harus diisi", 404)
         }
 
         await submission.update({
@@ -378,11 +309,7 @@ const gradeSubmission = async (req, res) => {
         ));
 
     } catch (error) {
-        console.error("Error grading submission:", error);
-        return res.status(500).json(createErrorResponse(
-            "Internal server error",
-            process.env.NODE_ENV === 'development' ? error.message : undefined
-        ));
+        return handleError(error, res)
     }
 };
 
@@ -391,23 +318,18 @@ const gradeSubmission = async (req, res) => {
  */
 const deleteSubmission = async (req, res) => {
     const { id } = req.params;
-    const isTeacherOrAdmin = ['admin', 'teacher'].includes(req.userRole);
+
+    const validation = isAdminOrTeacher(req.userRole, req.userId);
+    if (!validation.isValid) {
+        throw new AppError(validation.error.message, validation.error.status)
+    }
 
     try {
         const submission = await Submission.findByPk(id, {
             paranoid: false
         });
         if (!submission) {
-            return res.status(404).json(createErrorResponse(
-                "Submission tidak ditemukan"
-            ));
-        }
-
-        // Only allow deletion by owner or teacher/admin
-        if (!isTeacherOrAdmin && submission.studentId !== req.userId) {
-            return res.status(403).json(createErrorResponse(
-                "Anda tidak memiliki akses untuk menghapus submission ini"
-            ));
+            throw new AppError("Data submission tidak ditemukan", 404)
         }
 
         if (submission.deletedAt) {
@@ -430,11 +352,7 @@ const deleteSubmission = async (req, res) => {
         ));
 
     } catch (error) {
-        console.error("Error deleting submission:", error);
-        return res.status(500).json(createErrorResponse(
-            "Internal server error",
-            process.env.NODE_ENV === 'development' ? error.message : undefined
-        ));
+        return handleError(error, res)
     }
 };
 
@@ -444,8 +362,7 @@ const restoreSubmission = async (req, res) => {
     // Validate admin/teacher role
     const validation = isAdminOrTeacher(req.userRole, req.userId);
     if (!validation.isValid) {
-        return res.status(validation.error.status)
-            .json({ message: validation.error.message });
+        throw new AppError(validation.error.message, validation.error.status)
     }
 
     try {
@@ -456,9 +373,7 @@ const restoreSubmission = async (req, res) => {
         });
 
         if (!restored) {
-            return res.status(404).json(createErrorResponse(
-                "Submission tidak ditemukan atau sudah aktif"
-            ));
+            throw new AppError("Data submission tidak ditemukan atau sudah tidak aktif", 404)
         }
 
         // Get restored submission with relations
@@ -489,11 +404,7 @@ const restoreSubmission = async (req, res) => {
         ));
 
     } catch (error) {
-        console.error("Error restoring submission:", error);
-        return res.status(500).json(createErrorResponse(
-            "Internal server error",
-            process.env.NODE_ENV === 'development' ? error.message : undefined
-        ));
+        return handleError(error, res)
     }
 };
 

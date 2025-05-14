@@ -3,33 +3,24 @@ const { User, Role } = require("../models");
 const { validateEmail } = require("../utils/validorUtil");
 const getFileUrl = require("../utils/getFileUrl");
 const { getPagination } = require("../utils/paginationUtil");
+const { AppError, handleError } = require("../helpers/helperFunction");
+const { isAdmin, isAdminOrTeacher } = require("../helpers/validationRole");
 
-// Fungsi untuk mendapatkan daftar pengguna
-// dengan parameter pencarian, halaman, dan status
 const getUsers = async (req, res) => {
-    const isAdmin = req.userRole === "admin";
-    if (!isAdmin) {
-        return res.status(403).json({ message: "Access denied" });
-    }
-
-    const search = req.query.search || "";
-
     try {
-        // Hitung pagination dulu agar dapat statusCondition & paranoid
-        const {
-            limit,
-            offset,
-            statusCondition,
-            paranoid,
-            meta
-        } = getPagination(req.query);
+        const validation = isAdmin(req.userRole, req.userId);
+        if (!validation.isValid) {
+            throw new AppError(validation.error.message, validation.error.status);
+        }
+
+        const search = req.query.search || "";
+        const { limit, offset, statusCondition, paranoid, meta } = getPagination(req.query);
 
         const whereClause = {
             name: { [Op.like]: `%${search}%` },
-            ...(statusCondition || {}) // merge deletedAt condition if any
+            ...(statusCondition || {})
         };
 
-        // Hitung ulang totalCount sesuai kondisi status & search
         const totalCount = await User.count({
             where: whereClause,
             include: [{
@@ -40,11 +31,9 @@ const getUsers = async (req, res) => {
             paranoid
         });
 
-        // Update meta setelah dapat totalCount baru
         meta.total = totalCount;
         meta.totalPages = Math.ceil(totalCount / limit);
 
-        // Ambil data
         const { rows: users } = await User.findAndCountAll({
             where: whereClause,
             attributes: { exclude: ["password"] },
@@ -52,55 +41,38 @@ const getUsers = async (req, res) => {
             limit,
             offset,
             paranoid,
-            include: [
-                {
-                    model: Role,
-                    as: "role",
-                    attributes: ["id", "name"],
-                    where: { name: { [Op.not]: "admin" } }
-                }
-            ]
+            include: [{
+                model: Role,
+                as: "role",
+                attributes: ["id", "name"],
+                where: { name: { [Op.not]: "admin" } }
+            }]
         });
 
         if (users.length === 0) {
-            return res.status(404).json({
-                success: false,
-                message: "Data users tidak ditemukan",
-                users: [],
-                meta
-            });
+            throw new AppError("Data users tidak ditemukan", 404);
         }
 
-        res.status(200).json({
+        return res.status(200).json({
             success: true,
             message: "Data users berhasil diambil",
             users,
             meta
         });
     } catch (error) {
-        console.error("Error fetching users:", error);
-        res.status(500).json({ message: "Internal server error" });
+        return handleError(error, res);
     }
 };
 
-
-// Fungsi untuk mendapatkan pengguna berdasarkan ID
-// dengan pengecekan apakah pengguna adalah admin
 const getUserById = async (req, res) => {
-    const { id } = req.params;
-
-    // Validate userId
-    if (!id) {
-        return res.status(400).json({ message: "ID User tidak ditemukan" });
-    }
-
-    // Check if the user is an admin
-    const isAdmin = req.userRole === "admin";
-    if (!isAdmin) {
-        return res.status(403).json({ message: "Access denied" });
-    }
-
     try {
+        const { id } = req.params;
+
+        const validation = isAdminOrTeacher(req.userRole, req.userId);
+        if (!validation.isValid) {
+            throw new AppError(validation.error.message, validation.error.status);
+        }
+
         const user = await User.findByPk(id, {
             attributes: { exclude: ["password"] },
             include: [{
@@ -112,107 +84,73 @@ const getUserById = async (req, res) => {
         });
 
         if (!user) {
-            return res.status(404).json({ message: "User tidak ditemukan" });
+            throw new AppError("User tidak ditemukan", 404);
         }
 
-        res.status(200).json({
+        return res.status(200).json({
             success: true,
             message: "Detail user berhasil diambil",
             user
         });
     } catch (error) {
-        console.error("Error fetching user:", error);
-        res.status(500).json({ message: "Internal server error" });
+        return handleError(error, res);
     }
 };
 
-
-// Fungsi untuk menambahkan pengguna baru
-// dengan validasi email dan password
 const addUser = async (req, res) => {
-    const {
-        name,
-        email,
-        password,
-        alamat,
-        country,
-        state,
-        city,
-        district,
-        roleId,
-        village,
-        phone
-    } = req.body;
-
-    // Validate required fields
-    if (!name || !email || !password || !roleId) {
-        return res.status(400).json({ message: "Name, email, roleId and password are required" });
-    }
-
-    // Validate email format
-    if (!validateEmail(email)) {
-        return res.status(400).json({ message: "Invalid email format" });
-    }
-
-    const avatarPath = req.file ? getFileUrl(req, req.file.filename) : null;
-
-    // Validate password length
-    if (password.length < 8) {
-        return res.status(400).json({ message: "Password must be at least 8 characters long" });
-    }
-
-
     try {
-        // Check if user already exists
+        const {
+            name, email, password, alamat,
+            province, regency, district, roleId, village, phone
+        } = req.body;
+
+        if (!name || !email || !password || !roleId) {
+            throw new AppError("Name, email, roleId and password are required", 400);
+        }
+
+        const validation = isAdmin(req.userRole, req.userId);
+        if (!validation.isValid) {
+            throw new AppError(validation.error.message, validation.error.status);
+        }
+
+        if (!validateEmail(email)) {
+            throw new AppError("Invalid email format", 400);
+        }
+
+        if (password.length < 8) {
+            throw new AppError("Password must be at least 8 characters long", 400);
+        }
+
+        const avatarPath = req.file ? getFileUrl(req, `profil/${req.file.filename}`) : null;
+
         const existingUser = await User.findOne({ where: { email } });
         if (existingUser) {
-            return res.status(409).json({ message: "User already exists" });
+            throw new AppError("User already exists", 409);
         }
 
         const role = await Role.findOne({ where: { id: roleId } });
-
-        // Check if role exists
         if (!role) {
-            return res.status(404).json({ message: "Role not found" });
+            throw new AppError("Role not found", 404);
         }
 
-        // Create user
         const newUser = await User.create({
-            name,
-            email,
-            password,
-            alamat,
-            country,
-            state,
-            city,
-            district,
-            village,
-            phone,
-            roleId,
-            avatar: avatarPath,
+            name, email, password, alamat,
+            province, regency, district, village, phone,
+            roleId, avatar: avatarPath,
         }, {
-            userId: req.userId, // <-- tambahkan di sini
+            userId: req.userId
         });
 
-        // Exclude password from response
         const { password: _, ...userWithoutPassword } = newUser.toJSON();
+        userWithoutPassword.role = role.name;
 
-        const userRole = await Role.findOne({ where: { id: newUser.roleId } });
-
-        if (!userRole) {
-            return res.status(404).json({ message: "Role not found" });
-        }
-
-        userWithoutPassword.role = userRole.name;
-
-        res.status(201).json({
+        return res.status(201).json({
             success: true,
             message: "User created successfully",
             user: userWithoutPassword,
         });
     } catch (error) {
-        console.error("Error creating user:", error);
-        res.status(500).json({ message: "Internal server error" });
+        return handleError(error, res);
     }
 };
 
@@ -222,9 +160,8 @@ const updateUser = async (req, res) => {
         name,
         email,
         alamat,
-        country,
-        state,
-        city,
+        province,
+        regency,
         district,
         roleId,
         village,
@@ -232,28 +169,24 @@ const updateUser = async (req, res) => {
         password
     } = req.body;
 
-    // Validate userId
-    if (!id) {
-        return res.status(400).json({ message: "ID User tidak ditemukan" });
-    }
 
     // Check if the user is an admin
-    const isAdmin = req.userRole === "admin";
-    if (!isAdmin) {
-        return res.status(403).json({ message: "Access denied" });
+    const validation = isAdmin(req.userRole, req.userId);
+    if (!validation.isValid) {
+        throw new AppError(validation.error.message, validation.error.status);
     }
 
     try {
         // Find user
         const user = await User.findByPk(id);
         if (!user) {
-            return res.status(404).json({ message: "User tidak ditemukan" });
+            throw new AppError("Data puser tidak ditemukan", 404)
         }
 
         // If email is being changed, check if new email already exists
         if (email && email !== user.email) {
             if (!validateEmail(email)) {
-                return res.status(400).json({ message: "Invalid email format" });
+                throw new AppError("Email tidak valid", 400)
             }
 
             const existingUser = await User.findOne({
@@ -264,7 +197,7 @@ const updateUser = async (req, res) => {
             });
 
             if (existingUser) {
-                return res.status(409).json({ message: "Email already in use" });
+                throw new AppError("Email telah terdaftar", 409)
             }
         }
 
@@ -272,21 +205,20 @@ const updateUser = async (req, res) => {
         if (roleId && roleId !== user.roleId) {
             const newRole = await Role.findByPk(roleId);
             if (!newRole) {
-                return res.status(404).json({ message: "Role not found" });
+                throw new AppError("Role id tidak tersedia")
             }
         }
 
         // Handle avatar update if file is uploaded
-        const avatarPath = req.file ? getFileUrl(req, req.file.filename) : user.avatar;
+        const avatarPath = req.file ? getFileUrl(req, `profil/${req.file.filename}`) : user.avatar;
 
         // Build update object
         const updateData = {
             name: name || user.name,
             email: email || user.email,
             alamat: alamat || user.alamat,
-            country: country || user.country,
-            state: state || user.state,
-            city: city || user.city,
+            province: province || user.province,
+            regency: regency || user.regency,
             district: district || user.district,
             village: village || user.village,
             phone: phone || user.phone,
@@ -297,9 +229,7 @@ const updateUser = async (req, res) => {
         // Only update password if provided
         if (password) {
             if (password.length < 8) {
-                return res.status(400).json({
-                    message: "Password must be at least 8 characters long"
-                });
+                throw new AppError("Password minimal 8 karakter", 400)
             }
             updateData.password = password;
         }
@@ -326,8 +256,7 @@ const updateUser = async (req, res) => {
         });
 
     } catch (error) {
-        console.error("Error updating user:", error);
-        res.status(500).json({ message: "Internal server error" });
+        return handleError(error, res)
     }
 };
 
@@ -336,12 +265,9 @@ const updateUser = async (req, res) => {
 const deleteUser = async (req, res) => {
     const { id } = req.params;
 
-    if (req.userRole !== "admin") {
-        return res.status(403).json({ message: "Access denied" });
-    }
-
-    if (!id) {
-        return res.status(400).json({ message: "ID user tidak ditemukan" });
+    const validation = isAdmin(req.userRole, req.userId);
+    if (!validation.isValid) {
+        throw new AppError(validation.error.message, validation.error.status);
     }
 
     try {
@@ -349,16 +275,16 @@ const deleteUser = async (req, res) => {
         const user = await User.findByPk(id, { paranoid: false });
 
         if (!user) {
-            return res.status(404).json({ message: "User tidak ditemukan" });
+            throw new AppError("Data user tidak ditemukan", 404)
         }
 
         const userRole = await Role.findOne({ where: { id: user.roleId } });
         if (!userRole) {
-            return res.status(404).json({ message: "Role tidak ditemukan" });
+            throw new AppError("Data role tidak ditemukan", 404)
         }
 
         if (userRole.name === "admin") {
-            return res.status(400).json({ message: "User tidak ditemukan" });
+            throw new AppError("Data user tidak ditemukan", 404)
         }
 
         // Jika sudah soft deleted, maka hapus permanen
@@ -377,27 +303,23 @@ const deleteUser = async (req, res) => {
         }
 
     } catch (error) {
-        console.error("Error deleting user:", error);
-        return res.status(500).json({ message: "Internal server error" });
+        return handleError(error, res)
     }
 };
 
 const restoreUser = async (req, res) => {
-    if (req.userRole !== "admin") {
-        return res.status(403).json({ message: "Access denied" });
-    }
-
     const { id } = req.params;
 
-    if (!id) {
-        return res.status(400).json({ message: "ID user tidak ditemukan" });
+    const validation = isAdmin(req.userRole, req.userId);
+    if (!validation.isValid) {
+        throw new AppError(validation.error.message, validation.error.status);
     }
 
     try {
         const user = await User.findByPk(id, { paranoid: false });
 
         if (!user) {
-            return res.status(404).json({ message: "User tidak ditemukan" });
+            throw new AppError("Data user tidak ditemukan", 404)
         }
 
         // Restore the user
@@ -416,8 +338,7 @@ const restoreUser = async (req, res) => {
             safeUser
         });
     } catch (error) {
-        console.error("Error restoring user:", error);
-        res.status(500).json({ message: "Internal server error" });
+        return handleError(error, res)
     }
 };
 
