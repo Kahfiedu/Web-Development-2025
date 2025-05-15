@@ -39,14 +39,7 @@ export default [
       'plugin:react/recommended',
       'plugin:react-hooks/recommended'
     ],
-    parserOptions: {
-      ecmaVersion: 'latest',
-      sourceType: 'module'
-    },
-    globals: {
-      defineConfig: 'readonly',
-      loadEnv: 'readonly'
-    }
+
   },
 
 ]

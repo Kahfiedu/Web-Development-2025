@@ -14,7 +14,7 @@ import {
     IconButton
 } from "@mui/material";
 import { useState } from "react";
-import CustomeButton from "../../components/CustomeButton";
+import CustomeButton from "../../components/Ui/CustomeButton";
 import { Visibility, VisibilityOff } from '@mui/icons-material';
 import useAlert from '../../hooks/useAlert';
 import AuthService from "../../services/authService";
@@ -34,24 +34,31 @@ const LoginAdmin = () => {
     const navigate = useNavigate()
 
     const handleSubmit = async (e) => {
-        setLoading(true)
         e.preventDefault();
+        setLoading(true);
 
         try {
-            const response = await AuthService.login(formData.email, formData.password)
+            const response = await AuthService.login(formData.email, formData.password);
+            console.log("Response data login :", response)
             if (response.message && response.token && response.role) {
-                if (response.role !== "admin") {
+                if (response.role === "admin" || response.role === "teacher") {
+                    login(response.token, response.role);
+                    showAlert('Login berhasil', 'success');
+                    navigate('/admin/dashboard');
+                } else {
                     showAlert('Unauthorization', 'error');
+                    setLoading(false); // tambahkan ini agar loading berhenti
+                    return;
                 }
-                login(response.token, response.role)
-                showAlert('Login berhasil', 'success');
-                navigate('/admin/dashboard')
+            } else {
+                showAlert("Login gagal. Data tidak valid.", 'error');
             }
 
         } catch (error) {
-            console.error(error.message)
-            showAlert(error.message, 'error')
-            setLoading(false)
+            console.error(error.message);
+            showAlert(error.message || "Internal server error", 'error');
+        } finally {
+            setLoading(false); // loading dimatikan di akhir proses apapun hasilnya
         }
     };
 

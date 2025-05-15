@@ -1,4 +1,4 @@
-import { CustomButtonPropTypes } from "../utils/proptypes/CustomeButtonProps";
+import { CustomButtonPropTypes } from "../../utils/proptypes/CustomeButtonProps";
 
 const BUTTON_BASE_CLASSES = 'rounded-md font-medium transition-all duration-200 hover:opacity-90 disabled:opacity-50 disabled:cursor-not-allowed';
 
