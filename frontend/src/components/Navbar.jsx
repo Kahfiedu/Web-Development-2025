@@ -41,7 +41,7 @@ const Navbar = () => {
       <Container maxWidth="lg">
         <Toolbar disableGutters>
           <img
-            src="img/logo/logo.png"
+            src="/img/logo/logo.png"
             alt="Logo"
             style={{ marginRight: "8px", height: "50px" }}
           />
