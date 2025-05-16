@@ -1,28 +1,46 @@
 // utils/excelParser.js
 
 const ExcelJS = require("exceljs");
+const fs = require("fs");
+const path = require("path");
 
 /**
- * Parse file Excel menjadi array of objects.
- * Fungsi ini bisa disesuaikan dengan struktur tabel yang berbeda.
- * 
- * @param {string} filePath - Lokasi file Excel yang akan diproses
- * @param {Array} headers - Array header untuk tabel yang sesuai dengan model
- * @returns {Array} - Array of objects yang siap dimasukkan ke database
+ * Parse Excel or CSV file into array of objects
+ * @param {string} filePath - Path to the file
+ * @param {string[]} headers - Expected headers
+ * @returns {Promise<Object[]>}
  */
 async function parseExcel(filePath, headers) {
+    const ext = path.extname(filePath).toLowerCase();
     const workbook = new ExcelJS.Workbook();
-    await workbook.xlsx.readFile(filePath);
-    const worksheet = workbook.getWorksheet(1);
     const data = [];
 
+    if (!fs.existsSync(filePath)) {
+        throw new Error(`File not found: ${filePath}`);
+    }
+
+    if (ext === '.csv') {
+        await workbook.csv.readFile(filePath);
+    } else if (ext === '.xlsx' || ext === '.xls') {
+        await workbook.xlsx.readFile(filePath);
+    } else {
+        throw new Error(`Unsupported file extension: ${ext}`);
+    }
+
+    const worksheet = workbook.worksheets[0];
+
+    if (!worksheet) {
+        throw new Error('No worksheet found in file.');
+    }
+
     worksheet.eachRow((row, rowNumber) => {
-        if (rowNumber === 1) return; // Skip header row
+        // Skip the header row
+        if (rowNumber === 1) return;
 
         const rowData = {};
-
         headers.forEach((header, index) => {
-            rowData[header] = row.getCell(index + 1).value; // Get data from cell based on header
+            const cell = row.getCell(index + 1);
+            rowData[header] = cell?.value ?? null;
         });
 
         data.push(rowData);
@@ -30,5 +48,7 @@ async function parseExcel(filePath, headers) {
 
     return data;
 }
+
+module.exports = { parseExcel };
 
 module.exports = { parseExcel };

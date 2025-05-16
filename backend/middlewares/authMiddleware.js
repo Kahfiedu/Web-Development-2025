@@ -26,7 +26,7 @@ const validateToken = async (req, res, next) => {
         });
 
         if (!user) {
-            return res.status(404).json({
+            return res.status(401).json({
                 success: false,
                 message: "Token tidak valid"
             });

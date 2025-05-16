@@ -15,26 +15,24 @@ function validateEmail(email) {
  * @returns {Object} - Result of validation with roleId
  */
 function validateRole(roleName, rolesMap) {
+    const validRoles = ['parent', 'student', 'teacher'];
+
     if (roleName) {
         const normalizedRole = roleName.toLowerCase();
-        const roleId = rolesMap[normalizedRole];
 
-        // If role doesn't exist in the database
-        if (!roleId) {
-            // Try to use 'student' as default role if available
-            const defaultRoleId = rolesMap['student'] || Object.values(rolesMap)[0];
-
-            if (!defaultRoleId) {
-                return {
-                    success: false,
-                    message: 'Invalid role and no default role found'
-                };
-            }
-
+        // Cek apakah role termasuk yang valid
+        if (!validRoles.includes(normalizedRole)) {
             return {
-                success: true,
-                roleId: defaultRoleId,
-                message: `Role '${roleName}' not found, using default role`
+                success: false,
+                message: `Invalid role: '${roleName}'. Valid roles are: ${validRoles.join(', ')}`
+            };
+        }
+
+        const roleId = rolesMap[normalizedRole];
+        if (!roleId) {
+            return {
+                success: false,
+                message: `Role '${roleName}' is valid but not found in role mapping`
             };
         }
 
@@ -43,20 +41,19 @@ function validateRole(roleName, rolesMap) {
             roleId
         };
     } else {
-        // If role is not provided, use 'student' as default if available
-        const defaultRoleId = rolesMap['student'] || Object.values(rolesMap)[0];
-
+        // Jika role tidak disediakan, gunakan student sebagai default
+        const defaultRoleId = rolesMap['student'];
         if (!defaultRoleId) {
             return {
                 success: false,
-                message: 'No role provided and no default role found'
+                message: "No role provided and default role 'student' not found"
             };
         }
 
         return {
             success: true,
             roleId: defaultRoleId,
-            message: 'No role provided, using default role'
+            message: "No role provided, using default role 'student'"
         };
     }
 }

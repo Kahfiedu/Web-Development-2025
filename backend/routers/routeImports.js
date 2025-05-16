@@ -1,6 +1,7 @@
 module.exports = {
     authRoute: require('./auth/authRoute.js'),
     importRoute: require('./import/importRoute.js'),
+    exportRoute: require('./export/exportRoute.js'),
     userRoute: require('./userRouter.js'),
     roleRoute: require('./roleRouter.js'),
     paymentMethodRoute: require('./paymentMethodRoute.js'),

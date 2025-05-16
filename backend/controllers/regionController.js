@@ -1,27 +1,22 @@
 
 const { createSuccessResponse, AppError, handleError } = require('../helpers/helperFunction');
 const { getVillages, getDistricts, getRegencies, getProvinces } = require('../helpers/regionDataHelper');
-const { getPagination } = require('../utils/paginationUtil');
 const { Province, Regency, District, Village } = require('../models');
 const { isAdmin } = require('../helpers/validationRole');
 
 const getRegions = async (req, res) => {
     try {
         const { provinceId, regencyId, districtId, group = false } = req.query;
-        const isAdmin = req.userRole === 'admin';
-
-        const { limit, offset, meta } = getPagination(req.query);
-        const paginationOptions = { limit, offset, meta, isAdmin };
 
         let result;
         if (districtId) {
-            result = await getVillages(districtId, group, paginationOptions);
+            result = await getVillages(districtId, group);
         } else if (regencyId) {
-            result = await getDistricts(regencyId, group, paginationOptions);
+            result = await getDistricts(regencyId, group);
         } else if (provinceId) {
-            result = await getRegencies(provinceId, group, paginationOptions);
+            result = await getRegencies(provinceId, group);
         } else {
-            result = await getProvinces(paginationOptions);
+            result = await getProvinces();
         }
 
         return res.status(200).json(result);

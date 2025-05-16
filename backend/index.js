@@ -20,6 +20,8 @@ validateEnv();
 const app = express();
 const server = http.createServer(app);
 
+app.use("/uploads", express.static("uploads"));
+
 // Configure middleware
 configureLogging(app);
 app.use(corsHelper());

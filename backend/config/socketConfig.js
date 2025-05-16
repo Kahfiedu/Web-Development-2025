@@ -1,113 +1,115 @@
 const socketIO = require('socket.io');
 const { createClient } = require('@redis/client');
+const jwt = require("jsonwebtoken");
+const clientSocketMap = new Map();
 
-// Shared socket.io instance
+// Map untuk menyimpan clientId <-> socket.id
+
 let io;
 
-/**
- * Initialize Socket.IO server
- * @param {Object} server - HTTP or HTTPS server instance
- * @returns {Object} - Socket.IO instance
- */
 const initSocket = async (server) => {
-    // Configure Redis for multi-server support
     const redisConfig = {
         url: `redis://${process.env.REDIS_HOST || 'localhost'}:${process.env.REDIS_PORT || '6379'}`,
         password: process.env.REDIS_PASSWORD,
         socket: {
-            reconnectStrategy: (retries) => {
-                return Math.min(retries * 50, 2000);
-            }
+            reconnectStrategy: (retries) => Math.min(retries * 50, 2000)
         }
     };
 
-    // Socket.IO with CORS configuration
     const socketConfig = {
         cors: {
             origin: process.env.CORS_ORIGIN || process.env.APP_URL || "http://localhost:5173",
             methods: ["GET", "POST"],
-            credentials: true
+            credentials: true,
+            allowedHeaders: ["Authorization", "x-api-key"]
         },
         transports: ['websocket', 'polling'],
         pingTimeout: 60000,
-        pingInterval: 25000
+        pingInterval: 25000,
+        path: '/socket.io'
     };
 
-    // Optional: Redis adapter for horizontal scaling
+    // Optional: Redis adapter for multi-server scale
     if (process.env.USE_REDIS_ADAPTER === 'true') {
         try {
             const { createAdapter } = require('@socket.io/redis-adapter');
             const pubClient = createClient(redisConfig);
             const subClient = createClient(redisConfig);
 
-            await Promise.all([
-                pubClient.connect(),
-                subClient.connect()
-            ]);
+            await Promise.all([pubClient.connect(), subClient.connect()]);
 
-            console.log('📡 Redis adapter clients connected');
             socketConfig.adapter = createAdapter(pubClient, subClient);
 
-            // Handle Redis client errors
-            pubClient.on('error', (error) => console.error('❌ Redis pub client error:', error));
-            subClient.on('error', (error) => console.error('❌ Redis sub client error:', error));
+            pubClient.on('error', (err) => console.error('❌ Redis pub error:', err));
+            subClient.on('error', (err) => console.error('❌ Redis sub error:', err));
 
-            // Graceful shutdown
             process.on('SIGTERM', async () => {
-                await Promise.all([
-                    pubClient.quit(),
-                    subClient.quit()
-                ]);
+                await Promise.all([pubClient.quit(), subClient.quit()]);
                 process.exit(0);
             });
-        } catch (error) {
-            console.error('❌ Failed to initialize Redis adapter:', error);
+
+            console.log('📡 Redis adapter connected');
+        } catch (err) {
+            console.error('❌ Redis adapter init failed:', err);
         }
     }
 
-    // Create Socket.IO server
     io = socketIO(server, socketConfig);
 
-    // Set up connection handler
+
     io.on('connection', (socket) => {
-        console.log(`📡 New socket connection: ${socket.id}`);
+        let clientId = null;  // deklarasi di luar try
 
-        // Send initial connection event
-        socket.emit('connected', {
-            id: socket.id,
-            timestamp: new Date().toISOString()
-        });
+        const { token } = socket.handshake.auth;
+        try {
+            const decoded = jwt.verify(token, process.env.JWT_SECRET);
+            clientId = decoded.userId || decoded.id;
 
-        // Handle disconnection
+            if (clientId) {
+                clientSocketMap.set(clientId, socket.id);
+                console.log(`🔌 Socket connected for user ${clientId}: ${socket.id}`);
+            } else {
+                console.warn("❌ Token valid but no user ID in payload");
+            }
+        } catch (err) {
+            console.error("❌ Invalid JWT token:", err.message);
+            socket.disconnect(true);
+        }
+
         socket.on('disconnect', (reason) => {
-            console.log(`📡 Socket disconnected: ${socket.id}, reason: ${reason}`);
+            if (clientId) {
+                clientSocketMap.delete(clientId);
+            }
+            console.log(`📴 Socket disconnected: ${socket.id} (${reason})`);
         });
 
-        // Handle errors
-        socket.on('error', (error) => {
-            console.error(`❌ Socket error for ${socket.id}:`, error);
+        socket.on('error', (err) => {
+            console.error(`❌ Socket error on ${socket.id}:`, err);
         });
-
-        // Additional event listeners can be added here
     });
 
-    console.log('📡 Socket.IO server initialized');
+    console.log('✅ Socket.IO initialized');
     return io;
 };
 
-/**
- * Get the Socket.IO instance
- * @returns {Object} - Socket.IO instance
- * @throws {Error} - If Socket.IO has not been initialized
- */
-const getIO = () => {
-    if (!io) {
-        throw new Error('Socket.IO has not been initialized!');
+// Helper: Emit to client by clientId
+const emitToClient = (clientId, event, data) => {
+    if (!io) return;
+    const socketId = clientSocketMap.get(clientId);
+    if (socketId) {
+        io.to(socketId).emit(event, data);
+    } else {
+        console.warn(`⚠️ No active socket for clientId: ${clientId}`);
     }
+};
+
+const getIO = () => {
+    if (!io) throw new Error("Socket.IO not initialized!");
     return io;
 };
 
 module.exports = {
     initSocket,
-    getIO
+    getIO,
+    emitToClient
 };

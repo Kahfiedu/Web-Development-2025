@@ -24,9 +24,13 @@ const getRoles = async (req, res) => {
         } = getPagination(req.query);
 
         const whereClause = {
-            name: { [Op.like]: `%${search}%` },
+            name: {
+                [Op.like]: `%${search}%`,
+                [Op.not]: 'admin', // ⛔ mengecualikan role dengan nama 'admin'
+            },
             ...(statusCondition || {})
         };
+
 
         const totalCount = await Role.count({
             where: whereClause,

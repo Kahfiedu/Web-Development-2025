@@ -23,7 +23,8 @@ const {
     blogRoute,
     assignmentRoute,
     submissionRoute,
-    googleAuthRoute
+    googleAuthRoute,
+    exportRoute
 } = require('./routeImports.js');
 
 // Public routes
@@ -71,8 +72,11 @@ router.use([
     regionRoute,
 ]);
 
-// Import functionality
-router.use('/excel/import', importRoute);
+// Export Import functionality
+router.use([
+    importRoute,
+    exportRoute
+])
 
 // Development only routes
 if (process.env.NODE_ENV === 'development') {

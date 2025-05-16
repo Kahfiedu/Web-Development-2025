@@ -5,6 +5,7 @@ const getFileUrl = require("../utils/getFileUrl");
 const { getPagination } = require("../utils/paginationUtil");
 const { AppError, handleError } = require("../helpers/helperFunction");
 const { isAdmin, isAdminOrTeacher } = require("../helpers/validationRole");
+const { createSearchWhereClause } = require("../helpers/searchQueryHelper");
 
 const getUsers = async (req, res) => {
     try {
@@ -13,21 +14,30 @@ const getUsers = async (req, res) => {
             throw new AppError(validation.error.message, validation.error.status);
         }
 
-        const search = req.query.search || "";
+        const { search = "", roleId } = req.query;
         const { limit, offset, statusCondition, paranoid, meta } = getPagination(req.query);
+        const searchFields = ['name', 'email', 'phone'];
 
-        const whereClause = {
-            name: { [Op.like]: `%${search}%` },
-            ...(statusCondition || {})
+        let whereClause = createSearchWhereClause(search, searchFields);
+
+        if (statusCondition) {
+            whereClause = { ...whereClause, ...statusCondition };
+        }
+
+        if (roleId) {
+            whereClause.roleId = roleId;
+        }
+
+        const includeRole = {
+            model: Role,
+            as: "role",
+            attributes: ["id", "name"],
+            where: { name: { [Op.not]: "admin" } }
         };
 
         const totalCount = await User.count({
             where: whereClause,
-            include: [{
-                model: Role,
-                as: "role",
-                where: { name: { [Op.not]: "admin" } }
-            }],
+            include: [includeRole],
             paranoid
         });
 
@@ -41,28 +51,55 @@ const getUsers = async (req, res) => {
             limit,
             offset,
             paranoid,
-            include: [{
-                model: Role,
-                as: "role",
-                attributes: ["id", "name"],
-                where: { name: { [Op.not]: "admin" } }
-            }]
+            include: [includeRole]
         });
 
-        if (users.length === 0) {
-            throw new AppError("Data users tidak ditemukan", 404);
-        }
+        // ⬇️ Tambahkan perhitungan jumlah user berdasarkan role
+        const roles = await Role.findAll({
+            where: { name: { [Op.not]: "admin" } },
+            attributes: ['id', 'name']
+        });
+
+        const countByRole = await Promise.all(roles.map(async (role) => {
+            // Count total (termasuk yang dihapus)
+            const total = await User.count({
+                where: { roleId: role.id },
+                paranoid: false
+            });
+
+            // Count aktif (belum dihapus)
+            const active = await User.count({
+                where: {
+                    roleId: role.id,
+                    deletedAt: null
+                },
+                paranoid: false
+            });
+
+            // Inactive = total - active
+            const inactive = total - active;
+
+            return {
+                roleName: role.name,
+                total,
+                active,
+                inactive
+            };
+        }));
 
         return res.status(200).json({
             success: true,
-            message: "Data users berhasil diambil",
+            message: users.length === 0 ? "Data users tidak ditemukan" : "Data users berhasil diambil",
             users,
-            meta
+            meta,
+            countByRole
         });
+
     } catch (error) {
         return handleError(error, res);
     }
 };
+
 
 const getUserById = async (req, res) => {
     try {
@@ -101,7 +138,7 @@ const addUser = async (req, res) => {
     try {
         const {
             name, email, password, alamat,
-            province, regency, district, roleId, village, phone
+            province, regency, district, roleId, village, phone, gender
         } = req.body;
 
         if (!name || !email || !password || !roleId) {
@@ -133,10 +170,14 @@ const addUser = async (req, res) => {
             throw new AppError("Role not found", 404);
         }
 
+        if (role.name === "admin") {
+            throw new AppError("Role tidak dizinkan", 404);
+        }
+
         const newUser = await User.create({
             name, email, password, alamat,
-            province, regency, district, village, phone,
-            roleId, avatar: avatarPath,
+            province, regency, district, village, phone, gender,
+            roleId, avatar: avatarPath, emailVerified: new Date()
         }, {
             userId: req.userId
         });
@@ -166,6 +207,7 @@ const updateUser = async (req, res) => {
         roleId,
         village,
         phone,
+        gender,
         password
     } = req.body;
 
@@ -222,6 +264,7 @@ const updateUser = async (req, res) => {
             district: district || user.district,
             village: village || user.village,
             phone: phone || user.phone,
+            gender: gender || user.gender,
             roleId: roleId || user.roleId,
             avatar: avatarPath
         };

@@ -1,12 +1,12 @@
 // queues/processors/userImportProcessor.js
 const { parseExcel } = require("../../utils/excelParser");
 const { User, Role } = require("../../models");
-const { getIO } = require("../../config/socketConfig");
+const { emitToClient } = require("../../config/socketConfig");
 const fs = require("fs");
 const { v4: uuidv4 } = require("uuid");
 const { validateEmail, validateRole } = require("../../utils/validorUtil");
 const { sendProgressUpdate } = require("../../utils/socketUtil");
-
+const jwt = require("jsonwebtoken")
 
 /**
  * Process user import job
@@ -14,14 +14,14 @@ const { sendProgressUpdate } = require("../../utils/socketUtil");
  * @returns {Promise<Object>} - Result of the import operation
  */
 const userImportProcessor = async (job) => {
-    const { filePath, socketId } = job.data;
-    console.log("🔄 Processing job for socket ID:", socketId);
+    const { filePath, token } = job.data;
+    console.log("🔄 Processing job for token:", token);
     console.log("📥 Queue running for file:", filePath);
 
     // Validate file exists
     if (!fs.existsSync(filePath)) {
         console.error("❌ File not found:", filePath);
-        notifyError(socketId, "File not found!");
+        notifyError(token, "File not found!");
         throw new Error("File not found!");
     }
 
@@ -47,7 +47,7 @@ const userImportProcessor = async (job) => {
         const skippedUsers = [];
 
         // Send initial status update
-        sendProgressUpdate(socketId, {
+        sendProgressUpdate(token, {
             total: data.length,
             processed: 0,
             skipped: 0,
@@ -87,7 +87,7 @@ const userImportProcessor = async (job) => {
 
             // Send progress update after each batch or on last item
             if ((i + 1) % batchSize === 0 || i === data.length - 1) {
-                sendProgressUpdate(socketId, {
+                sendProgressUpdate(token, {
                     total: data.length,
                     processed: processedUsers.length,
                     skipped: skippedUsers.length,
@@ -103,8 +103,8 @@ const userImportProcessor = async (job) => {
         console.log(`   ✗ ${skippedUsers.length} records skipped`);
 
         // Send final status update
-        console.log("📡 Sending final status to client with socket ID:", socketId);
-        sendProgressUpdate(socketId, {
+        console.log("📡 Sending final status to client with socket ID:", token);
+        sendProgressUpdate(token, {
             total: data.length,
             processed: processedUsers.length,
             skipped: skippedUsers.length,
@@ -123,10 +123,8 @@ const userImportProcessor = async (job) => {
         };
     } catch (error) {
         console.error("❌ Failed to import data:", error.message);
-        notifyError(socketId, "Failed to import data: " + error.message);
+        notifyError(token, "Failed to import data: " + error.message);
         throw new Error("Error during data import: " + error.message);
-    } finally {
-        cleanupFile(filePath);
     }
 };
 
@@ -238,28 +236,14 @@ async function processUserRecord(item, index, rolesMap) {
  * @param {String} socketId - Socket ID to send notification to
  * @param {String} message - Error message
  */
-function notifyError(socketId, message) {
-    if (socketId) {
-        const io = getIO();
-        io.to(socketId).emit("importStatus", {
+function notifyError(token, message) {
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    const clientId = decoded.userId || decoded.id;
+    if (clientId) {
+        emitToClient(clientId, "importProgress", {
             error: true,
             message
         });
-    }
-}
-
-/**
- * Clean up uploaded file
- * @param {String} filePath - Path to file
- */
-function cleanupFile(filePath) {
-    try {
-        if (fs.existsSync(filePath)) {
-            fs.unlinkSync(filePath);
-            console.log("🗑️ Temporary file deleted:", filePath);
-        }
-    } catch (err) {
-        console.error("❌ Error while deleting file:", err);
     }
 }
 

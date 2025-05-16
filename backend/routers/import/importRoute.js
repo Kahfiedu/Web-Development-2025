@@ -6,11 +6,13 @@ const { createUpload } = require('../../config/multerConfig');
 
 const uploadExcel = createUpload("uploads/", [
     "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-    "application/vnd.ms-excel"
+    "application/vnd.ms-excel",
+    "text/csv", // ✅ support .csv files
+    "application/csv" // (beberapa browser bisa pakai ini)
 ]);
 
 
 // Route for importing users from Excel file
-router.post('/user', uploadExcel.single("file"), importUsers);
+router.post('/import/users', uploadExcel.single("file"), importUsers);
 
 module.exports = router;
