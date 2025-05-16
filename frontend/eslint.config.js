@@ -20,26 +20,17 @@ export default [
       'react-hooks': reactHooks,
       'react-refresh': reactRefresh,
     },
-    rules: {
-      ...js.configs.recommended.rules,
-      ...reactHooks.configs.recommended.rules,
-      'no-unused-vars': ['error', { varsIgnorePattern: '^[A-Z_]' }],
-      'react-refresh/only-export-components': [
-        'warn',
-        { allowConstantExport: true },
-      ],
+    resolve: {
+      alias: {
+        '@': path.resolve(__dirname, 'src'),
+        '@utils': path.resolve(__dirname, 'src/utils'),
+        '@hooks': path.resolve(__dirname, 'src/hooks'),
+        '@services': path.resolve(__dirname, 'src/services'),
+        '@components': path.resolve(__dirname, 'src/components'),
+        '@componentsAdmin': path.resolve(__dirname, 'src/components/admin'),
+        '@providers': path.resolve(__dirname, 'src/providers')
+      },
     },
-    env: {
-      browser: true,
-      es2021: true,
-      node: true
-    },
-    extends: [
-      'eslint:recommended',
-      'plugin:react/recommended',
-      'plugin:react-hooks/recommended'
-    ],
-
   },
 
 ]

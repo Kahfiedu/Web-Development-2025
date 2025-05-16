@@ -1,8 +1,8 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import AuthLayout from '../../components/AuthLayout';
-import FormInput from '../../components/FormInput';
-import SocialButton from '../../components/SocialButton';
+import FormInput from '../../components/UI/FormInput';
+import SocialButton from '../../components/UI/SocialButton';
 
 const Register = () => {
   const [name, setName] = useState('');

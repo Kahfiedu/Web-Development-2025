@@ -56,14 +56,36 @@ const CustomAlert = () => {
         setProgress(0);
     };
 
+    const getProgressColor = (severity) => {
+        switch (severity) {
+            case 'success':
+                return 'success.main';
+            case 'error':
+                return 'error.main';
+            case 'warning':
+                return 'warning.main';
+            case 'info':
+            default:
+                return 'info.main';
+        }
+    };
+
+
     const AlertComponent = () => (
         <Slide
-            direction="left"
+            direction="right"
             in={alert.open}
             mountOnEnter
             unmountOnExit
         >
-            <div className='fixed top-4 right-4 min-w-[300px] max-w-[90vw]'>
+            <div style={{
+                position: 'fixed',
+                top: '16px',
+                left: '16px',
+                minWidth: '300px',
+                maxWidth: '90vw',
+                zIndex: 9999
+            }}>
                 <Alert
                     variant="filled"
                     severity={alert.severity}
@@ -79,7 +101,11 @@ const CustomAlert = () => {
                     value={progress}
                     sx={{
                         borderBottomLeftRadius: 4,
-                        borderBottomRightRadius: 4
+                        borderBottomRightRadius: 4,
+                        bgcolor: `${getProgressColor(alert.severity)}15`, // Light background
+                        '& .MuiLinearProgress-bar': {
+                            bgcolor: getProgressColor(alert.severity) // Bar color
+                        }
                     }}
                 />
             </div>

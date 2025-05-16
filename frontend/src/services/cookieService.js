@@ -3,14 +3,10 @@ import Cookies from 'js-cookie';
 const SECURE_OPTIONS = {
     secure: true,
     sameSite: 'strict',
-    expires: 1 // 1 day
+    expires: 1
 };
 
-// Simple encryption key (store this in .env)
-const ENCRYPTION_KEY = import.meta.env.VITE_ENCRYPTION_KEY || 'your-secret-key';
-
 const cookieService = {
-    // Encrypt value
     _encrypt(value) {
         if (!value) return '';
         try {
@@ -22,7 +18,6 @@ const cookieService = {
         }
     },
 
-    // Decrypt value
     _decrypt(value) {
         if (!value) return '';
         try {
@@ -35,11 +30,8 @@ const cookieService = {
     },
 
     setAuthCookies(token, role) {
-        const encryptedToken = this._encrypt(token);
-        const encryptedRole = this._encrypt(role);
-
-        Cookies.set('authToken', encryptedToken, SECURE_OPTIONS);
-        Cookies.set('userRole', encryptedRole, SECURE_OPTIONS);
+        Cookies.set('authToken', this._encrypt(token), SECURE_OPTIONS);
+        Cookies.set('userRole', this._encrypt(role), SECURE_OPTIONS);
     },
 
     clearAuthCookies() {
@@ -48,13 +40,27 @@ const cookieService = {
     },
 
     getAuthToken() {
-        const encryptedToken = Cookies.get('authToken');
-        return this._decrypt(encryptedToken);
+        return this._decrypt(Cookies.get('authToken'));
     },
 
     getUserRole() {
-        const encryptedRole = Cookies.get('userRole');
-        return this._decrypt(encryptedRole);
+        return this._decrypt(Cookies.get('userRole'));
+    },
+
+    setSocketId(socketId) {
+        const expires = new Date();
+        expires.setDate(expires.getDate() + 1);
+        document.cookie = `socketId=${socketId}; expires=${expires.toUTCString()}; path=/`;
+    },
+
+    getSocketId() {
+        const cookies = document.cookie.split(';');
+        const found = cookies.find(cookie => cookie.trim().startsWith('socketId='));
+        return found ? found.split('=')[1] : null;
+    },
+
+    clearSocketId() {
+        document.cookie = 'socketId=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;';
     }
 };
 

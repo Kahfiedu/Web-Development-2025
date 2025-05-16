@@ -1,22 +1,17 @@
-import { CustomButtonPropTypes } from "../../utils/proptypes/CustomeButtonProps";
 
-const BUTTON_BASE_CLASSES = 'rounded-md font-medium transition-all duration-200 hover:opacity-90 disabled:opacity-50 disabled:cursor-not-allowed';
+const BUTTON_BASE_CLASSES = 'rounded-md flex items-center gap-2 font-poppins text-[12px] lg:text-[14px] font-medium transition-all duration-200 hover:opacity-90 disabled:opacity-50 disabled:cursor-not-allowed';
 
-export default function CustomeButton({
+const CustomeButton = ({
     title,
-    bgColor = 'bg-kahf-green',
-    textColor = 'text-white',
-    padding = 'px-5 py-3',
     className = '',
     onClick,
+    startIcon,
+    endIcon,
     type = 'button',
     disabled = false
-}) {
+}) => {
 
     const buttonClasses = [
-        bgColor,
-        textColor,
-        padding,
         className,
         BUTTON_BASE_CLASSES
     ].join(' ');
@@ -28,9 +23,11 @@ export default function CustomeButton({
             onClick={onClick}
             className={buttonClasses}
         >
+            {startIcon}
             {title}
+            {endIcon}
         </button>
     );
 }
 
-CustomeButton.propTypes = CustomButtonPropTypes;
+export default CustomeButton

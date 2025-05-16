@@ -1,20 +1,36 @@
+import { Outlet, useLocation } from 'react-router-dom';
+import { Box, Container, useMediaQuery } from '@mui/material';
 
-import { Outlet, useLocation } from 'react-router-dom'; // <--- import useLocation
-import FooterAdmin from '../components/Admin/FooterAdmin';
-import { Box } from '@mui/material';
-import NavbarAdmin from '../components/Admin/Navbar/NavbarAdmin';
+import routeTitleMap from '../utils/routeTitleMap';
+import NavbarAdmin from '../components/Admin/common/NavbarAdmin';
+import FooterAdmin from '../components/Admin/common/FooterAdmin';
+import CustomeBreadcrumb from '../components/Ui/CustomeBreadcrumb';
 
 export default function AdminLayout() {
-    const location = useLocation(); // <--- akses path sekarang
+    const location = useLocation();
+    const isLoginPage = location.pathname === '/admin/login';
+    const title = routeTitleMap[location.pathname] || 'Dashboard';
 
-    const isLoginPage = location.pathname === '/admin/login'; // <--- cek apakah lagi di login
+    // Media query untuk padding atau layout berbeda di mobile
+    const isMobile = useMediaQuery('(max-width:768px)');
 
     return (
-        <Box display="flex" bgcolor={"#F4F4F4"} flexDirection="column" minHeight="100vh" m={0} p={0}>
+        <Box
+            display="flex"
+            flexDirection="column"
+            minHeight="100vh"
+            bgcolor="#F4F4F4"
+        >
             {!isLoginPage && <NavbarAdmin />}
 
-            <Box component="main" flexGrow={1} px={5}>
-                <Outlet />
+            <Box component="main" flexGrow={1} px={isMobile ? 2 : 4}>
+                {!isLoginPage && <CustomeBreadcrumb title={title} />}
+                <Container
+                    disableGutters={isMobile}
+                    maxWidth="xl"
+                >
+                    <Outlet />
+                </Container>
             </Box>
 
             {!isLoginPage && <FooterAdmin />}

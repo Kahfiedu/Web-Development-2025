@@ -1,4 +1,4 @@
-import axiosInstance from "../utils/axiosInstance";
+import axiosInstance from "../libs/axiosInstance";
 import { cookieService } from "./cookieService";
 
 const AuthService = {
