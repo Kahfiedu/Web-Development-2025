@@ -15,7 +15,7 @@ const {
 router.post('/class-enrollment', upload.none(), createClassEnrollment)
 router.get('/class-enrollments', getClassEnrollments)
 router.get('/class-enrollment/:id', getClassEnrollmentById)
-router.put('/class-enrollment/:id', updateClassEnrollment)
+router.put('/class-enrollment/:id', upload.none(), updateClassEnrollment)
 router.delete('/class-enrollment/:id', deleteClassEnrollment)
 router.post('/class-enrollment/restore/:id', restoreClassEnrollment)
 

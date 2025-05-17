@@ -21,6 +21,11 @@ module.exports = (sequelize, DataTypes) => {
         as: 'student',
         onDelete: 'CASCADE',
       });
+      Attendance.belongsTo(models.User, {
+        foreignKey: 'teacherId',
+        as: 'teacher',
+        onDelete: 'CASCADE',
+      });
 
       Attendance.belongsTo(models.Child, {
         foreignKey: 'childId',

@@ -78,7 +78,7 @@ const validateClassData = async (data, mode = 'create') => {
                 isValid: false,
                 error: {
                     status: 400,
-                    message: "teacherId tidak valid"
+                    message: "teacherId bukan user dengan role teacher"
                 }
             };
         }

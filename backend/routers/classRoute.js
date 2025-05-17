@@ -10,6 +10,6 @@ router.get('/class/:id', getClassById)
 router.post('/class', upload.none(), createClass)
 router.put('/class/:id', upload.none(), updateClass)
 router.delete('/class/:id', upload.none(), deleteClass)
-router.put('/class/restore/:id', upload.none(), restoreClass)
+router.post('/class/restore/:id', upload.none(), restoreClass)
 
 module.exports = router

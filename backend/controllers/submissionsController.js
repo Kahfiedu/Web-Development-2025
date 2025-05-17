@@ -134,8 +134,8 @@ const getSubmissions = async (req, res) => {
 
             case 'admin':
             case 'teacher':
-                if (!validation.isValid) {
-                    throw new AppError(validation.error.message, validation.error.status);
+                if (!isTeacherOrAdmin) {
+                    throw new AppError("role tidak valid", 400);
                 }
                 if (childId) whereClause.childId = childId;
                 if (studentId) whereClause.studentId = studentId;
@@ -168,7 +168,7 @@ const getSubmissions = async (req, res) => {
             limit,
             offset,
             order: [['submittedAt', 'DESC']],
-            paranoid: !validation.isValid && paranoid,
+            paranoid: !isTeacherOrAdmin && paranoid,
             distinct: true
         });
 

@@ -87,8 +87,6 @@ module.exports = {
       code: {
         type: Sequelize.STRING(6),
         allowNull: true,
-        unique: true,
-        comment: 'Kode unik untuk absensi, misalnya digunakan dalam QR Code',
       },
       createdAt: {
         allowNull: false,

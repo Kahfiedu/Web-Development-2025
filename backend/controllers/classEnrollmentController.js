@@ -4,12 +4,18 @@ const { getPagination } = require('../utils/paginationUtil');
 const { validateClassEnrollmentData } = require('../utils/validateClassEnrollmentData');
 const { AppError, handleError } = require('../helpers/helperFunction');
 const { Op } = require('sequelize');
+const { isAdmin } = require('../helpers/validationRole');
 
 const createClassEnrollment = async (req, res) => {
     try {
         const validationResult = await validateClassEnrollmentData(req.body, 'create');
         if (!validationResult.isValid) {
             throw new AppError(validationResult.error.message, validationResult.error.status);
+        }
+
+        const validation = isAdmin(req.userRole, req.userId);
+        if (!validation.isValid) {
+            throw new AppError(validation.error.message, validation.error.status);
         }
 
         const newEnrollment = await ClassEnrollment.create(validationResult.data, {
@@ -39,6 +45,11 @@ const getClassEnrollments = async (req, res) => {
         const { search = "", classId, studentId, childId } = req.query;
         const searchFields = ['status'];
         const exactMatchFields = { classId, studentId, childId };
+
+        const validation = isAdmin(req.userRole, req.userId);
+        if (!validation.isValid) {
+            throw new AppError(validation.error.message, validation.error.status);
+        }
 
         const {
             limit,
@@ -80,7 +91,11 @@ const getClassEnrollments = async (req, res) => {
             order: [['createdAt', 'DESC']],
             include: [
                 { model: Class, as: 'class' },
-                { model: User, as: 'student' },
+                {
+                    model: User,
+                    as: 'student',
+                    attributes: { exclude: ['password'] }
+                },
                 { model: Child, as: 'child' }
             ],
             paranoid,
@@ -109,10 +124,19 @@ const getClassEnrollmentById = async (req, res) => {
     try {
         const { id } = req.params;
 
+        const validation = isAdmin(req.userRole, req.userId);
+        if (!validation.isValid) {
+            throw new AppError(validation.error.message, validation.error.status);
+        }
+
         const enrollment = await ClassEnrollment.findByPk(id, {
             include: [
                 { model: Class, as: 'class' },
-                { model: User, as: 'student' },
+                {
+                    model: User,
+                    as: 'student',
+                    attributes: { exclude: ['password'] }
+                },
                 { model: Child, as: 'child' }
             ],
             paranoid: false
@@ -136,6 +160,10 @@ const updateClassEnrollment = async (req, res) => {
     try {
         const { id } = req.params;
 
+        const validation = isAdmin(req.userRole, req.userId);
+        if (!validation.isValid) {
+            throw new AppError(validation.error.message, validation.error.status);
+        }
         const validationResult = await validateClassEnrollmentData(req.body, 'update');
         if (!validationResult.isValid) {
             throw new AppError(validationResult.error.message, validationResult.error.status);
@@ -221,7 +249,8 @@ const restoreClassEnrollment = async (req, res) => {
 
         return res.status(200).json({
             success: true,
-            message: 'Pendaftaran berhasil dipulihkan kembali'
+            message: 'Pendaftaran berhasil dipulihkan kembali',
+            class_enrollment: enrollment
         });
     } catch (error) {
         return handleError(error, res);

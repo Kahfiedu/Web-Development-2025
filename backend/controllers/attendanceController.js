@@ -13,8 +13,16 @@ const createAttendance = async (req, res) => {
         throw new AppError("code dan status dibutuhkan", 400)
     }
 
-    if (status !== 'izin' && status !== 'sakit' && status !== 'hadir') {
-        throw new AppError("status harus (izin, sakit, hadir)", 400)
+
+    if (!['izin', 'sakit', 'hadir'].includes(status)) {
+        throw new AppError("status harus (izin, sakit, hadir)", 400);
+    }
+
+    // Validasi tambahan jika status bukan 'hadir'
+    if (status !== 'hadir') {
+        if (!execuseLetter || !description) {
+            throw new AppError("execuseLetter dan description wajib diisi jika status bukan 'hadir'", 400);
+        }
     }
 
     try {
@@ -38,7 +46,7 @@ const createAttendance = async (req, res) => {
             // Check if student is enrolled in the class
             const isEnrolled = await ClassEnrollment.findOne({
                 where: {
-                    childId: userId,
+                    studentId: userId,
                     classId: lesson.classId
                 }
             });
@@ -175,14 +183,12 @@ const getAttendances = async (req, res) => {
         search = "",
         classId,
         childId,
-        studentId,
         teacherId,
-    } = req.query
+        studentId
+    } = req.query;
 
-    const searchFields = ['code']; // misalnya, search hanya untuk status teks
-    const exactMatchFields = {
-        classId, childId, studentId, teacherId,
-    };
+    const searchFields = ['code'];
+    const exactMatchFields = { classId, childId, teacherId, studentId };
 
     try {
         const {
@@ -193,28 +199,55 @@ const getAttendances = async (req, res) => {
             meta
         } = getPagination(req.query);
 
+        let whereClause = {};
 
-        const additionalFilters = {};
+        // 🔁 Role-based filtering
+        switch (req.userRole) {
+            case 'student':
+                whereClause.studentId = req.userId;
+                if (childId) {
+                    throw new AppError("Child id tidak dibutuhkan untuk siswa", 400);
+                }
+                break;
+
+            case 'parent':
+                if (!childId) {
+                    throw new AppError("Wajib pilih anak untuk role parent", 400);
+                }
+                whereClause.childId = childId;
+                break;
+
+            case 'teacher':
+            case 'admin':
+                // Tidak ada filter tambahan, bisa lihat semua
+                break;
+
+            default:
+                throw new AppError("Role tidak dikenali", 403);
+        }
+
+        // Tambahkan exact match fields
         for (const [key, value] of Object.entries(exactMatchFields)) {
             if (value) {
-                additionalFilters[key] = { [Op.eq]: value };
+                whereClause[key] = { [Op.eq]: value };
             }
         }
 
-        let whereClause = createSearchWhereClause(search, searchFields, additionalFilters);
+        // Tambahkan search
+        const searchClause = createSearchWhereClause(search, searchFields);
+        whereClause = { ...whereClause, ...searchClause };
 
+        // Tambahkan status jika ada
         if (statusCondition) {
             whereClause = { ...whereClause, ...statusCondition };
         }
 
-
-        const totalCount = await Attendance.count({
-            where: whereClause,
-        });
-
+        // Hitung total data
+        const totalCount = await Attendance.count({ where: whereClause });
         meta.total = totalCount;
-        meta.totalPages = Math.ceil(totalCount / limit)
+        meta.totalPages = Math.ceil(totalCount / limit);
 
+        // Query utama dengan relasi
         const attendances = await Attendance.findAll({
             where: whereClause,
             limit,
@@ -224,43 +257,56 @@ const getAttendances = async (req, res) => {
                 {
                     model: Class,
                     as: 'class',
-                    attributes: ["id", "name"],
-                    include: [{
-                        model: User,
-                        as: 'teacher',
-                        attributes: ["id", "name", "phone"]
-                    }]
+                    attributes: ['id', 'name'],
+                    include: [
+                        {
+                            model: User,
+                            as: 'teacher',
+                            attributes: ['id', 'name', 'phone']
+                        }
+                    ]
                 },
-                { model: Lesson, as: 'lesson', attributes: ["id", "title"] },
+                {
+                    model: Lesson,
+                    as: 'lesson',
+                    attributes: ['id', 'title']
+                },
+                {
+                    model: User,
+                    as: 'teacher',
+                    attributes: ['id', 'name', 'phone']
+                }
             ],
             paranoid,
             distinct: true
         });
 
         if (attendances.length === 0) {
-            throw new AppError("Data absensi tidak ditemukan", 404)
+            throw new AppError("Data absensi tidak ditemukan", 404);
         }
 
+        // Group data by classId and lessonId
         const groupedAttendances = attendances.reduce((acc, attendance) => {
-            const classId = attendance.class.id;
-            const className = attendance.class.name;
-            const teacherId = attendance.class.teacher.id;
-            const teacherName = attendance.class.teacher.name;
-            const lessonId = attendance.lesson.id;
-            const lessonTitle = attendance.lesson.title;
+            const classData = attendance.class;
+            const lessonData = attendance.lesson;
 
-            // Create class group if it doesn't exist
+            const classId = classData.id;
+            const className = classData.name;
+            const teacher = classData.teacher || attendance.teacher;
+
             if (!acc[classId]) {
                 acc[classId] = {
                     classId,
                     className,
-                    teacherId,
-                    teacherName,
+                    teacherId: teacher?.id || null,
+                    teacherName: teacher?.name || null,
                     lessons: {}
                 };
             }
 
-            // Create lesson group if it doesn't exist within class
+            const lessonId = lessonData.id;
+            const lessonTitle = lessonData.title;
+
             if (!acc[classId].lessons[lessonId]) {
                 acc[classId].lessons[lessonId] = {
                     lessonId,
@@ -269,14 +315,13 @@ const getAttendances = async (req, res) => {
                 };
             }
 
-            // Remove nested objects since they're now in parent levels
             const { class: _, lesson: __, ...attendanceData } = attendance.toJSON();
             acc[classId].lessons[lessonId].attendances.push(attendanceData);
 
             return acc;
         }, {});
 
-        // Transform the nested objects into arrays
+        // Ubah jadi array dan susun struktur response
         const formattedClasses = Object.values(groupedAttendances).map(classGroup => ({
             ...classGroup,
             lessons: Object.values(classGroup.lessons)
@@ -288,10 +333,13 @@ const getAttendances = async (req, res) => {
             classes: formattedClasses,
             meta
         });
+
     } catch (error) {
         return handleError(error, res);
     }
-}
+};
+
+
 
 const getAttendanceById = async (req, res) => {
     const { id } = req.params;

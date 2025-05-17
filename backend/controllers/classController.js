@@ -7,22 +7,24 @@ const { AppError, handleError, createSuccessResponse } = require('../helpers/hel
 
 
 const createClass = async (req, res) => {
-    const validationResult = await validateClassData(req.body, 'create');
-
-    if (!validationResult.isValid) {
-        const { status, message } = validationResult.error;
-        throw new AppError(message, status)
-    }
-
-    const validation = isAdmin(req.userRole, req.userId);
-    if (!validation.isValid) {
-        throw new AppError(validation.error.message, validation.error.status);
-    }
-
     try {
+        const validationResult = await validateClassData(req.body, 'create');
+
+        if (!validationResult.isValid) {
+            const { status, message } = validationResult.error;
+            throw new AppError(message, status)
+        }
+
+        const validation = isAdmin(req.userRole, req.userId);
+        if (!validation.isValid) {
+            throw new AppError(validation.error.message, validation.error.status);
+        }
+
         const classData = {
             ...validationResult.data
         }
+
+
         const newClass = await Class.create(classData, {
             userId: validation.userId
         })
@@ -68,8 +70,15 @@ const getClasses = async (req, res) => {
         } = getPagination(req.query);
 
         let whereClause = createSearchWhereClause(search, searchFields);
+
+        // Tambahkan filter statusCondition jika ada
         if (statusCondition) {
             whereClause = { ...whereClause, ...statusCondition };
+        }
+
+        // Jika role adalah teacher, hanya ambil kelas yang sesuai dengan teacherId
+        if (req.userRole === 'teacher') {
+            whereClause.teacherId = req.userId;
         }
 
         const totalCount = await Class.count({ where: whereClause });
@@ -89,7 +98,7 @@ const getClasses = async (req, res) => {
         });
 
         if (classes.length === 0) {
-            throw new AppError("Data kelas tidak ditemukan", 404)
+            throw new AppError("Data kelas tidak ditemukan", 404);
         }
 
         return res.status(200).json({
@@ -98,8 +107,9 @@ const getClasses = async (req, res) => {
             classes,
             meta
         });
+
     } catch (error) {
-        return handleError(error, res)
+        return handleError(error, res);
     }
 };
 

@@ -64,7 +64,7 @@ const getLessons = async (req, res) => {
             statusCondition,
             paranoid,
             meta
-        } = isAdmin ? getPagination(req.query) : {
+        } = validation.isValid ? getPagination(req.query) : {
             limit: null,
             offset: 0,
             statusCondition: null,
@@ -87,7 +87,7 @@ const getLessons = async (req, res) => {
         }
 
         // Get total count for admin pagination
-        if (isAdmin) {
+        if (validation.isValid) {
             const totalCount = await Lesson.count({
                 where: whereClause,
                 include: [
@@ -108,7 +108,7 @@ const getLessons = async (req, res) => {
             include: [
                 { model: Class, as: 'class', attributes: ["id", "name"] },
             ],
-            paranoid: validation.userRole ? paranoid : true,
+            paranoid: validation.isValid ? paranoid : true,
             distinct: true
         });
 
@@ -120,7 +120,7 @@ const getLessons = async (req, res) => {
             success: true,
             message: "Berhasil mendapatkan data lesson",
             lessons,
-            ...(validation.userRole && { meta })
+            ...(validation.isValid && { meta })
         });
 
     } catch (error) {
