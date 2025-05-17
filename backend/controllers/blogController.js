@@ -1,6 +1,6 @@
 const { createSuccessResponse, AppError, handleError } = require('../helpers/helperFunction');
 const { createSearchWhereClause } = require('../helpers/searchQueryHelper');
-const isAdmin = require('../helpers/validationRole');
+const { isAdmin } = require('../helpers/validationRole');
 const { Blog } = require('../models');
 const getFileUrl = require('../utils/getFileUrl');
 const { getPagination } = require('../utils/paginationUtil');

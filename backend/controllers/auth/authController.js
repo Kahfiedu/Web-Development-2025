@@ -69,7 +69,8 @@ const register = async (req, res) => {
         return res.status(201).json({
             success: true,
             message: 'Kode OTP telah dikirim ke email Anda.',
-            userId: newUser.id
+            userId: newUser.id,
+            otp: otp
         });
     } catch (error) {
         return handleError(error, res);
@@ -246,7 +247,8 @@ const resetPasswordRequest = async (req, res) => {
 
         return res.status(200).json({
             success: true,
-            message: 'Link password reset telah dikirim ke email Anda.'
+            message: 'Link password reset telah dikirim ke email Anda.',
+            token: token,
         });
     } catch (error) {
         return handleError(error, res);

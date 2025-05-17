@@ -87,7 +87,7 @@ const getCategories = async (req, res) => {
 
         return res.status(200).json({
             success: true,
-            message: "Categories retrieved successfully",
+            message: "Data categories berhasil diambil",
             categories,
             meta
         });
@@ -132,7 +132,7 @@ const updateCategory = async (req, res) => {
             });
 
             if (nameExists) {
-                throw new AppError("Name category telah tersedia", 400)
+                throw new AppError("Category berhasil diperbaharui", 400)
             }
             updateData.name = lowerCaseName;
         }
@@ -184,17 +184,17 @@ const deleteCategory = async (req, res) => {
         }
 
         if (category.isActive) {
-            throw new AppError("Categoy masih aktid tidak dapat dihapus", 400)
+            throw new AppError("Categoy masih aktif tidak dapat dihapus", 400)
         }
 
-        if (category.isDeleted) {
+        if (category.deletedAt) {
             await category.destroy({
                 force: true,
                 userId: validation.userId
             });
             return res.status(200).json({
                 success: true,
-                message: "Category deleted permanently"
+                message: "Category berhasil dihapus permanen"
             });
         }
 
@@ -204,7 +204,7 @@ const deleteCategory = async (req, res) => {
 
         return res.status(200).json({
             success: true,
-            message: "Category deleted successfully"
+            message: "Category berhasil dihapus"
         });
 
     } catch (error) {

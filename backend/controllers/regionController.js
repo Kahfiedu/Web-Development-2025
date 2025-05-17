@@ -28,7 +28,6 @@ const getRegions = async (req, res) => {
 const createRegion = async (req, res) => {
     try {
         const { type, name, provinceId, regencyId, districtId } = req.body;
-        const isAdmin = req.userRole === 'admin';
 
         const validation = isAdmin(req.userRole, req.userId);
         if (!validation.isValid) {

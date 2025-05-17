@@ -113,7 +113,7 @@ const updateCourse = async (req, res) => {
 
 const getCourses = async (req, res) => {
     try {
-        const { search = "", categoryId } = req.query;
+        const { search = "", categoryId, isPublish, isFeatured } = req.query;
         const searchFields = ['title'];
 
         const {
@@ -130,10 +130,21 @@ const getCourses = async (req, res) => {
             whereClause.categoryId = categoryId;
         }
 
+        if (typeof isPublish !== 'undefined') {
+            const isPublishBoolean = isPublish === 'true' || isPublish === true;
+            whereClause.isPublish = isPublishBoolean;
+        }
+
+        if (typeof isFeatured !== 'undefined') {
+            const isFeaturedBoolean = isFeatured === 'true' || isFeatured === true;
+            whereClause.isFeatured = isFeaturedBoolean;
+        }
+
         if (statusCondition) {
             whereClause = { ...whereClause, ...statusCondition };
         }
 
+        // Jika bukan admin, hanya tampilkan course yang sudah dipublish
         if (req.userRole !== "admin") {
             whereClause.isPublish = true;
         }
@@ -161,7 +172,6 @@ const getCourses = async (req, res) => {
                 attributes: ['id', 'name'],
             }],
             paranoid,
-            distinct: true
         });
 
         if (courses.length === 0) {
@@ -181,6 +191,7 @@ const getCourses = async (req, res) => {
         return handleError(error, res);
     }
 };
+
 
 const getCourseById = async (req, res) => {
     try {

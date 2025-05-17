@@ -3,7 +3,7 @@ const { Child, User } = require("../models");
 const { Op } = require('sequelize');
 const { validateChildData } = require("../utils/validateChildData");
 const { AppError, handleError } = require("../helpers/helperFunction");
-const { isParentOrAdmin, isParentOrAdminOrTeacher } = require('../helpers/validationRole');
+const { isParentOrAdmin, isParentOrAdminOrTeacher, isParent } = require('../helpers/validationRole');
 
 const createChild = async (req, res) => {
     try {
@@ -133,6 +133,12 @@ const getChildById = async (req, res) => {
             throw new AppError("Data anak tidak ditemukan", 404);
         }
 
+        if (req.userRole === 'parent') {
+            if (children.parentId !== roleValidation.userId) {
+                throw new AppError("Anda tidak dapat mendapatkan data ini", 400);
+            }
+        }
+
         return res.status(200).json({
             success: true,
             message: "Berhasil mendapatkan data anak",
@@ -163,6 +169,12 @@ const updateChild = async (req, res) => {
         const child = await Child.findByPk(id);
         if (!child) {
             throw new AppError("Data anak tidak ditemukan", 404);
+        }
+
+        if (req.userRole === 'parent') {
+            if (child.parentId !== roleValidation.userId) {
+                throw new AppError("Anda tidak dapat mengubah data ini", 400);
+            }
         }
 
         await child.update(validation.data, {
