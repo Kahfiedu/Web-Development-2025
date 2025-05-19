@@ -21,6 +21,15 @@ import UserDetail from '@/pages/Admin/user/UserDetail';
 import CourseList from '@/pages/Admin/course/CourseList';
 import CourseDetail from '@/pages/Admin/course/CourseDetail';
 import ProtectedRoute from './ProtectedRoute';
+import CategoryList from '../pages/Admin/settings/category/CategoryList';
+import PaymentMethodList from '../pages/Admin/settings/payment-method/PaymentMethodList';
+import RegionList from '../pages/Admin/settings/region/RegionList';
+import RoleList from '../pages/Admin/settings/role/RoleList';
+import InvoiceList from '../pages/Admin/invoice/InvoiceList';
+import ClassList from '../pages/Admin/class/ClassList';
+import BlogList from '../pages/Admin/blog/BlogList';
+import CourseCreate from '../pages/Admin/course/CourseCreate';
+import CourseEdit from '../pages/Admin/course/CourseEdit';
 
 const AppRouter = () => (
     <Routes>
@@ -50,8 +59,16 @@ const AppRouter = () => (
             <Route path="user/detail" element={<UserDetail />} />
             <Route path="course" element={<CourseList />} />
             <Route path="course/detail" element={<CourseDetail />} />
-            <Route path="blog" element={<CourseList />} />
+            <Route path="course/create" element={<CourseCreate />} />
+            <Route path="course/edit" element={<CourseEdit />} />
+            <Route path="class" element={<ClassList />} />
+            <Route path="blog" element={<BlogList />} />
             <Route path="blog/detail" element={<CourseDetail />} />
+            <Route path="category" element={<CategoryList />} />
+            <Route path="payment-method" element={<PaymentMethodList />} />
+            <Route path="region" element={<RegionList />} />
+            <Route path="role" element={<RoleList />} />
+            <Route path="invoice" element={<InvoiceList />} />
         </Route>
     </Routes>
 );

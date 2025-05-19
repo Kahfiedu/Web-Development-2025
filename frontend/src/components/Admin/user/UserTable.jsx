@@ -30,7 +30,7 @@ export default function UserTable({
 
     return (
         <Box sx={{ width: '100%', overflow: 'hidden', fontFamily: "poppins" }}>
-            <TableContainer sx={{ maxHeight: 360 }}>
+            <TableContainer sx={{ maxHeight: 450 }}>
                 <Table stickyHeader aria-label="sticky table">
                     <TableHead>
                         <TableRow>

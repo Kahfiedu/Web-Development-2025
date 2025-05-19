@@ -75,7 +75,7 @@ const getPaymentMethods = async (req, res) => {
                 {
                     model: Bank,
                     as: 'banks',
-                    attributes: ['id', 'name', 'noRek', 'an', 'isActive'],
+                    paranoid: false
                 }
             ],
             order: [['createdAt', 'DESC']],

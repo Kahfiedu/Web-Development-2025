@@ -50,13 +50,11 @@ const createCategory = async (req, res) => {
 }
 
 const getCategories = async (req, res) => {
-    const { page = 1, limit = 10, search = "", isActive } = req.query;
-
-    const offset = (page - 1) * limit;
+    const { search = "", isActive } = req.query;
 
     const searchFields = ['name'];
-
     const additionalFilters = {};
+
     if (isActive !== undefined) {
         additionalFilters.isActive = isActive === "true";
     }
@@ -64,38 +62,27 @@ const getCategories = async (req, res) => {
     const whereClause = createSearchWhereClause(search, searchFields, additionalFilters);
 
     try {
-        const { count, rows: categories } = await Category.findAndCountAll({
+        const categories = await Category.findAll({
             where: whereClause,
             order: [["createdAt", "DESC"]],
-            limit,
-            offset,
             paranoid: false
         });
 
-        // Calculate pagination metadata
-        const totalPages = Math.ceil(count / limit);
-        const meta = {
-            total: count,
-            page: parseInt(page),
-            limit: parseInt(limit),
-            totalPages
-        };
-
         if (categories.length === 0) {
-            throw new AppError("Data category tidak ditemukan", 404)
+            throw new AppError("Data category tidak ditemukan", 404);
         }
 
         return res.status(200).json({
             success: true,
             message: "Data categories berhasil diambil",
-            categories,
-            meta
+            categories
         });
 
     } catch (error) {
-        return handleError(error, res)
+        return handleError(error, res);
     }
-}
+};
+
 
 const updateCategory = async (req, res) => {
     const { name, isActive } = req.body;

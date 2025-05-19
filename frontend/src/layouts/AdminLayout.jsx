@@ -23,11 +23,12 @@ export default function AdminLayout() {
         >
             {!isLoginPage && <NavbarAdmin />}
 
-            <Box component="main" flexGrow={1} px={isMobile ? 2 : 4}>
+            <Box component="main" minHeight="80vh" flexGrow={1} px={isMobile ? 2 : 4}>
                 {!isLoginPage && <CustomeBreadcrumb title={title} />}
                 <Container
                     disableGutters={isMobile}
-                    maxWidth="xl"
+                    maxWidth={false} // <--- Tambahkan ini
+                    sx={{ width: '100%' }}
                 >
                     <Outlet />
                 </Container>

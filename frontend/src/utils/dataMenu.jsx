@@ -1,4 +1,4 @@
-import { HiHome, HiUser, HiClipboardList, HiBookOpen, HiSparkles, HiSpeakerphone, HiLibrary, HiCog, HiCurrencyDollar, HiCreditCard, HiHashtag, HiFlag } from 'react-icons/hi';
+import { HiHome, HiUser, HiBookOpen, HiSpeakerphone, HiCog, HiCurrencyDollar, HiCreditCard, HiFlag, HiCollection, HiUserGroup, HiAcademicCap } from 'react-icons/hi';
 
 const dataMenu = [
     {
@@ -16,8 +16,15 @@ const dataMenu = [
         dropdownData: null
     },
     {
-        title: "Kelas",
+        title: "Program",
         link: "/admin/course",
+        icon: <HiAcademicCap size={20} />,
+        isDropdown: false,
+        dropdownData: null
+    },
+    {
+        title: "Kelas",
+        link: "/admin/class",
         icon: <HiBookOpen size={20} />,
         isDropdown: false,
         dropdownData: null
@@ -32,7 +39,7 @@ const dataMenu = [
     },
     {
         title: "Invoice",
-        link: "/admin/payments",
+        link: "/admin/invoice",
         icon: <HiCurrencyDollar size={20} />,
         isDropdown: false,
         dropdownData: null
@@ -55,12 +62,12 @@ const dataMenu = [
             },
             {
                 title: "Category",
-                icon: <HiHashtag size={20} />,
+                icon: <HiCollection size={20} />,
                 link: "/admin/category"
             },
             {
                 title: "Role",
-                icon: <HiHashtag size={20} />,
+                icon: <HiUserGroup size={20} />,
                 link: "/admin/role"
             },
         ]

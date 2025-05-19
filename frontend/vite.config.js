@@ -43,6 +43,6 @@ export default defineConfig(({ mode }) => {
       environment: 'jsdom',
       setupFiles: './src/setupTests.js', // bisa ubah sesuai path kamu
       maxConcurrency: 1,
-    }
+    },
   };
 });

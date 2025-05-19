@@ -145,9 +145,7 @@ const getCourses = async (req, res) => {
         }
 
         // Jika bukan admin, hanya tampilkan course yang sudah dipublish
-        if (req.userRole !== "admin") {
-            whereClause.isPublish = true;
-        }
+
 
         const totalCount = await Course.count({
             where: whereClause,
@@ -165,7 +163,10 @@ const getCourses = async (req, res) => {
             where: whereClause,
             limit,
             offset,
-            order: [['createdAt', 'DESC']],
+            order: [
+                ['isPublish', 'DESC'],  // Prioritaskan isPublish = true
+                ['createdAt', 'DESC'],  // Lalu urutkan berdasarkan tanggal terbaru
+            ],
             include: [{
                 model: Category,
                 as: 'category',
@@ -174,15 +175,9 @@ const getCourses = async (req, res) => {
             paranoid,
         });
 
-        if (courses.length === 0) {
-            meta.total = 0;
-            meta.totalPages = 0;
-            throw new AppError("Tidak ada course yang ditemukan", 404);
-        }
-
         return res.status(200).json({
             success: true,
-            message: "Berhasil mendapatkan data course",
+            message: courses.length === 0 ? "Data course tidak ditemukan" : "Berhasil mendapatkan data course",
             courses,
             meta,
         });
@@ -238,7 +233,14 @@ const deleteCourse = async (req, res) => {
             throw new AppError("Course tidak ditemukan", 404);
         }
 
+        // Update isPublish dan isFeatured jadi false sebelum delete
+        await course.update({
+            isPublish: false,
+            isFeatured: false
+        });
+
         if (course.deletedAt) {
+            // Hard delete
             await course.destroy({
                 force: true,
                 userId: validation.userId
@@ -249,6 +251,7 @@ const deleteCourse = async (req, res) => {
             });
         }
 
+        // Soft delete
         await course.destroy({
             userId: validation.userId
         });
@@ -262,6 +265,7 @@ const deleteCourse = async (req, res) => {
         return handleError(error, res);
     }
 };
+
 
 const restoreCourse = async (req, res) => {
     try {

@@ -29,12 +29,8 @@ const AvatarUpload = ({
 
         // Check file size (100KB - 500KB)
         const fileSizeKB = file.size / 1024;
-        if (fileSizeKB < 100) {
-            setError("Image is too small. Minimum size is 100KB");
-            return;
-        }
-        if (fileSizeKB > 500) {
-            setError("Image is too large. Maximum size is 500KB");
+        if (fileSizeKB > 2000) {
+            setError("Image is too large. Maximum size is 2MB");
             return;
         }
 
@@ -85,7 +81,7 @@ const AvatarUpload = ({
                         <img
                             src={avatarUrl}
                             alt="Avatar preview"
-                            className="w-24 h-24 rounded-full object-cover mb-2"
+                            className="w-full h-60 object-contain mb-2"
                         />
                         <span className="text-sm text-gray-600">Click or drag to change avatar</span>
                     </div>
@@ -97,7 +93,7 @@ const AvatarUpload = ({
                             </svg>
                         </div>
                         <p className="text-gray-700">Click or drag image to upload avatar</p>
-                        <p className="text-sm text-gray-500 mt-1">Image size must be between 100KB and 500KB</p>
+                        <p className="text-sm text-gray-500 mt-1">Image size max 2MB</p>
                     </div>
                 )}
 

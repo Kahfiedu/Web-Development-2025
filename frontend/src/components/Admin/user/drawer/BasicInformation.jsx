@@ -10,7 +10,7 @@ export default function BasicInformation({ control, errors, submitting, roles, e
         <Stack spacing={2}>
             <Box>
                 <Typography variant="body2" mb={1}>
-                    Avatar (100KB - 500KB)
+                    Avatar max 2MB
                 </Typography>
                 <AvatarUpload
                     onFileSelect={onAvatarSelect}

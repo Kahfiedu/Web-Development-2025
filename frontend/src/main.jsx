@@ -5,6 +5,7 @@ import App from '@/App.jsx'
 import { AlertProvider } from '@providers/AlertProvider.jsx';
 import AuthProvider from '@providers/AuthProvider';
 
+
 const rootElement = document.getElementById('root');
 const root = createRoot(rootElement);
 
