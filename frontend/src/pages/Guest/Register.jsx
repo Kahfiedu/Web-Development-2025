@@ -20,7 +20,7 @@ const Register = () => {
   return (
     <AuthLayout
       greeting="Halo"
-      sidebarText="Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua."
+      sidebarText='Mari bersama "Mengaji Dari Hati"'
     >
       <h2 className="text-2xl font-bold mb-6 text-center">Register</h2>
 
@@ -60,8 +60,10 @@ const Register = () => {
             placeholder="Enter your password"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
+            showPasswordToggle={true} // pastikan FormInput mendukung ini
             required
           />
+
         </div>
 
         <button

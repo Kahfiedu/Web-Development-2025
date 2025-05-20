@@ -4,9 +4,9 @@ import { Box, Typography, Link, Container } from "@mui/material";
 function Footer() {
   return (
     <Box sx={{ backgroundColor: "#fff", color: "#000", pt: 6 }}>
- 
+
       {/* Garis horizontal dan copyright */}
-      <Container maxWidth="lg" sx={{ mb: 2}} >
+      <Container maxWidth="lg" sx={{ mb: 2 }} >
         <hr style={{ borderColor: "#ccc", opacity: 0.3 }} />
         <Typography
           variant="body2"

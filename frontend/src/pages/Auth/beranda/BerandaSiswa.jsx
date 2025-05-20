@@ -28,15 +28,15 @@ function BerandaSiswa() {
         }}
       >
         Selamat Pagi,
-        <Typography
-          variant="h5"
-          sx={{
-            fontWeight: "bold",
-            fontSize: { xs: "1.2rem", md: "1.5rem" },
-          }}
-        >
-          Siswa Kahfi
-        </Typography>
+      </Typography>
+      <Typography
+        variant="h5"
+        sx={{
+          fontWeight: "bold",
+          fontSize: { xs: "1.2rem", md: "1.5rem" },
+        }}
+      >
+        Siswa Kahfi
       </Typography>
 
       {/* Box Kalender */}

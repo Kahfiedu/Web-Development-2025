@@ -18,6 +18,9 @@ import LoginAdmin from '@/pages/Guest/login/LoginAdmin';
 import BerandaSiswa from '../pages/Auth/beranda/BerandaSiswa';
 import KelasSiswa from '../pages/Auth/kelas/KelasSiswa';
 import PengajarSiswa from '../pages/Auth/pengajar/PengajarSiswa';
+import Profile from "../pages/Auth/profil/Profile";
+import ProfileDetail from "../pages/Auth/profil/ProfileDetail";
+import ProfileEdit from "../pages/Auth/profil/ProfileEdit";
 
 // Admin Pages
 import DashboardAdmin from '@/pages/Admin/dashboard/DashboardAdmin';
@@ -57,13 +60,17 @@ const AppRouter = () => (
             //         <AuthLayout />
             //     </ProtectedRoute>
             // }
+            path='/siswa'
             element={
                 <AuthLayout />
             }
         >
-            <Route path="/siswa" element={<BerandaSiswa />} />
-            <Route path="/siswa/kelas" element={<KelasSiswa />} />
-            <Route path="/siswa/pengajar" element={<PengajarSiswa />} />
+            <Route path="" element={<BerandaSiswa />} />
+            <Route path="kelas" element={<KelasSiswa />} />
+            <Route path="pengajar" element={<PengajarSiswa />} />
+            <Route path="profile" element={<Profile />} />
+            <Route path="profile-edit" element={<ProfileEdit />} />
+            <Route path="profile-detail" element={<ProfileDetail />} />
         </Route>
 
 

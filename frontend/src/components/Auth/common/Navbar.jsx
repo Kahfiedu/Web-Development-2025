@@ -15,7 +15,7 @@ import NotificationsIcon from "@mui/icons-material/Notifications";
 import CloseIcon from "@mui/icons-material/Close";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import Container from "@mui/material/Container";
-import { useAuth } from "../../hooks/useAuth";
+import { useAuth } from "../../../hooks/useAuth";
 
 const Search = styled("div")(({ theme }) => ({
   position: "relative",
@@ -118,7 +118,7 @@ export default function Navbar() {
         },
       }}
     >
-      <MenuItem onClick={handleMenuClose}>Profile</MenuItem>
+      <MenuItem onClick={() => { handleMenuClose(); navigate("/siswa/profile") }}>Profile</MenuItem>
       <MenuItem onClick={() => { handleLogout() }}>Logout</MenuItem>
     </Menu>
   );
