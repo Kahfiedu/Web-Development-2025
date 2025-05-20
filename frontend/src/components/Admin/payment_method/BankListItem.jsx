@@ -4,7 +4,7 @@ import { capitalizeWords, toUpperCaseAll } from '../../../utils/formatedFont';
 
 export default function BankListItem({ bank, onDelete, onRestore, onEdit }) {
     return (
-        <Grid container spacing={2} borderBottom="1px solid" pb={1} alignItems="center">
+        <Grid container spacing={2} border="1px solid #3a3a3a7b" p={1} alignItems="center">
             {/* Kiri */}
             <Grid size={{ xs: 12, md: 4 }}>
                 <Typography fontWeight="bold">{toUpperCaseAll(bank.name)}</Typography>
