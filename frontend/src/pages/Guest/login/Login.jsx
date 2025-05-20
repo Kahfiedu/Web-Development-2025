@@ -2,15 +2,54 @@ import { Link, useNavigate } from 'react-router-dom';
 import AuthLayout from '../../../components/AuthLayout';
 import FormInput from '../../../components/UI/FormInput';
 import SocialButton from '../../../components/UI/SocialButton';
+import useAlert from '../../../hooks/useAlert';
+import { useAuth } from '../../../hooks/useAuth';
+import { useState } from 'react';
+import { Box, Button, IconButton, InputAdornment, TextField, Typography } from '@mui/material';
+import { Email, Lock, Visibility, VisibilityOff } from '@mui/icons-material';
+import AuthService from '../../../services/authService';
 
 
 const Login = () => {
+  const { showAlert } = useAlert();
+  const { login } = useAuth();
+  const [formData, setFormData] = useState({
+    email: "",
+    password: "",
+    showPassword: false,
+  });
+  const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    // Add login/validation API logic here if needed
-    navigate('/blog');
+    setLoading(true)
+    try {
+      const res = await AuthService.login(formData.email, formData.password)
+      if (res.message && res.token && res.role) {
+        login(res.token, res.role);
+        showAlert(res.message, "succes")
+        navigate("/siswa")
+      }
+    } catch (error) {
+      showAlert(error.message, "error");
+    } finally {
+      setLoading(false)
+    }
+  };
+
+  const handleChange = (e) => {
+    setFormData({
+      ...formData,
+      [e.target.name]: e.target.value
+    });
+  };
+
+  const handleTogglePassword = () => {
+    setFormData({
+      ...formData,
+      showPassword: !formData.showPassword
+    });
   };
 
   return (
@@ -22,38 +61,73 @@ const Login = () => {
 
       <form onSubmit={handleSubmit} className="space-y-4 w-full">
         <div>
-          <label className="block mb-2 text-sm font-medium">Email<span className="text-red-500">*</span></label>
-          <FormInput
-            icon={<svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path d="M2.003 5.884L10 9.882l7.997-3.998A2 2 0 0016 4H4a2 2 0 00-1.997 1.884z" /><path d="M18 8.118l-8 4-8-4V14a2 2 0 002 2h12a2 2 0 002-2V8.118z" /></svg>}
-            type="email"
+          <label className="block text-sm font-medium">Email<span className="text-red-500">*</span></label>
+          <TextField
+            fullWidth
+            required
             name="email"
             placeholder="Enter your email"
-            required
+            value={formData.email}
+            onChange={handleChange}
+            margin="normal"
+            InputProps={{
+              startAdornment: (
+                <InputAdornment position="start">
+                  <Email />
+                </InputAdornment>
+              ),
+            }}
           />
         </div>
 
         <div>
-          <label className="block mb-2 text-sm font-medium">Password<span className="text-red-500">*</span></label>
-          <FormInput
-            icon={<svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path fillRule="evenodd" d="M5 9V7a5 5 0 0110 0v2a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5a2 2 0 012-2zm8-2v2H7V7a3 3 0 016 0z" clipRule="evenodd" /></svg>}
-            type="password"
-            name="password"
-            placeholder="Enter your password"
+          <label className="block text-sm font-medium">Password<span className="text-red-500">*</span></label>
+          <TextField
+            fullWidth
             required
+            name="password"
+            type={formData.showPassword ? "text" : "password"}
+            placeholder="Enter your password"
+            value={formData.password}
+            onChange={handleChange}
+            margin="normal"
+            InputProps={{
+              startAdornment: (
+                <InputAdornment position="start">
+                  <Lock />
+                </InputAdornment>
+              ),
+              endAdornment: (
+                <InputAdornment position="end">
+                  <IconButton onClick={handleTogglePassword} edge="end">
+                    {formData.showPassword ? <VisibilityOff /> : <Visibility />}
+                  </IconButton>
+                </InputAdornment>
+              ),
+            }}
           />
-          <div className="flex justify-end mt-1">
-            <Link to="/forgot-password" className="text-sm text-gray-600 hover:text-kahf-green">
-              forgot password?
-            </Link>
-          </div>
         </div>
 
-        <button
+        <Box display="flex" justifyContent="flex-end" mt={1}>
+          <Link to="/forgot-password" className="text-sm text-gray-600 hover:text-kahf-green">
+            forgot password?
+          </Link>
+        </Box>
+
+        <Button
           type="submit"
-          className="w-full py-3 bg-kahf-green text-white rounded-lg hover:bg-green-700 transition-colors"
+          fullWidth
+          variant="contained"
+          sx={{
+            mt: 3,
+            py: 1.5,
+            backgroundColor: '#0B7A75',
+            '&:hover': { backgroundColor: '#08665F' }
+          }}
+          disabled={loading}
         >
-          Masuk
-        </button>
+          {loading ? "Waiting.." : "Masuk"}
+        </Button>
       </form>
 
       <div className="mt-6 w-full">

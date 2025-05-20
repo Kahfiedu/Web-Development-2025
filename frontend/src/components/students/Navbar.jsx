@@ -13,8 +13,9 @@ import SearchIcon from "@mui/icons-material/Search";
 import AccountCircle from "@mui/icons-material/AccountCircle";
 import NotificationsIcon from "@mui/icons-material/Notifications";
 import CloseIcon from "@mui/icons-material/Close";
-import { Link, useLocation } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import Container from "@mui/material/Container";
+import { useAuth } from "../../hooks/useAuth";
 
 const Search = styled("div")(({ theme }) => ({
   position: "relative",
@@ -62,7 +63,8 @@ export default function Navbar() {
   const [anchorEl, setAnchorEl] = React.useState(null);
   const [mobileMoreAnchorEl, setMobileMoreAnchorEl] = React.useState(null);
   const [isMenuOpenToggle, setIsMenuOpenToggle] = React.useState(false);
-
+  const { logout } = useAuth();
+  const navigate = useNavigate();
   const location = useLocation();
   const currentPath = location.pathname;
 
@@ -96,6 +98,11 @@ export default function Navbar() {
     setAnchorEl(null);
   };
 
+  const handleLogout = () => {
+    logout();
+    navigate("/")
+  }
+
   const renderMenu = (
     <Menu
       anchorEl={anchorEl}
@@ -106,13 +113,13 @@ export default function Navbar() {
       open={isMenuOpen}
       onClose={handleMenuClose}
       PaperProps={{
-      sx: {
-        mt: 5, // margin top, ini yang bikin agak turun
-      },
-    }}
+        sx: {
+          mt: 5, // margin top, ini yang bikin agak turun
+        },
+      }}
     >
       <MenuItem onClick={handleMenuClose}>Profile</MenuItem>
-      <MenuItem onClick={handleMenuClose}>Logout</MenuItem>
+      <MenuItem onClick={() => { handleLogout() }}>Logout</MenuItem>
     </Menu>
   );
 

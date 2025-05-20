@@ -48,15 +48,24 @@ const AppRouter = () => (
             <Route path="/reset-password" element={<ResetPassword />} />
             <Route path="/forgot-password" element={<ForgotPassword />} />
             <Route path="/tentangkami" element={<TentangKami />} />
+            <Route path="/admin/login" element={<LoginAdmin />} />
         </Route>
 
-        <Route element={<AuthLayout />}>
+        <Route
+            // element={
+            //     <ProtectedRoute>
+            //         <AuthLayout />
+            //     </ProtectedRoute>
+            // }
+            element={
+                <AuthLayout />
+            }
+        >
             <Route path="/siswa" element={<BerandaSiswa />} />
             <Route path="/siswa/kelas" element={<KelasSiswa />} />
             <Route path="/siswa/pengajar" element={<PengajarSiswa />} />
         </Route>
 
-        <Route path="/admin/login" element={<LoginAdmin />} />
 
         <Route
             path="/admin"
