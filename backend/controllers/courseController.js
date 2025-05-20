@@ -1,6 +1,6 @@
 const { createSearchWhereClause } = require('../helpers/searchQueryHelper');
 const { isAdmin } = require('../helpers/validationRole');
-const { Course, Category } = require('../models');
+const { Course, Category, Class, User } = require('../models');
 const getFileUrl = require('../utils/getFileUrl');
 const { getPagination } = require('../utils/paginationUtil');
 const validateCourseData = require('../utils/validateCourseData');
@@ -193,11 +193,24 @@ const getCourseById = async (req, res) => {
         const { id } = req.params;
 
         const course = await Course.findByPk(id, {
-            include: [{
-                model: Category,
-                as: 'category',
-                attributes: ['id', 'name'],
-            }],
+            include: [
+                {
+                    model: Category,
+                    as: 'category',
+                    attributes: ['id', 'name'],
+                },
+                {
+                    model: Class,
+                    as: 'classes',
+                    include: [
+                        {
+                            model: User,
+                            as: "teacher",
+                            attributes: { exclude: ['password', 'roleId', 'emailVerified', 'googleId'] }
+                        }
+                    ]
+                },
+            ],
             paranoid: false
         });
 

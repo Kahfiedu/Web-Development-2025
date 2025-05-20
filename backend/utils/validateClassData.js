@@ -13,12 +13,12 @@ const { User, Course, Role } = require('../models');
  * @returns {Object} Validation result
  */
 const validateClassData = async (data, mode = 'create') => {
-    const { name, teacherId, courseId, schedule, startDate, endDate } = data;
+    const { name, teacherId, courseId, schedule, startDate, endDate, isActive } = data;
     const validatedData = {};
 
     if (mode === 'create') {
         // Check required fields for create
-        if (!name || !courseId || !teacherId || !schedule || !startDate || !endDate) {
+        if (!name || !courseId || !teacherId || !schedule || !startDate || !endDate || !isActive) {
             return {
                 isValid: false,
                 error: {
@@ -84,6 +84,18 @@ const validateClassData = async (data, mode = 'create') => {
         }
         validatedData.teacherId = teacherId;
 
+        if (isActive !== undefined) {
+            if (typeof isActive !== 'boolean' && isActive !== 'true' && isActive !== 'false') {
+                return {
+                    isValid: false,
+                    error: {
+                        status: 400,
+                        message: "isActive must be a boolean value"
+                    }
+                };
+            }
+        }
+        validatedData.isActive = isActive.trim()
         // Validate courseId
         const course = await Course.findByPk(courseId);
         if (!course) {

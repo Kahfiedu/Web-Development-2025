@@ -10,7 +10,7 @@ function NavMenu({ drawerOpen, toggleDrawer }) {
     const location = useLocation();
 
     const renderDesktopMenu = () => (
-        <div className="hidden md:flex gap-4 bg-white p-2 rounded-lg">
+        <div className="hidden md:flex gap-4 bg-white p-2 rounded-lg shadow-lg">
             {dataMenu.map((menu, index) => {
                 const isActive = menu.link && location.pathname.startsWith(menu.link);
                 const isSubActive = menu.dropdownData?.some(item => location.pathname.startsWith(item.link));

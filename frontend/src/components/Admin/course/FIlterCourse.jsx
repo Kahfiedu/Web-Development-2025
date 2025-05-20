@@ -1,16 +1,18 @@
 import {
+    Accordion,
+    AccordionSummary,
+    AccordionDetails,
     Button,
-    Card,
-    CardContent,
     FormControl,
     Grid,
     InputLabel,
     MenuItem,
     Select,
-    Stack,
     TextField,
     Typography,
+    Box
 } from "@mui/material";
+import { HiAdjustments } from "react-icons/hi";
 
 export default function FilterCourse({
     search,
@@ -27,14 +29,23 @@ export default function FilterCourse({
     rowsPerPage,
     setRowsPerPage,
     handleResetFilter
-
 }) {
     return (
-        <Card>
-            <CardContent>
-                <Typography variant="h6">Filter</Typography>
+        <Accordion>
+            <AccordionSummary sx={{ bgcolor: 'warning.main', color: 'white' }}>
+                <Box
+                    display="flex"
+                    alignItems="center"
+                    justifyContent="center"
+                    sx={{ width: "100%", fontSize: "18px" }}
+                >
+                    <HiAdjustments size={20} className="mr-2" />
+                    Filter
+                </Box>
+            </AccordionSummary>
+            <AccordionDetails>
                 <TextField
-                    sx={{ mb: 2 }}
+                    sx={{ my: 2 }}
                     fullWidth
                     label="Cari Course"
                     variant="outlined"
@@ -43,7 +54,7 @@ export default function FilterCourse({
                     onChange={(e) => setSearch(e.target.value)}
                 />
                 <Grid container spacing={2} columns={2} mb={2}>
-                    <Grid size={{ xs: 12, sm: 1 }}>
+                    <Grid size={{ xs: 12, md: 1 }}>
                         <FormControl fullWidth size="small">
                             <InputLabel id="status-label">Status</InputLabel>
                             <Select
@@ -59,7 +70,7 @@ export default function FilterCourse({
                         </FormControl>
                     </Grid>
 
-                    <Grid size={{ xs: 12, sm: 1 }}>
+                    <Grid size={{ xs: 12, md: 1 }}>
                         <FormControl fullWidth size="small">
                             <InputLabel id="category-label">Kategori</InputLabel>
                             <Select
@@ -78,7 +89,7 @@ export default function FilterCourse({
                         </FormControl>
                     </Grid>
 
-                    <Grid size={{ xs: 12, sm: 1 }}>
+                    <Grid size={{ xs: 12, md: 1 }}>
                         <FormControl fullWidth size="small">
                             <InputLabel id="is-featured-label">Featured</InputLabel>
                             <Select
@@ -97,7 +108,7 @@ export default function FilterCourse({
                         </FormControl>
                     </Grid>
 
-                    <Grid size={{ xs: 12, sm: 1 }}>
+                    <Grid size={{ xs: 12, md: 1 }}>
                         <FormControl fullWidth size="small">
                             <InputLabel id="is-publish-label">Publish</InputLabel>
                             <Select
@@ -116,7 +127,7 @@ export default function FilterCourse({
                         </FormControl>
                     </Grid>
 
-                    <Grid size={{ xs: 12, sm: 1 }}>
+                    <Grid size={{ xs: 12, md: 1 }}>
                         <FormControl fullWidth size="small">
                             <InputLabel id="rows-per-page-label">Rows per Page</InputLabel>
                             <Select
@@ -136,14 +147,10 @@ export default function FilterCourse({
                         </FormControl>
                     </Grid>
                 </Grid>
-
-
-
-
                 <Button variant="outlined" fullWidth onClick={handleResetFilter}>
                     Reset Filter
                 </Button>
-            </CardContent>
-        </Card>
+            </AccordionDetails>
+        </Accordion>
     );
 }

@@ -2,12 +2,11 @@ import { Card, CardContent, InputLabel, Stack, TextField, Typography } from "@mu
 import { Controller } from "react-hook-form";
 
 export default function GeneralInfoCard({ control, errors, submitting }) {
-
     return (
         <Card>
             <CardContent>
                 <Stack spacing={2}>
-                    <Typography variant="h6" mb={1}>Basic Infromation</Typography>
+                    <Typography variant="h6" mb={1}>Basic Information</Typography>
                     <div>
                         <InputLabel shrink>Judul</InputLabel>
                         <Controller

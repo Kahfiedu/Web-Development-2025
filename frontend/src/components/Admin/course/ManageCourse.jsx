@@ -1,4 +1,4 @@
-import { Button, CircularProgress, Grid, Stack } from "@mui/material";
+import { Box, Button, CircularProgress, Grid, Stack } from "@mui/material";
 import { useEffect, useState } from "react";
 import useAlert from "../../../hooks/useAlert";
 import { HiReply } from "react-icons/hi";
@@ -53,6 +53,7 @@ export default function ManageCourse({ editMode, course, categories }) {
                 isFeatured: course.isFeatured || false,
             });
             setThumbnailFile(null);
+            setThumbnailPreview(course.thumbnail)
         } else {
             reset({
                 title: "",
@@ -63,6 +64,7 @@ export default function ManageCourse({ editMode, course, categories }) {
                 isFeatured: false,
             });
             setThumbnailFile(null);
+            setThumbnailPreview(null)
         }
     };
 
@@ -89,22 +91,24 @@ export default function ManageCourse({ editMode, course, categories }) {
     return (
         <form onSubmit={handleSubmit(onSubmit)}>
             <Grid container spacing={2}>
-                <Grid size={12} display="flex" justifyContent="end" gap={2}>
+                <Grid size={12} display="flex" justifyContent="space-between" gap={2}>
                     <Button startIcon={<HiReply />} variant="contained" color="inherit" onClick={() => { navigate(-1); window.scrollTo(0, 0) }}>
                         Kembali
                     </Button>
-                    <Button variant="contained" onClick={() => reset()} disabled={submitting} color="error">
-                        Reset
-                    </Button>
-                    <Button
-                        variant="contained"
-                        type="submit"
-                        sx={{ bgcolor: "#008B47" }}
-                        disabled={submitting}
-                        startIcon={submitting && <CircularProgress size={20} />}
-                    >
-                        {submitting ? "Saving..." : editMode ? "Update" : "Buat"}
-                    </Button>
+                    <Box>
+                        <Button variant="contained" onClick={() => reset()} disabled={submitting} color="error">
+                            Reset
+                        </Button>
+                        <Button
+                            variant="contained"
+                            type="submit"
+                            sx={{ bgcolor: "#008B47", ml: 2 }}
+                            disabled={submitting}
+                            startIcon={submitting && <CircularProgress size={20} />}
+                        >
+                            {submitting ? "Saving..." : editMode ? "Update" : "Buat"}
+                        </Button>
+                    </Box>
                 </Grid>
                 <Grid size={{ xs: 12, md: 8 }}>
                     <Stack spacing={2}>

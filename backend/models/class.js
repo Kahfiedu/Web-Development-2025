@@ -53,6 +53,10 @@ module.exports = (sequelize, DataTypes) => {
     endDate: {
       type: DataTypes.DATE
     },
+    isActive: {
+      type: DataTypes.BOOLEAN,
+      defaultValue: false
+    },
     deletedAt: {
       type: DataTypes.DATE
     }

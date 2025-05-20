@@ -95,7 +95,7 @@ export const BankDrawer = ({
             open={open}
             onClose={onClose}
             PaperProps={{
-                sx: { width: { xs: "100%", sm: 350 } },
+                sx: { width: { xs: '100%', sm: 400 } }
             }}
         >
             <Box sx={{ p: 3, height: '100%', overflow: 'auto' }}>

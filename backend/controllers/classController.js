@@ -97,13 +97,9 @@ const getClasses = async (req, res) => {
             paranoid
         });
 
-        if (classes.length === 0) {
-            throw new AppError("Data kelas tidak ditemukan", 404);
-        }
-
         return res.status(200).json({
             success: true,
-            message: "Berhasil mendapatkan data kelas",
+            message: classes.lenght === 0 ? "Data kelas tidak ditemukan" : "Berhasil mendapatkan data kelas",
             classes,
             meta
         });

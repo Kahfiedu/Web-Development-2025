@@ -5,6 +5,7 @@ const routeTitleMap = {
     "/admin/course": "List Program",
     "/admin/course/detail": "Detail Program",
     "/admin/course/create": "Tambah Program",
+    "/admin/course/edit": "Edit Program",
     "/admin/class": "List Kelas",
     "/admin/blog": "List Blog",
     "/admin/blog/detail": "Detail Blog",

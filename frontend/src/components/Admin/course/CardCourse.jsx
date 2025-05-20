@@ -208,18 +208,18 @@ export default function CardCourse({ course, refreshData }) {
                         {capitalizeWords(course.category?.name)} — {course.level}
                     </Typography>
                 </Stack>
+                <Box display="flex" justifyContent="end">
+                    <Button
+                        size="small"
+                        startIcon={
+                            <HiEye />
+                        }
+                        onClick={() => handleToDetail(course.id)}
+                    >
+                        Preview
+                    </Button>
+                </Box>
             </CardContent>
-            <CardActions className="flex justify-end">
-                <Button
-                    size="small"
-                    startIcon={
-                        <HiEye />
-                    }
-                    onClick={() => handleToDetail(course.id)}
-                >
-                    Preview
-                </Button>
-            </CardActions>
         </Card>
     );
 }

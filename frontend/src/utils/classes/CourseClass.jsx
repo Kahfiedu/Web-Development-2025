@@ -2,6 +2,7 @@
 
 import formatDate from "../formatDate";
 import Category from "./CategoryClass";
+import Class from "./Class";
 
 export default class Course {
     constructor(data) {
@@ -18,14 +19,15 @@ export default class Course {
         this.deletedAt = data.deletedAt ? new Date(data.deletedAt) : null;
         this.revision = data.revision;
         this.category = data.category ? new Category(data.category) : null;
+        this.classes = data.classes ? data.classes.map(c => new Class(c)) : [];
     }
 
     get feature() {
-        return this.isFeatured ? "Featured" : "";
+        return this.isFeatured ? "Featured" : "Not Featured";
     }
 
     get publish() {
-        return this.isPublish ? "Publish" : "";
+        return this.isPublish ? "Publish" : "Draft";
     }
 
     get formattedCreatedAt() {

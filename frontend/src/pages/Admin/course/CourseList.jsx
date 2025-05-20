@@ -126,7 +126,7 @@ function CourseList() {
             <Grid size={{ xs: 12, md: 9 }}>
                 <Grid container spacing={2}>
                     {courses.length === 0 && (
-                        <Grid item xs={12}>
+                        <Grid size={{ xs: 12 }}>
                             <Typography textAlign="center" variant="h6">
                                 Data course tidak ditemukan
                             </Typography>
