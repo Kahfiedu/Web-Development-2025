@@ -1,12 +1,10 @@
 import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
 import FormInput from '../components/FormInput';
-import KahfLogo from '../assets/Kahflogo';
+import KahfLogo from '../components/Kahflogo';
 
 const ResetPassword = () => {
   const [newPassword, setNewPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
-  const navigate = useNavigate();
 
   const handleSubmit = (e) => {
     e.preventDefault();
@@ -14,9 +12,7 @@ const ResetPassword = () => {
       alert('Passwords do not match!');
       return;
     }
-    // Kirim password baru ke server
     alert('Password reset successful!');
-    navigate('/login');
   };
 
   return (
@@ -35,6 +31,7 @@ const ResetPassword = () => {
               onChange={(e) => setNewPassword(e.target.value)}
               placeholder="Enter new password"
               required
+              // optional: icon={<YourLockIcon />} 
             />
           </div>
           <div>
@@ -45,6 +42,7 @@ const ResetPassword = () => {
               onChange={(e) => setConfirmPassword(e.target.value)}
               placeholder="Confirm new password"
               required
+              // optional: icon={<YourLockIcon />} 
             />
           </div>
           <div className="flex justify-center mt-6">

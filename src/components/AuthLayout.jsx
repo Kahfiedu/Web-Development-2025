@@ -1,19 +1,35 @@
 import React from 'react';
-import KahfLogo from '../assets/Kahflogo';
+import KahfLogo from './Kahflogo'; // import komponen KahfLogo yang ada di folder yang sama
+import quranImage from '../assets/download (6).jpeg'; // import gambar
 
 const AuthLayout = ({ children, sidebarText, greeting }) => {
   return (
     <div className="flex flex-col md:flex-row min-h-screen">
-      {/* Sidebar (atas di mobile, kiri di desktop) */}
-      <div className="w-full md:w-2/3 bg-kahf-green text-white p-8 flex flex-col items-center justify-center text-center">
-        <h2 className="text-2xl md:text-3xl font-bold mb-4">{greeting}</h2>
-        <p className="text-sm md:text-base max-w-xl">{sidebarText}</p>
+      {/* Sidebar */}
+      <div
+        className="w-full md:w-[55%] relative flex items-center justify-center text-white text-center"
+      >
+        {/* Background image */}
+        <img
+          src={quranImage}
+          alt="Islamic study materials"
+          className="absolute inset-0 w-full h-full object-cover brightness-[0.4]"
+        />
+
+        {/* Overlay gradasi */}
+        <div className="absolute inset-0 bg-gradient-to-b from-[#0A3D2E]/90 via-[#0A3D2E]/70 to-transparent z-10" />
+
+        {/* Sidebar content */}
+        <div className="relative z-20 px-6 md:px-12">
+          <h1 className="text-4xl md:text-5xl font-bold mb-4">{greeting}</h1>
+          <p className="text-lg md:text-xl">{sidebarText}</p>
+        </div>
       </div>
 
-      {/* Main Content (bawah di mobile, kanan di desktop) */}
-      <div className="w-full md:w-1/3 p-6 md:p-8 flex flex-col items-center justify-center">
-        <div className="w-full max-w-md">
-          <div className="mb-8 flex justify-center">
+      {/* Konten Login/Register */}
+      <div className="w-full md:w-[45%] bg-white flex items-center justify-center">
+        <div className="w-full max-w-md p-6 md:p-12 min-h-screen flex flex-col justify-center">
+          <div className="mb-10 flex justify-center">
             <KahfLogo />
           </div>
           {children}

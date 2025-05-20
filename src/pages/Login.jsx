@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import AuthLayout from '../components/AuthLayout';
 import FormInput from '../components/FormInput';
@@ -6,25 +6,32 @@ import SocialButton from '../components/SocialButton';
 
 const Login = () => {
   const navigate = useNavigate();
+  const [showPassword, setShowPassword] = useState(false);
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    // Add login/validation API logic here if needed
-    navigate('/blog');
+    navigate('/dashboard');
   };
 
   return (
     <AuthLayout 
       greeting="Selamat Datang"
-      sidebarText="Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua."
+      sidebarText='Mari bersama "Mengaji Dari Hati"'
     >
       <h2 className="text-2xl font-bold mb-6 text-center">Log In</h2>
       
       <form onSubmit={handleSubmit} className="space-y-4 w-full">
         <div>
-          <label className="block mb-2 text-sm font-medium">Email<span className="text-red-500">*</span></label>
+          <label className="block mb-2 text-sm font-medium">
+            Email<span className="text-red-500">*</span>
+          </label>
           <FormInput 
-            icon={<svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path d="M2.003 5.884L10 9.882l7.997-3.998A2 2 0 0016 4H4a2 2 0 00-1.997 1.884z" /><path d="M18 8.118l-8 4-8-4V14a2 2 0 002 2h12a2 2 0 002-2V8.118z" /></svg>}
+            icon={
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                <path d="M2.003 5.884L10 9.882l7.997-3.998A2 2 0 0016 4H4a2 2 0 00-1.997 1.884z" />
+                <path d="M18 8.118l-8 4-8-4V14a2 2 0 002 2h12a2 2 0 002-2V8.118z" />
+              </svg>
+            }
             type="email"
             name="email"
             placeholder="Enter your email"
@@ -33,14 +40,38 @@ const Login = () => {
         </div>
         
         <div>
-          <label className="block mb-2 text-sm font-medium">Password<span className="text-red-500">*</span></label>
-          <FormInput 
-            icon={<svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path fillRule="evenodd" d="M5 9V7a5 5 0 0110 0v2a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5a2 2 0 012-2zm8-2v2H7V7a3 3 0 016 0z" clipRule="evenodd" /></svg>}
-            type="password"
-            name="password"
-            placeholder="Enter your password"
-            required
-          />
+          <label className="block mb-2 text-sm font-medium">
+            Password<span className="text-red-500">*</span>
+          </label>
+          <div className="relative">
+            <FormInput 
+              icon={
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                  <path fillRule="evenodd" d="M5 9V7a5 5 0 0110 0v2a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5a2 2 0 012-2zm8-2v2H7V7a3 3 0 016 0z" clipRule="evenodd" />
+                </svg>
+              }
+              type={showPassword ? "text" : "password"}
+              name="password"
+              placeholder="Enter your password"
+              required
+            />
+            <div
+              className="absolute right-3 top-1/2 transform -translate-y-1/2 cursor-pointer text-gray-500"
+              onClick={() => setShowPassword(!showPassword)}
+            >
+              {showPassword ? (
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                </svg>
+              ) : (
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13.875 18.825A10.05 10.05 0 0112 19c-4.477 0-8.268-2.943-9.542-7a9.963 9.963 0 012.184-3.264M3 3l18 18" />
+                </svg>
+              )}
+            </div>
+          </div>
+
           <div className="flex justify-end mt-1">
             <Link to="/forgot-password" className="text-sm text-gray-600 hover:text-kahf-green">
               forgot password?

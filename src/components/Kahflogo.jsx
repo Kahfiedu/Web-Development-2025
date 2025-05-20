@@ -1,5 +1,5 @@
-import React from "react";
-import KahfImage from "./logo.png"; 
+import React from "react"; 
+import KahfImage from "../assets/logo.png"; 
 
 const KahfLogo = () => {
   return (

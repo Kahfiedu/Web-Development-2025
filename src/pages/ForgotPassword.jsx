@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import FormInput from '../components/FormInput';
-import KahfLogo from '../assets/Kahflogo';
+import KahfLogo from '../components/Kahflogo';
 
 const ForgotPassword = () => {
   const [email, setEmail] = useState('');
