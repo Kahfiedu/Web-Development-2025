@@ -14,6 +14,11 @@ import ResetPassword from '@/pages/Guest/ResetPassword';
 import ForgotPassword from '@/pages/Guest/ForgotPassword';
 import LoginAdmin from '@/pages/Guest/login/LoginAdmin';
 
+// Auth Pages
+import BerandaSiswa from '../pages/Auth/beranda/BerandaSiswa';
+import KelasSiswa from '../pages/Auth/kelas/KelasSiswa';
+import PengajarSiswa from '../pages/Auth/pengajar/PengajarSiswa';
+
 // Admin Pages
 import DashboardAdmin from '@/pages/Admin/dashboard/DashboardAdmin';
 import UserList from '@/pages/Admin/user/UserList';
@@ -30,6 +35,7 @@ import ClassList from '../pages/Admin/class/ClassList';
 import BlogList from '../pages/Admin/blog/BlogList';
 import CourseCreate from '../pages/Admin/course/CourseCreate';
 import CourseEdit from '../pages/Admin/course/CourseEdit';
+import AuthLayout from '../layouts/AuthLayout';
 
 const AppRouter = () => (
     <Routes>
@@ -42,6 +48,12 @@ const AppRouter = () => (
             <Route path="/reset-password" element={<ResetPassword />} />
             <Route path="/forgot-password" element={<ForgotPassword />} />
             <Route path="/tentangkami" element={<TentangKami />} />
+        </Route>
+
+        <Route element={<AuthLayout />}>
+            <Route path="/siswa" element={<BerandaSiswa />} />
+            <Route path="/siswa/kelas" element={<KelasSiswa />} />
+            <Route path="/siswa/pengajar" element={<PengajarSiswa />} />
         </Route>
 
         <Route path="/admin/login" element={<LoginAdmin />} />
