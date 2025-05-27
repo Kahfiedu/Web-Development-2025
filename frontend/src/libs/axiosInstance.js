@@ -29,24 +29,24 @@ axiosInstance.interceptors.request.use(
 );
 
 // Add response interceptor
-axiosInstance.interceptors.response.use(
-    (response) => response,
-    async (error) => {
-        const originalRequest = error.config;
+// axiosInstance.interceptors.response.use(
+//     (response) => response,
+//     async (error) => {
+//         const originalRequest = error.config;
 
-        // Handle 401 Unauthorized errors
-        if (error.response?.status === 401 && !originalRequest._retry) {
-            originalRequest._retry = true;
+//         // Handle 401 Unauthorized errors
+//         if (error.response?.status === 401 && !originalRequest._retry) {
+//             originalRequest._retry = true;
 
-            // Clear auth cookies
-            cookieService.clearAuthCookies();
+//             // Clear auth cookies
+//             cookieService.clearAuthCookies();
 
-            // Redirect to login
-            window.location.href = '/';
-        }
+//             // Redirect to login
+//             window.location.href = '/';
+//         }
 
-        return Promise.reject(error);
-    }
-);
+//         return Promise.reject(error);
+//     }
+// );
 
 export default axiosInstance;

@@ -77,9 +77,9 @@ const AppRouter = () => (
         <Route
             path="/admin"
             element={
-                <ProtectedRoute>
-                    <AdminLayout />
-                </ProtectedRoute>
+                // <ProtectedRoute>
+                <AdminLayout />
+                // </ProtectedRoute>
             }
         >
             <Route path="dashboard" element={<DashboardAdmin />} />
