@@ -24,6 +24,7 @@ const {
     assignmentRoute,
     submissionRoute,
     googleAuthRoute,
+    paymentRoute,
     exportRoute
 } = require('./routeImports.js');
 
@@ -52,7 +53,8 @@ router.use([
 // Protected routes - Payment related
 router.use([
     paymentMethodRoute,
-    bankRoute
+    bankRoute,
+    paymentRoute
 ]);
 
 // Protected routes - Educational features
@@ -70,6 +72,7 @@ router.use([
 // Protected routes - Additional features
 router.use([
     regionRoute,
+
 ]);
 
 // Export Import functionality

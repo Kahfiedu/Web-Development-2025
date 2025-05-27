@@ -11,6 +11,7 @@ module.exports = {
     revisionRoute: require('./revisionRoute.js'),
     courseRoute: require('./courseRoute.js'),
     classRoute: require('./classRoute.js'),
+    paymentRoute: require('./paymentRoute.js'),
     classEnrollmentRoute: require('./classEnrollmentRoute.js'),
     lessonRoute: require('./lessonRoute.js'),
     attendanceRoute: require('./attendanceRoute.js'),
