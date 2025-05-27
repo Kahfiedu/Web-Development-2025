@@ -53,9 +53,13 @@ module.exports = (sequelize, DataTypes) => {
     endDate: {
       type: DataTypes.DATE
     },
-    isActive: {
-      type: DataTypes.BOOLEAN,
-      defaultValue: false
+    status: {
+      type: DataTypes.ENUM("akan datang", "berjalan", "selesai"),
+      defaultValue: "akan datang"
+    },
+    progress: {
+      type: DataTypes.INTEGER,
+      defaultValue: 0
     },
     deletedAt: {
       type: DataTypes.DATE

@@ -13,90 +13,65 @@ const { User, Course, Role } = require('../models');
  * @returns {Object} Validation result
  */
 const validateClassData = async (data, mode = 'create') => {
-    const { name, teacherId, courseId, schedule, startDate, endDate, isActive } = data;
+    const { name, teacherId, courseId, schedule, startDate, endDate, status, progress } = data;
     const validatedData = {};
 
     if (mode === 'create') {
-        // Check required fields for create
-        if (!name || !courseId || !teacherId || !schedule || !startDate || !endDate || !isActive) {
+        if (!name || !teacherId || !courseId || !schedule || !startDate || !endDate) {
             return {
                 isValid: false,
                 error: {
                     status: 400,
-                    message: "Semua field harus diisi"
+                    message: "Semua field wajib diisi"
                 }
             };
         }
 
-        // Validate name
+        // Validasi nama kelas
         if (typeof name !== 'string' || name.trim().length === 0) {
             return {
                 isValid: false,
                 error: {
                     status: 400,
-                    message: "Nama kelas harus berupa text"
+                    message: "Nama kelas harus berupa teks"
                 }
             };
         }
         validatedData.name = name.trim();
 
-        // Validate schedule
+        // Validasi jadwal
         if (typeof schedule !== 'string' || schedule.trim().length === 0) {
             return {
                 isValid: false,
                 error: {
                     status: 400,
-                    message: "Jadwal harus berupa text"
+                    message: "Jadwal harus berupa teks"
                 }
             };
         }
         validatedData.schedule = schedule.trim();
 
-        // Validate teacherId
+        // Validasi teacherId
         const teacher = await User.findOne({
-            where: {
-                id: teacherId,
-            },
+            where: { id: teacherId },
             include: [{
                 model: Role,
-                as: "role",
-                attribute: ["id", "name"]
+                as: 'role'
             }]
         });
-        if (!teacher) {
-            return {
-                isValid: false,
-                error: {
-                    status: 404,
-                    message: "Pengajar tidak ditemukan"
-                }
-            };
-        }
 
-        if (teacher.role.name !== "teacher") {
+        if (!teacher || teacher.role?.name !== 'teacher') {
             return {
                 isValid: false,
                 error: {
                     status: 400,
-                    message: "teacherId bukan user dengan role teacher"
+                    message: "teacherId tidak valid atau bukan user dengan role 'teacher'"
                 }
             };
         }
         validatedData.teacherId = teacherId;
 
-        if (isActive !== undefined) {
-            if (typeof isActive !== 'boolean' && isActive !== 'true' && isActive !== 'false') {
-                return {
-                    isValid: false,
-                    error: {
-                        status: 400,
-                        message: "isActive must be a boolean value"
-                    }
-                };
-            }
-        }
-        validatedData.isActive = isActive.trim()
-        // Validate courseId
+        // Validasi courseId
         const course = await Course.findByPk(courseId);
         if (!course) {
             return {
@@ -109,7 +84,7 @@ const validateClassData = async (data, mode = 'create') => {
         }
         validatedData.courseId = courseId;
 
-        // Validate dates
+        // Validasi tanggal
         const start = new Date(startDate);
         const end = new Date(endDate);
 
@@ -122,7 +97,6 @@ const validateClassData = async (data, mode = 'create') => {
                 }
             };
         }
-        validatedData.startDate = start;
 
         if (isNaN(end.getTime())) {
             return {
@@ -133,16 +107,45 @@ const validateClassData = async (data, mode = 'create') => {
                 }
             };
         }
-        validatedData.endDate = end;
 
         if (start >= end) {
             return {
                 isValid: false,
                 error: {
                     status: 400,
-                    message: "Tanggal selesai harus lebih besar dari tanggal mulai"
+                    message: "Tanggal selesai harus setelah tanggal mulai"
                 }
             };
+        }
+
+        validatedData.startDate = start;
+        validatedData.endDate = end;
+
+        // Optional: Validasi status jika ada
+        if (status && !["akan datang", "berjalan", "selesai"].includes(status)) {
+            return {
+                isValid: false,
+                error: {
+                    status: 400,
+                    message: "Status tidak valid"
+                }
+            };
+        }
+        if (status) validatedData.status = status;
+
+        // Optional: Validasi progress jika ada
+        if (progress !== undefined) {
+            const parsedProgress = parseInt(progress);
+            if (isNaN(parsedProgress) || parsedProgress < 0 || parsedProgress > 100) {
+                return {
+                    isValid: false,
+                    error: {
+                        status: 400,
+                        message: "Progress harus berupa angka antara 0 sampai 100"
+                    }
+                };
+            }
+            validatedData.progress = parsedProgress;
         }
     }
 
@@ -155,7 +158,7 @@ const validateClassData = async (data, mode = 'create') => {
                     isValid: false,
                     error: {
                         status: 400,
-                        message: "Nama kelas harus berupa text"
+                        message: "Nama kelas harus berupa teks"
                     }
                 };
             }
@@ -168,7 +171,7 @@ const validateClassData = async (data, mode = 'create') => {
                     isValid: false,
                     error: {
                         status: 400,
-                        message: "Jadwal harus berupa text"
+                        message: "Jadwal harus berupa teks"
                     }
                 };
             }
@@ -177,17 +180,15 @@ const validateClassData = async (data, mode = 'create') => {
 
         if (teacherId !== undefined) {
             const teacher = await User.findOne({
-                where: {
-                    id: teacherId,
-                    roleId: 2
-                }
+                where: { id: teacherId },
+                include: [{ model: Role, as: 'role' }]
             });
-            if (!teacher) {
+            if (!teacher || teacher.role?.name !== 'teacher') {
                 return {
                     isValid: false,
                     error: {
-                        status: 404,
-                        message: "Pengajar tidak ditemukan"
+                        status: 400,
+                        message: "teacherId tidak valid atau bukan teacher"
                     }
                 };
             }
@@ -232,18 +233,45 @@ const validateClassData = async (data, mode = 'create') => {
                 };
             }
 
-            if (start) updates.startDate = start;
-            if (end) updates.endDate = end;
-
             if (start && end && start >= end) {
                 return {
                     isValid: false,
                     error: {
                         status: 400,
-                        message: "Tanggal selesai harus lebih besar dari tanggal mulai"
+                        message: "Tanggal selesai harus setelah tanggal mulai"
                     }
                 };
             }
+
+            if (start) updates.startDate = start;
+            if (end) updates.endDate = end;
+        }
+
+        if (status !== undefined) {
+            if (!["akan datang", "berjalan", "selesai"].includes(status)) {
+                return {
+                    isValid: false,
+                    error: {
+                        status: 400,
+                        message: "Status tidak valid"
+                    }
+                };
+            }
+            updates.status = status;
+        }
+
+        if (progress !== undefined) {
+            const parsedProgress = parseInt(progress);
+            if (isNaN(parsedProgress) || parsedProgress < 0 || parsedProgress > 100) {
+                return {
+                    isValid: false,
+                    error: {
+                        status: 400,
+                        message: "Progress harus antara 0 dan 100"
+                    }
+                };
+            }
+            updates.progress = parsedProgress;
         }
 
         return {
@@ -257,5 +285,6 @@ const validateClassData = async (data, mode = 'create') => {
         data: validatedData
     };
 };
+
 
 module.exports = validateClassData;

@@ -42,9 +42,13 @@ module.exports = {
       endDate: {
         type: Sequelize.DATE
       },
-      isActive: {
-        type: Sequelize.BOOLEAN,
-        defaultValue: false
+      status: {
+        type: Sequelize.ENUM("akan datang", "berjalan", "selesai"),
+        defaultValue: "akan datang"
+      },
+      progress: {
+        type: Sequelize.INTEGER,
+        defaultValue: 0
       },
       createdAt: {
         allowNull: false,
