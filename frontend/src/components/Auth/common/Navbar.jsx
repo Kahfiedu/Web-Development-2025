@@ -55,7 +55,8 @@ const StyledInputBase = styled(InputBase)(({ theme }) => ({
 
 const pages = [
   { name: "Dashboard", path: "/siswa" },
-  { name: "Kelas", path: "/siswa/kelas" },
+   { name: "Kelas", path: "/siswa/kelas" },
+   { name: "Program", path: "/siswa/program" },
   { name: "Pengajar", path: "/siswa/pengajar" },
 ];
 
