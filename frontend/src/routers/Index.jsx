@@ -16,6 +16,10 @@ import LoginAdmin from '@/pages/Guest/login/LoginAdmin';
 
 // Auth Pages
 import BerandaSiswa from '../pages/Auth/beranda/BerandaSiswa';
+import AbsenSiswa from '../pages/Auth/absen/AbsenSiswa';
+import ProgramSiswa from '../pages/Auth/program/ProgramSiswa';
+import DaftarProgram from '../pages/Auth/program/DaftarProgram';
+import Pembayaran from '../pages/Auth/program/Pembayaran';
 import KelasSiswa from '../pages/Auth/kelas/KelasSiswa';
 import PengajarSiswa from '../pages/Auth/pengajar/PengajarSiswa';
 import Profile from "../pages/Auth/profil/Profile";
@@ -66,7 +70,11 @@ const AppRouter = () => (
             }
         >
             <Route path="" element={<BerandaSiswa />} />
+            <Route path="absen-siswa" element={<AbsenSiswa />} />
+            <Route path="program" element={<ProgramSiswa />} />
+            <Route path="program/daftar" element={<DaftarProgram />} />
             <Route path="kelas" element={<KelasSiswa />} />
+             <Route path="program/pembayaran" element={<Pembayaran />} />
             <Route path="pengajar" element={<PengajarSiswa />} />
             <Route path="profile" element={<Profile />} />
             <Route path="profile-edit" element={<ProfileEdit />} />
