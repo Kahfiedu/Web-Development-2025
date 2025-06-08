@@ -1,7 +1,7 @@
 const { createSuccessResponse, AppError, handleError } = require('../helpers/helperFunction');
-const { createSearchWhereClause } = require('../helpers/searchQueryHelper');
+const { createSearchWhereClauseWithTags } = require('../helpers/searchQueryHelper');
 const { isAdmin } = require('../helpers/validationRole');
-const { Blog } = require('../models');
+const { Blog, sequelize } = require('../models');
 const getFileUrl = require('../utils/getFileUrl');
 const { getPagination } = require('../utils/paginationUtil');
 const validateBlogData = require('../utils/validateBlogData');
@@ -47,9 +47,9 @@ const createBlog = async (req, res) => {
 };
 
 const getBlogs = async (req, res) => {
-    const { search = "", isPublish, isFeatured } = req.query;
-    const searchFields = ['title', 'tags'];
+    const { search = "", tags = "", isPublish, isFeatured } = req.query;
     const isAdmin = req.userRole === 'admin';
+
     try {
         const {
             limit,
@@ -59,31 +59,28 @@ const getBlogs = async (req, res) => {
             meta
         } = getPagination(req.query);
 
-        let whereClause = createSearchWhereClause(search, searchFields);
+        let whereClause = createSearchWhereClauseWithTags({ search, tags });
 
         if (statusCondition) {
             whereClause = { ...whereClause, ...statusCondition };
         }
 
-        if (isPublish) {
+        if (isPublish !== undefined) {
             whereClause.isPublish = isPublish;
         }
 
-        if (isFeatured) {
-            whereClause.isPublish = isFeatured;
+        if (isFeatured !== undefined) {
+            whereClause.isFeatured = isFeatured;
         }
-
 
         if (!isAdmin) {
-            whereClause.isPublish = true
+            whereClause.isPublish = true;
         }
 
-        const totalCount = await Blog.count({
-            where: whereClause,
-        })
+        const totalCount = await Blog.count({ where: whereClause });
 
         meta.total = totalCount;
-        meta.totalPages = Math.ceil(totalCount / limit)
+        meta.totalPages = Math.ceil(totalCount / limit);
 
         const { rows: blogs } = await Blog.findAndCountAll({
             where: whereClause,
@@ -94,22 +91,17 @@ const getBlogs = async (req, res) => {
             distinct: true
         });
 
-        if (blogs.length === 0) {
-            throw new AppError("Data blog tidak ditemukan", 404)
-        }
-
         return res.status(200).json({
             success: true,
-            message: "Berhasil mendapatkan data blogs",
+            message: blogs.length === 0 ? "Data blog tidak ditemukan" : "Berhasil mendapatkan data blog",
             blogs,
             meta,
         });
 
     } catch (error) {
-        return handleError(error, res)
+        return handleError(error, res);
     }
-
-}
+};
 
 const getBlogById = async (req, res) => {
     const { id } = req.params
@@ -183,7 +175,9 @@ const deleteBlog = async (req, res) => {
     }
 
     try {
-        const blog = await Blog.findByPk(id);
+        const blog = await Blog.findByPk(id, {
+            paranoid: false
+        });
         if (!blog) {
             throw new AppError("Data blog tidak ditemukan", 404)
         }
@@ -249,11 +243,34 @@ const restoreBlog = async (req, res) => {
     }
 };
 
+const getUniqueTags = async (req, res) => {
+    try {
+        const [tags] = await sequelize.query(`
+      SELECT DISTINCT JSON_UNQUOTE(JSON_EXTRACT(tags, CONCAT('$[', numbers.n, ']'))) AS tag
+      FROM blogs
+      JOIN (
+        SELECT 0 AS n UNION ALL SELECT 1 UNION ALL SELECT 2 UNION ALL SELECT 3
+        UNION ALL SELECT 4 UNION ALL SELECT 5 UNION ALL SELECT 6 UNION ALL SELECT 7
+        UNION ALL SELECT 8 UNION ALL SELECT 9
+      ) AS numbers
+      WHERE JSON_LENGTH(tags) > numbers.n
+        AND tags IS NOT NULL
+        AND isPublish = true
+    `);
+
+        const uniqueTags = tags.map(t => t.tag).filter(Boolean);
+        return res.json({ success: true, tags: uniqueTags });
+    } catch (error) {
+        return res.status(500).json({ success: false, message: error.message });
+    }
+};
+
 module.exports = {
     createBlog,
     getBlogs,
     getBlogById,
     updateBlog,
     deleteBlog,
-    restoreBlog
+    restoreBlog,
+    getUniqueTags
 };

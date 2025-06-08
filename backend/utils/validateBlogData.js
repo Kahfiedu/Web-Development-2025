@@ -198,7 +198,21 @@ const validateBlogData = (data, mode = 'create') => {
         }
 
         if (tags !== undefined) {
-            if (!Array.isArray(tags)) {
+            let parsedTags;
+
+            try {
+                parsedTags = typeof tags === 'string' ? JSON.parse(tags) : tags;
+            } catch (error) {
+                return {
+                    isValid: false,
+                    error: {
+                        status: 400,
+                        message: "Tags must be a valid JSON array string or an array"
+                    }
+                };
+            }
+
+            if (!Array.isArray(parsedTags)) {
                 return {
                     isValid: false,
                     error: {
@@ -207,7 +221,32 @@ const validateBlogData = (data, mode = 'create') => {
                     }
                 };
             }
-            updates.tags = tags;
+
+            const validatedTags = parsedTags.map(tag => {
+                const processedTag = String(tag).trim().toLowerCase();
+
+                if (processedTag.length === 0) {
+                    return null;
+                }
+
+                if (!/^[a-z0-9\s-]+$/.test(processedTag)) {
+                    return null;
+                }
+
+                return processedTag;
+            }).filter(Boolean);
+
+            if (validatedTags.length === 0) {
+                return {
+                    isValid: false,
+                    error: {
+                        status: 400,
+                        message: "At least one valid tag is required. Tags can only contain letters, numbers, spaces, and hyphens"
+                    }
+                };
+            }
+
+            updates.tags = [...new Set(validatedTags)];
         }
 
         return {

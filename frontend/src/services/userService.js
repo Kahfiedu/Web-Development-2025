@@ -34,6 +34,23 @@ const userService = {
             throw new Error(error.response?.data?.message || 'Failed to fetch users');
         }
     },
+    getUserByRole: async ({ roleName }) => {
+        try {
+            const response = await axiosInstance.get(`/users/role`,
+                {
+                    params: {
+                        roleName
+                    }
+                }
+            );
+            return {
+                ...response.data,
+                users: response.data.users.map(user => new User(user))
+            };
+        } catch (error) {
+            throw new Error(error.response?.data?.message || 'Failed to fetch users');
+        }
+    },
     createUser: async (data, avatarFile) => {
         try {
             const formData = new FormData();

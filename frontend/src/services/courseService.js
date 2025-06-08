@@ -50,6 +50,17 @@ const courseService = {
             throw new Error(error.response?.data?.message || 'Failed to fetch courses');
         }
     },
+    getAllCourses: async () => {
+        try {
+            const response = await axiosInstance.get(`/all/course`);
+            return {
+                ...response.data,
+                courses: response.data.courses.map(c => new Course(c))
+            };
+        } catch (error) {
+            throw new Error(error.response?.data?.message || 'Failed to fetch courses');
+        }
+    },
     getCourseById: async (courseId) => {
         try {
             const response = await axiosInstance.get(`/course/${courseId}`);

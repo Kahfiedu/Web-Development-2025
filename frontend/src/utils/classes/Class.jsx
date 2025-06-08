@@ -9,9 +9,10 @@ export default class Class {
         this.teacherId = data.teacherId;
         this.name = data.name;
         this.schedule = data.schedule;
-        this.isActive = data.isActive;
         this.startDate = new Date(data.startDate);
         this.endDate = new Date(data.endDate);
+        this.status = data.status;
+        this.progress = data.progress;
         this.createdAt = new Date(data.createdAt);
         this.updatedAt = new Date(data.updatedAt);
         this.deletedAt = data.deletedAt ? new Date(data.deletedAt) : null;

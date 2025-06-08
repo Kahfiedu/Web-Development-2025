@@ -57,7 +57,7 @@ const createClass = async (req, res) => {
 }
 
 const getClasses = async (req, res) => {
-    const { search = "" } = req.query;
+    const { search = "", teacherId, courseId } = req.query;
     const searchFields = ['name']; // Sesuaikan dengan field class
 
     try {
@@ -79,6 +79,14 @@ const getClasses = async (req, res) => {
         // Jika role adalah teacher, hanya ambil kelas yang sesuai dengan teacherId
         if (req.userRole === 'teacher') {
             whereClause.teacherId = req.userId;
+        }
+
+        if (teacherId) {
+            whereClause.teacherId = teacherId;
+        }
+
+        if (courseId) {
+            whereClause.courseId = courseId;
         }
 
         const totalCount = await Class.count({ where: whereClause });

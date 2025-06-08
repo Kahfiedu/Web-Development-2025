@@ -2,7 +2,7 @@ const express = require('express');
 const router = express.Router();
 const { createUpload } = require('../config/multerConfig');
 
-const { createBlog, getBlogs, getBlogById, updateBlog, deleteBlog, restoreBlog } = require('../controllers/blogController');
+const { createBlog, getBlogs, getBlogById, updateBlog, deleteBlog, restoreBlog, getUniqueTags } = require('../controllers/blogController');
 const { validateToken } = require('../middlewares/authMiddleware');
 
 const uploadImage = createUpload("uploads/blog/", [
@@ -13,6 +13,7 @@ const uploadImage = createUpload("uploads/blog/", [
 ]);
 
 router.get('/blogs', getBlogs)
+router.get('/tags/blog', getUniqueTags)
 router.get('/blog/:id', getBlogById)
 router.post('/blog', validateToken, uploadImage.single('thumbnail'), createBlog)
 router.put('/blog/:id', validateToken, uploadImage.single('thumbnail'), updateBlog)

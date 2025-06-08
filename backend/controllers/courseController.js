@@ -187,6 +187,28 @@ const getCourses = async (req, res) => {
     }
 };
 
+const getAllCourses = async (req, res) => {
+    try {
+        const courses = await Course.findAll({
+            attributes: ["id", "title"],
+        });
+
+        if (courses.length === 0) {
+            throw new AppError("Tidak ada course yang ditemukan", 404);
+        }
+
+        return res.status(200).json({
+            success: true,
+            message: "Berhasil mendapatkan semua data course",
+            courses
+        });
+
+    } catch (error) {
+        return handleError(error, res);
+    }
+}
+
+
 
 const getCourseById = async (req, res) => {
     try {
@@ -328,5 +350,6 @@ module.exports = {
     getCourses,
     getCourseById,
     deleteCourse,
-    restoreCourse
+    restoreCourse,
+    getAllCourses
 };

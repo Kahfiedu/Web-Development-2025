@@ -3,7 +3,7 @@ import { Box, Typography, Link, Container } from "@mui/material";
 
 function Footer() {
   return (
-    <Box sx={{ backgroundColor: "#fff", color: "#000", pt: 6 }}>
+    <Box sx={{ backgroundColor: "#f4f4f4", color: "#000", pt: 6 }}>
       <Container
         maxWidth="lg"
         sx={{
@@ -17,7 +17,7 @@ function Footer() {
         {/* Kolom 1 */}
         <Box sx={{ flex: 1 }}>
           <img
-            src="img/logo/logo-kahfi.png"
+            src="img/logo/logo.png"
             alt="Logo"
             style={{ marginRight: "8px", height: "75px" }}
           />
@@ -59,13 +59,13 @@ function Footer() {
           </Typography>
           <Typography variant="body2">
             Telp:{" "}
-            <Link href="tel:+1234567890" sx={{ color: "#000" }}>
+            <Link href="tel:+1234567890" sx={{ color: "#008B47" }}>
               +123 456 7890
             </Link>
           </Typography>
           <Typography variant="body2">
             Telp:{" "}
-            <Link href="tel:+1234567890" sx={{ color: "#000" }}>
+            <Link href="tel:+1234567890" sx={{ color: "#008B47" }}>
               +123 456 7890
             </Link>
           </Typography>
@@ -74,11 +74,11 @@ function Footer() {
 
       {/* Garis horizontal dan copyright */}
       <Container maxWidth="lg" sx={{ mb: 2 }}>
-        <hr style={{ borderColor: "#ccc", opacity: 0.3 }} />
+        <hr style={{ borderColor: "#626262", opacity: 0.3 }} />
         <Typography
           variant="body2"
           align="center"
-          sx={{ color: "#666", fontSize: 14, mt: 2 }}
+          sx={{ color: "#3b3b3b", fontSize: 14, mt: 2 }}
         >
           © {new Date().getFullYear()} Kahfi Education. All rights reserved.
         </Typography>

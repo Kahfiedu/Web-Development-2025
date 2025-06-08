@@ -12,7 +12,7 @@ export default function GuestLayout() {
             {!shouldHideNavbar && <Navbar />}
 
             {/* Halaman Child (Login / Home) */}
-            <div className={`min-h-[100vh]`}>
+            <div className={`min-h-[100vh] mb-10`}>
                 <Outlet />
             </div>
 

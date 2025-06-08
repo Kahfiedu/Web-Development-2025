@@ -10,7 +10,7 @@ import MenuItem from "@mui/material/MenuItem";
 import MenuIcon from "@mui/icons-material/Menu";
 import CloseIcon from "@mui/icons-material/Close";
 
-import { Link } from "react-router-dom";
+import { Link, useLocation } from "react-router-dom";
 
 const pages = [
   { name: "Beranda", path: "/" },
@@ -22,6 +22,7 @@ const pages = [
 
 const Navbar = () => {
   const [anchorElNav, setAnchorElNav] = React.useState(null);
+  const location = useLocation(); // <--- tambahkan ini
 
   const handleOpenNavMenu = (event) => {
     setAnchorElNav(event.currentTarget);
@@ -38,60 +39,51 @@ const Navbar = () => {
 
   return (
     <AppBar position="sticky" elevation={0} sx={{ backgroundColor: "#fff" }}>
-      <Container maxWidth="lg">
+      <div className="px-30">
         <Toolbar disableGutters>
-          <img
-            src="/img/logo/logo.png"
-            alt="Logo"
-            style={{ marginRight: "8px", height: "50px" }}
-          />
-          <Typography
-            variant="h6"
-            noWrap
-            component="a"
-            href="#"
-            sx={{
-              mr: 2,
-              display: "flex",
-              fontFamily: "monospace",
-              fontWeight: 700,
-              letterSpacing: ".3rem",
-              color: "#000",
-              textDecoration: "none",
-            }}
-          />
-
           {/* Menu Desktop */}
           <Box
             sx={{
               flexGrow: 1,
               display: { xs: "none", md: "flex" },
-              justifyContent: "center",
+              justifyContent: "start",
+              alignItems: "center",
             }}
           >
-            {pages.map((page) => (
-              <Button
-                key={page.name}
-                component={Link}
-                to={page.path}
-                onClick={handleCloseNavMenu}
-                sx={{
-                  my: 2,
-                  color: "#008B47",
-                  display: "block",
-                  textTransform: "none",
-                  fontSize: "16px",
-                  fontWeight: "medium",
-                  mx: 3,
-                  "&:hover": {
-                    textDecoration: "underline",
-                    backgroundColor: "transparent",
-                  },
-                }}
-              >
-                {page.name}
-              </Button>
-            ))}
+            <img
+              src="/img/logo/logo.png"
+              alt="Logo"
+              className="h-[50px] mr-16"
+            />
+
+            {pages.map((page) => {
+              const isActive = location.pathname === page.path;
+              return (
+                <Button
+                  key={page.name}
+                  component={Link}
+                  to={page.path}
+                  onClick={handleCloseNavMenu}
+                  sx={{
+                    my: 2,
+                    mx: 1,
+                    fontSize: "16px",
+                    fontWeight: "medium",
+                    textTransform: "none",
+                    color: isActive ? "#008B47" : "#000", // aktif hijau, tidak aktif hitam
+                    borderBottom: isActive ? "2px solid #008B47" : "none",
+                    borderRadius: 0,
+                    "&:hover": {
+                      textDecoration: "underline",
+                      backgroundColor: "transparent",
+                    },
+                  }}
+                >
+                  {page.name}
+                </Button>
+              );
+            })}
+
           </Box>
 
           {/* Tombol Masuk & Daftar (Desktop) */}
@@ -101,20 +93,6 @@ const Navbar = () => {
               justifyContent: "flex-end",
             }}
           >
-            <Button
-              component={Link}
-              to="/register"
-              variant="contained"
-              sx={{
-                color: "#fff",
-                fontWeight: "bold",
-                backgroundColor: "#008B47",
-                mx: 1,
-                boxShadow: "none",
-              }}
-            >
-              Daftar
-            </Button>
             <Button
               component={Link}
               to="/login"
@@ -129,6 +107,21 @@ const Navbar = () => {
             >
               Masuk
             </Button>
+            <Button
+              component={Link}
+              to="/register"
+              variant="contained"
+              sx={{
+                color: "#fff",
+                fontWeight: "bold",
+                backgroundColor: "#008B47",
+                mx: 1,
+                boxShadow: "none",
+              }}
+            >
+              Daftar
+            </Button>
+
           </Box>
 
           {/* Hamburger Menu (Mobile) */}
@@ -178,7 +171,14 @@ const Navbar = () => {
                 onClick={handleCloseNavMenu}
                 style={{ width: "100%", textDecoration: "none", color: "black" }}
               >
-                <Typography>{page.name}</Typography>
+                <Typography
+                  sx={{
+                    color: location.pathname === page.path ? "#008B47" : "black",
+                    fontWeight: location.pathname === page.path ? 600 : 400,
+                  }}
+                >
+                  {page.name}
+                </Typography>
               </Link>
             </MenuItem>
           ))}
@@ -211,7 +211,7 @@ const Navbar = () => {
             </Button>
           </MenuItem>
         </Box>
-      </Container>
+      </div>
     </AppBar>
   );
 };

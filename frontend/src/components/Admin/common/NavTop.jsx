@@ -6,14 +6,23 @@ import CustomeAvatar from "../../UI/CustomeAvatar";
 import { useState } from "react";
 import { useAuth } from "../../../hooks/useAuth";
 import IconCard from "./IconCard";
+import { useNavigate } from "react-router-dom";
+
 
 function NavTop({ onOpenDrawer }) {
     const [anchorEl, setAnchorEl] = useState(null);
+    const navigate = useNavigate()
     const open = Boolean(anchorEl);
     const { logout } = useAuth();
 
     const handleOpenMenu = (event) => setAnchorEl(event.currentTarget);
     const handleCloseMenu = () => setAnchorEl(null);
+
+    const handleLogout = () => {
+        logout();
+        handleCloseMenu();
+        navigate("/")
+    }
 
     return (
         <Box display="flex" justifyContent="space-between" alignItems="center" gap={1} flexWrap="wrap">
@@ -75,8 +84,7 @@ function NavTop({ onOpenDrawer }) {
                     </MenuItem>
                     <MenuItem
                         onClick={() => {
-                            logout();
-                            handleCloseMenu();
+                            handleLogout()
                         }}
                         sx={{
                             ...menuItemStyle,

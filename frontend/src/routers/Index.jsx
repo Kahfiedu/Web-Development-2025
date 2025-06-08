@@ -39,6 +39,7 @@ import BlogList from '../pages/Admin/blog/BlogList';
 import CourseCreate from '../pages/Admin/course/CourseCreate';
 import CourseEdit from '../pages/Admin/course/CourseEdit';
 import AuthLayout from '../layouts/AuthLayout';
+import ClassDetail from '../pages/Admin/class/ClassDetail';
 
 const AppRouter = () => (
     <Routes>
@@ -77,9 +78,9 @@ const AppRouter = () => (
         <Route
             path="/admin"
             element={
-                // <ProtectedRoute>
-                <AdminLayout />
-                // </ProtectedRoute>
+                <ProtectedRoute>
+                    <AdminLayout />
+                </ProtectedRoute>
             }
         >
             <Route path="dashboard" element={<DashboardAdmin />} />
@@ -90,6 +91,7 @@ const AppRouter = () => (
             <Route path="course/create" element={<CourseCreate />} />
             <Route path="course/edit" element={<CourseEdit />} />
             <Route path="class" element={<ClassList />} />
+            <Route path="class/detail" element={<ClassDetail />} />
             <Route path="blog" element={<BlogList />} />
             <Route path="blog/detail" element={<CourseDetail />} />
             <Route path="category" element={<CategoryList />} />

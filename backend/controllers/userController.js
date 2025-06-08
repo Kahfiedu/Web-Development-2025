@@ -100,6 +100,38 @@ const getUsers = async (req, res) => {
     }
 };
 
+const getUserByRole = async (req, res) => {
+    const { roleName } = req.query;
+    try {
+        const validation = isAdminOrTeacher(req.userRole, req.userId);
+        if (!validation.isValid) {
+            throw new AppError(validation.error.message, validation.error.status);
+        }
+        const roleTeacher = await Role.findOne({ where: { name: roleName } });
+        if (!roleTeacher) {
+            throw new AppError("Role teacher tidak ditemukan", 404);
+        }
+
+        const users = await User.findAll({
+            where: { roleId: roleTeacher.id },
+            attributes: ["id", "name"],
+        });
+        if (users.length === 0) {
+            return res.status(404).json({
+                success: false,
+                message: "Tidak ada guru yang ditemukan"
+            });
+        }
+        return res.status(200).json({
+            success: true,
+            message: "Data guru berhasil diambil",
+            users
+        });
+    } catch (error) {
+        return handleError(error, res);
+    }
+}
+
 
 const getUserById = async (req, res) => {
     try {
@@ -392,5 +424,6 @@ module.exports = {
     addUser,
     deleteUser,
     updateUser,
-    restoreUser
+    restoreUser,
+    getUserByRole
 };
