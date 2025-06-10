@@ -72,7 +72,8 @@ module.exports = (sequelize, DataTypes) => {
         type: DataTypes.DATE
       },
       status: {
-        type: DataTypes.ENUM('active', 'completed', 'dropped'),
+        type: DataTypes.ENUM('active', 'completed', 'pending'),
+        defaultValue: 'pending',
         allowNull: false,
       },
     },

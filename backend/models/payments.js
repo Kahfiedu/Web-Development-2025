@@ -15,6 +15,11 @@ module.exports = (sequelize, DataTypes) => {
                 as: 'confirmedBy',
                 onDelete: 'CASCADE',
             });
+            Payment.belongsTo(models.Child, {
+                foreignKey: 'childId',
+                as: 'child',
+                onDelete: 'CASCADE',
+            });
             Payment.belongsTo(models.Class, {
                 foreignKey: 'classId',
                 as: 'forClass',
@@ -28,19 +33,20 @@ module.exports = (sequelize, DataTypes) => {
             unique: true,
             primaryKey: true,
             type: DataTypes.STRING(36),
+            defaultValue: DataTypes.UUIDV4
         },
         userId: {
             type: DataTypes.STRING(36),
-            references: {
-                model: 'users',
-                key: 'id'
-            },
             onDelete: 'CASCADE',
             allowNull: false
         },
+        childId: {
+            type: DataTypes.STRING(36),
+            onDelete: 'CASCADE',
+            allowNull: true
+        },
         classId: {
             type: DataTypes.STRING(36),
-            defaultValue: DataTypes.UUIDV4,
             references: {
                 model: 'classes',
                 key: 'id'
@@ -86,8 +92,7 @@ module.exports = (sequelize, DataTypes) => {
             allowNull: true,
         },
         confirmation_by: {
-            type: DataTypes.STRING(36),
-            defaultValue: DataTypes.UUIDV4,
+            type: DataTypes.UUID,
             references: {
                 model: 'users',
                 key: 'id'

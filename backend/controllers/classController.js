@@ -1,9 +1,10 @@
 const { isAdmin } = require('../helpers/validationRole');
-const { Class, Course, User, Category, Role } = require('../models')
+const { Class, Course, User, Category, Role, Assignment, ClassEnrollment, Child } = require('../models')
 const validateClassData = require('../utils/validateClassData')
 const { getPagination } = require('../utils/paginationUtil');
 const { createSearchWhereClause } = require('../helpers/searchQueryHelper');
 const { AppError, handleError, createSuccessResponse } = require('../helpers/helperFunction');
+const { where } = require('sequelize');
 
 
 const createClass = async (req, res) => {
@@ -126,20 +127,68 @@ const getClassById = async (req, res) => {
                     model: Course,
                     as: 'course',
                     attributes: ['id', 'title', 'level'],
-                    include: [{ model: Category, as: 'category', attributes: ['id', 'name'] }]
+                    include: [
+                        {
+                            model: Category,
+                            as: 'category',
+                            attributes: ['id', 'name']
+                        }
+                    ]
                 },
                 {
                     model: User,
                     as: 'teacher',
-                    attributes: ['id', 'name'],
-                    include: [{ model: Role, as: 'role', attributes: ['id', 'name'] }]
+                    attributes: ['id', 'name', 'email', 'phone', 'avatar'],
+                    include: [
+                        {
+                            model: Role,
+                            as: 'role',
+                            attributes: ['id', 'name']
+                        }
+                    ]
+                },
+                {
+                    model: ClassEnrollment,
+                    as: 'class_enrollments',
+                    attributes: ['id', 'studentId', 'status', 'progress'],
+                    include: [
+                        {
+                            model: User,
+                            as: 'student',
+                            attributes: ['id', 'name', 'email', 'phone', 'avatar', 'gender'],
+                        },
+                        {
+                            model: Child,
+                            as: 'child',
+                            attributes: ['id', 'name', 'gender', 'relationship'],
+                            include: [
+                                {
+                                    model: User,
+                                    as: 'parent',
+                                    attributes: ['id', 'name', 'email', 'phone', 'avatar']
+                                }
+                            ]
+                        },
+                    ]
+                },
+                {
+                    model: Assignment,
+                    as: 'assignments',
+                    paranoid: false,
+                    include: [
+                        {
+                            model: Class,
+                            as: 'class',
+                            attributes: ['id', 'name']
+                        }
+                    ],
                 }
             ],
             paranoid: false
         });
 
         if (!cls) {
-            throw new AppError("Data class tidak ditemukan", 404)
+            throw new AppError("Data class tidak ditemukan", 404);
         }
 
         return res.status(200).json({
@@ -148,9 +197,10 @@ const getClassById = async (req, res) => {
             class: cls
         });
     } catch (error) {
-        return handleError(error, res)
+        return handleError(error, res);
     }
 };
+
 
 const updateClass = async (req, res) => {
     const { id } = req.params;

@@ -24,6 +24,11 @@ module.exports = (sequelize, DataTypes) => {
         as: 'class_enrollments',
         onDelete: 'CASCADE'
       });
+      Class.hasMany(models.Assignment, {
+        foreignKey: 'classId',
+        as: 'assignments',
+        onDelete: 'CASCADE'
+      });
     }
   }
 

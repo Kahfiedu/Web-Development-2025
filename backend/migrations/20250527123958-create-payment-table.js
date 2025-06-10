@@ -13,13 +13,21 @@ module.exports = {
       },
       userId: {
         type: Sequelize.STRING(36),
-        defaultValue: Sequelize.UUIDV4,
         references: {
           model: 'users',
           key: 'id'
         },
         onDelete: 'CASCADE',
         allowNull: false
+      },
+      childId: {
+        type: Sequelize.STRING(36),
+        references: {
+          model: 'childrens',
+          key: 'id'
+        },
+        onDelete: 'CASCADE',
+        allowNull: true
       },
       classId: {
         type: Sequelize.STRING(36),
@@ -70,7 +78,6 @@ module.exports = {
       },
       confirmation_by: {
         type: Sequelize.STRING(36),
-        defaultValue: Sequelize.UUIDV4,
         references: {
           model: 'users',
           key: 'id'

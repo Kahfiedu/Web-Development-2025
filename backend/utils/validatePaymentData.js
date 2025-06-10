@@ -1,16 +1,14 @@
-const { User, Class } = require('../models');
+const { Class } = require('../models');
 
 /**
  * Validates payment data for create and update operations
  * @param {Object} data Payment data to validate
- * @param {string} data.userId User making the payment
  * @param {string} data.classId Class being paid for
  * @param {string} data.amount Payment amount
  * @param {string} data.method_name Method used (e.g., bank transfer)
  * @param {string} data.bank_name Bank name
  * @param {string} data.no_rekening Bank account number
  * @param {string} data.atas_nama Account holder name
- * @param {string} data.payment_proof File path or URL of the payment proof
  * @param {string} [data.status] Payment status (pending/completed/failed)
  * @param {string} [data.confirmation_by] Admin user confirming payment
  * @param {string} mode Operation mode ('create' or 'update')
@@ -18,16 +16,13 @@ const { User, Class } = require('../models');
  */
 const validatePaymentData = async (data, mode = 'create') => {
     const {
-        userId,
         classId,
         amount,
         method_name,
         bank_name,
         no_rekening,
         atas_nama,
-        payment_proof,
         status,
-        confirmation_by,
         payment_date,
         confirmation_date,
     } = data;
@@ -37,7 +32,7 @@ const validatePaymentData = async (data, mode = 'create') => {
     if (mode === 'create') {
         // Required fields
         const requiredFields = {
-            userId, classId, amount, method_name, bank_name, no_rekening, atas_nama, payment_proof
+            classId, amount, method_name, bank_name, no_rekening, atas_nama
         };
 
         for (const [field, value] of Object.entries(requiredFields)) {
@@ -54,16 +49,6 @@ const validatePaymentData = async (data, mode = 'create') => {
         }
 
         // Check related models
-        const user = await User.findByPk(userId);
-        if (!user) {
-            return {
-                isValid: false,
-                error: {
-                    status: 404,
-                    message: "User not found"
-                }
-            };
-        }
 
         const kelas = await Class.findByPk(classId);
         if (!kelas) {
@@ -101,20 +86,6 @@ const validatePaymentData = async (data, mode = 'create') => {
                 };
             }
             validatedData.status = status;
-        }
-
-        if (confirmation_by !== undefined) {
-            const confirmer = await User.findByPk(confirmation_by);
-            if (!confirmer) {
-                return {
-                    isValid: false,
-                    error: {
-                        status: 404,
-                        message: "Confirmation user not found"
-                    }
-                };
-            }
-            validatedData.confirmation_by = confirmation_by;
         }
 
         if (payment_date !== undefined) {
@@ -198,20 +169,6 @@ const validatePaymentData = async (data, mode = 'create') => {
                 };
             }
             updates.status = status;
-        }
-
-        if (confirmation_by !== undefined) {
-            const confirmer = await User.findByPk(confirmation_by);
-            if (!confirmer) {
-                return {
-                    isValid: false,
-                    error: {
-                        status: 404,
-                        message: "Confirmation user not found"
-                    }
-                };
-            }
-            updates.confirmation_by = confirmation_by;
         }
 
         if (payment_date !== undefined) {

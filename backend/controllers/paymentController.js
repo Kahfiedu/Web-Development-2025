@@ -1,4 +1,4 @@
-const { Payment, User, Class } = require('../models');
+const { Payment, User, Class, Child, ClassEnrollment } = require('../models');
 const { isAdmin } = require('../helpers/validationRole');
 const { AppError, handleError } = require('../helpers/helperFunction');
 const validatePaymentData = require('../utils/validatePaymentData');
@@ -7,27 +7,69 @@ const { getPagination } = require('../utils/paginationUtil');
 
 const createPayment = async (req, res) => {
     try {
+        const userRole = req.userRole;
+        const userId = req.userId;
+
+        // Validasi awal body
         const validationResult = await validatePaymentData(req.body, 'create');
         if (!validationResult.isValid) {
             throw new AppError(validationResult.error.message, validationResult.error.status);
         }
 
+        const { data } = validationResult;
+
+        // Validasi childId hanya jika user adalah parent
+        let childId = null;
+        if (userRole === 'parent') {
+            if (!req.body.childId) {
+                throw new AppError("Parent wajib mengirim childId", 400);
+            }
+            childId = req.body.childId;
+        }
+
         const paymentProofPath = req.file ? getFileUrl(req, `proof/${req.file.filename}`) : null;
 
+        console.log("User ID dari req:", userId);
+
         const paymentData = {
-            ...validationResult.data,
-            userId: req.userId,
+            ...data,
+            userId,
+            childId,
             payment_proof: paymentProofPath,
         };
 
-        const newPayment = await Payment.create(paymentData);
+        const newPayment = await Payment.create(paymentData, {
+            userId: userId
+        });
 
         const result = await Payment.findByPk(newPayment.id, {
             include: [
-                { model: User, as: 'fromUser', attributes: { exclude: ['password'] } },
-                { model: Class, as: 'forClass' }
+                {
+                    model: User,
+                    as: 'fromUser',
+                    attributes: { exclude: ['password'] }
+                },
+                {
+                    model: Child,
+                    as: 'child',
+                    attributes: { exclude: ['password'] }
+                },
+                {
+                    model: Class,
+                    as: 'forClass'
+                }
             ]
         });
+
+        await ClassEnrollment.create({
+            classId: data.classId,
+            studentId: userRole === 'parent' ? null : userId,
+            childId: childId,
+            enrolledAt: new Date(),
+            status: 'pending'
+        }, {
+            userId: userId
+        })
 
         return res.status(201).json({
             success: true,
@@ -39,6 +81,8 @@ const createPayment = async (req, res) => {
         return handleError(error, res);
     }
 };
+
+
 
 const getPayments = async (req, res) => {
     try {
@@ -85,9 +129,14 @@ const getPayments = async (req, res) => {
             offset,
             order: [['createdAt', 'DESC']],
             include: [
-                { model: User, as: 'fromUser', attributes: { exclude: ['password'] } },
-                { model: Class, as: 'forClass' },
-                { model: User, as: 'confirmedBy', attributes: { exclude: ['password'] } }
+                { model: User, as: 'fromUser', attributes: ["id", "name"] },
+                { model: Class, as: 'forClass', attributes: ["id", "name"] },
+                {
+                    model: Child,
+                    as: 'child',
+                    attributes: ["id", "name"]
+                },
+                { model: User, as: 'confirmedBy', attributes: ["id", "name"] }
             ],
             paranoid,
         });

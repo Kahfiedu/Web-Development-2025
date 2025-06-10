@@ -19,6 +19,31 @@ export default class Class {
         this.revision = data.revision;
         this.course = data.course ? new Course(data.course) : null;
         this.teacher = data.teacher ? new User(data.teacher) : null;
+        this.class_enrollments = data.class_enrollments ? data.class_enrollments.map(enrollment => ({
+            id: enrollment.id,
+            studentId: enrollment.studentId,
+            childId: enrollment.childId,
+            status: enrollment.status,
+            progress: enrollment.progress,
+            student: enrollment.student ? new User(enrollment.student) : null,
+            child: enrollment.child ? {
+                id: enrollment.child.id,
+                name: enrollment.child.name,
+                gender: enrollment.child.gender,
+                relationship: enrollment.child.relationship,
+                parent: enrollment.child.parent ? new User(enrollment.child.parent) : null
+            } : null,
+        })) : [];
+        this.assignments = data.assignments ? data.assignments.map(assignment => ({
+            id: assignment.id,
+            title: assignment.title,
+            description: assignment.description,
+            dueDate: new Date(assignment.dueDate),
+            createdAt: new Date(assignment.createdAt),
+            updatedAt: new Date(assignment.updatedAt),
+            deletedAt: assignment.deletedAt ? new Date(assignment.deletedAt) : null,
+            class: assignment.class ? new Class(assignment.class) : null
+        })) : [];
     }
 
     get formattedStart() {
