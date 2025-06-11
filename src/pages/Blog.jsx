@@ -1,4 +1,22 @@
 import React, { useState } from "react";
+import {
+  AppBar,
+  Toolbar,
+  IconButton,
+  Button,
+  Typography,
+  Box,
+  Container,
+  TextField,
+  InputAdornment,
+  Grid,
+  Card,
+  CardContent,
+  CardMedia,
+} from "@mui/material";
+import MenuIcon from "@mui/icons-material/Menu";
+import SearchIcon from "@mui/icons-material/Search";
+import ArrowForwardIcon from "@mui/icons-material/ArrowForward";
 
 const Blog = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -11,157 +29,176 @@ const Blog = () => {
     { label: "Daftar Sekarang", href: "/register" },
   ];
 
-  const blogPosts = [
-    { title: "Title", content: "Lorem ipsum dolor sit amet." },
-    { title: "Title", content: "Lorem ipsum dolor sit amet." },
-    { title: "Title", content: "Lorem ipsum dolor sit amet." },
-    { title: "Title", content: "Lorem ipsum dolor sit amet." },
-    { title: "Title", content: "Lorem ipsum dolor sit amet." },
-    { title: "Title", content: "Lorem ipsum dolor sit amet." },
-  ];
+  const blogPosts = new Array(6).fill({
+    title: "Title",
+    content: "Lorem ipsum dolor sit amet.",
+  });
 
   return (
-    <div className="min-h-screen bg-gray-50 flex flex-col">
-      {/* Header */}
-      <header className="bg-white shadow-md p-4 sticky top-0 z-30">
-        <div className="max-w-7xl mx-auto flex items-center justify-center">
-          {/* Hamburger Button */}
-          <button
-            className="md:hidden absolute left-4"
+    <Box minHeight="100vh" bgcolor="#f9fafb">
+      {/* Navbar */}
+      <AppBar position="sticky" color="default" elevation={2}>
+        <Toolbar sx={{ justifyContent: "center", position: "relative" }}>
+          <IconButton
+            edge="start"
+            color="inherit"
+            aria-label="menu"
+            sx={{ position: "absolute", left: 16, display: { md: "none" } }}
             onClick={() => setIsMenuOpen(!isMenuOpen)}
           >
-            <svg
-              className="w-6 h-6"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-              xmlns="http://www.w3.org/2000/svg"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth="2"
-                d="M4 6h16M4 12h16m-7 6h7"
-              ></path>
-            </svg>
-          </button>
-
-          {/* Menu */}
-          <div
-            className={`${
-              isMenuOpen ? "flex" : "hidden"
-            } md:flex flex-col md:flex-row justify-center items-center gap-2 md:gap-4 absolute md:static top-16 left-0 bg-white md:bg-transparent p-4 md:p-0 z-20 w-full md:w-auto`}
+            <MenuIcon />
+          </IconButton>
+          <Box
+            sx={{
+              display: { xs: isMenuOpen ? "flex" : "none", md: "flex" },
+              flexDirection: { xs: "column", md: "row" },
+              gap: 2,
+              alignItems: "center",
+              bgcolor: { xs: "white", md: "transparent" },
+              p: { xs: 2, md: 0 },
+              position: { xs: "absolute", md: "static" },
+              top: 64,
+              width: { xs: "100%", md: "auto" },
+              zIndex: 10,
+              boxShadow: { xs: 1, md: 0 },
+            }}
           >
             {menuItems.map((item) => (
-              <a
+              <Button
                 key={item.label}
                 href={item.href}
-                className="px-4 py-2 bg-white text-gray-800 border-2 border-gray-300 rounded-full w-full md:w-auto text-sm md:text-base hover:bg-green-600 hover:text-white hover:border-green-600 transition-colors"
+                variant="outlined"
+                color={item.active ? "success" : "inherit"}
+                sx={{
+                  borderRadius: 999,
+                  textTransform: "none",
+                  borderColor: "#ccc",
+                  ":hover": {
+                    bgcolor: "green.600",
+                    color: "white",
+                    borderColor: "green.600",
+                  },
+                }}
               >
                 {item.label}
-              </a>
+              </Button>
             ))}
-          </div>
-        </div>
-      </header>
-      
-      {/* Spacer if menu open on mobile */}
-      {isMenuOpen && <div className="h-64 md:hidden"></div>}
+          </Box>
+        </Toolbar>
+      </AppBar>
 
       {/* Search Bar */}
-      <div className="flex justify-center my-6 px-4">
-        <div className="relative w-full max-w-lg">
-          <input
-            type="text"
-            placeholder="Cari"
-            className="w-full p-2 border rounded-full focus:outline-none focus:ring-2 focus:ring-green-600"
-          />
-          <span className="absolute right-3 top-1/2 transform -translate-y-1/2">
-            <svg
-              className="w-5 h-5 text-gray-500"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-              xmlns="http://www.w3.org/2000/svg"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth="2"
-                d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
-              ></path>
-            </svg>
-          </span>
-        </div>
-      </div>
+      <Container sx={{ my: 6 }}>
+        <TextField
+          fullWidth
+          placeholder="Cari"
+          variant="outlined"
+          InputProps={{
+            sx: { borderRadius: 999 },
+            endAdornment: (
+              <InputAdornment position="end">
+                <SearchIcon />
+              </InputAdornment>
+            ),
+          }}
+        />
+      </Container>
 
       {/* Hero Section */}
-      <div className="relative">
-        <div className="w-full h-[480px] overflow-hidden">
-          <img 
-            src="src/assets/readquran.jpeg" 
-            alt="Person reading Quran" 
-            className="w-full h-full object-cover"
-          />
-          <div className="absolute inset-0 bg-gradient-to-r from-black/50 via-black/30 to-transparent">
-            <div className="h-full flex flex-col justify-center pl-16 max-w-2xl">
-              <h1 className="text-5xl font-bold text-white leading-tight">
-                Ketika hati dekat dengan Al-Qur'an, hidup pun tenang tanpa alasan.
-              </h1>
-              <div className="mt-6">
-                <p className="text-white text-lg">
-                  Di setiap hela napas, ada dzikir yang terucap tanpa suara. Di setiap
-                  <br />langkah, ada harapan menuju ampunan-Nya.
-                </p>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
+      <Box position="relative" height={480}>
+        <img
+          src="src/assets/readquran.jpeg"
+          alt="Person reading Quran"
+          style={{
+            width: "100%",
+            height: "100%",
+            objectFit: "cover",
+            display: "block",
+          }}
+        />
+        <Box
+          position="absolute"
+          top={0}
+          left={0}
+          right={0}
+          bottom={0}
+          sx={{
+            background:
+              "linear-gradient(to right, rgba(0,0,0,0.5), rgba(0,0,0,0.3), transparent)",
+          }}
+        >
+          <Box
+            height="100%"
+            display="flex"
+            flexDirection="column"
+            justifyContent="center"
+            pl={8}
+            maxWidth="lg"
+          >
+            <Typography variant="h3" color="white" fontWeight="bold">
+              Ketika hati dekat dengan Al-Qur'an, hidup pun tenang tanpa alasan.
+            </Typography>
+            <Box mt={3}>
+              <Typography variant="h6" color="white">
+                Di setiap hela napas, ada dzikir yang terucap tanpa suara.
+                <br />
+                Di setiap langkah, ada harapan menuju ampunan-Nya.
+              </Typography>
+            </Box>
+          </Box>
+        </Box>
+      </Box>
 
-      {/* Recent Blog Posts */}
-      <div className="py-8 px-4">
-        <h2 className="text-xl font-bold mb-6">Recent blog post</h2>
-        
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+      {/* Blog Posts */}
+      <Container sx={{ py: 8 }}>
+        <Typography variant="h5" fontWeight="bold" mb={4}>
+          Recent blog post
+        </Typography>
+
+        <Grid container spacing={4}>
           {blogPosts.map((post, index) => (
-            <div key={index} className="bg-white rounded-lg shadow-sm overflow-hidden">
-              <div className="p-4 border-b">
-                <img 
-                  src="/api/placeholder/400/200" 
-                  alt="Blog thumbnail" 
-                  className="w-full h-32 object-contain"
+            <Grid item xs={12} sm={6} md={4} key={index}>
+              <Card>
+                <CardMedia
+                  component="img"
+                  height="140"
+                  image="/api/placeholder/400/200"
+                  alt="Blog thumbnail"
+                  sx={{ objectFit: "contain" }}
                 />
-              </div>
-              <div className="p-4">
-                <h3 className="font-bold mb-1">{post.title}</h3>
-                <p className="text-gray-600 text-sm">{post.content}</p>
-              </div>
-            </div>
+                <CardContent>
+                  <Typography variant="h6" fontWeight="bold">
+                    {post.title}
+                  </Typography>
+                  <Typography variant="body2" color="text.secondary">
+                    {post.content}
+                  </Typography>
+                </CardContent>
+              </Card>
+            </Grid>
           ))}
-        </div>
+        </Grid>
 
-        <div className="flex justify-center mt-8">
-          <button className="px-5 py-2 bg-white text-gray-800 rounded-full border-2 border-gray-300 hover:bg-green-600 hover:text-white hover:border-green-600 transition-colors flex items-center space-x-2">
-            <span>Read More</span>
-            <svg
-              className="w-5 h-5"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-              xmlns="http://www.w3.org/2000/svg"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth="2"
-                d="M9 5l7 7-7 7"
-              ></path>
-            </svg>
-          </button>
-        </div>
-      </div>
-    </div>
+        <Box mt={6} display="flex" justifyContent="center">
+          <Button
+            variant="outlined"
+            sx={{
+              borderRadius: 999,
+              borderColor: "#ccc",
+              textTransform: "none",
+              ":hover": {
+                bgcolor: "green.600",
+                color: "white",
+                borderColor: "green.600",
+              },
+            }}
+            endIcon={<ArrowForwardIcon />}
+          >
+            Read More
+          </Button>
+        </Box>
+      </Container>
+    </Box>
   );
 };
 

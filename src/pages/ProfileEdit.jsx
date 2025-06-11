@@ -2,6 +2,21 @@ import React, { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import KahfLogo from "../components/Kahflogo";
 import { FiBell, FiEdit, FiUser } from "react-icons/fi";
+import {
+  AppBar,
+  Toolbar,
+  IconButton,
+  Typography,
+  InputBase,
+  Avatar,
+  Container,
+  TextField,
+  Button,
+  Paper,
+  Box,
+  Grid
+} from "@mui/material";
+import MenuIcon from "@mui/icons-material/Menu";
 
 const ProfileEdit = () => {
   const navigate = useNavigate();
@@ -19,7 +34,7 @@ const ProfileEdit = () => {
   };
 
   const [userData, setUserData] = useState(initialUserData);
-  const [isEditing, setIsEditing] = useState(true); 
+  const [isEditing, setIsEditing] = useState(true);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -37,110 +52,83 @@ const ProfileEdit = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 font-sans">
+    <Box sx={{ minHeight: "100vh", bgcolor: "#f9fafb" }}>
       {/* Header */}
-      <header className="flex justify-between items-center p-4 border-b bg-white">
-  <div className="flex items-center gap-4">
-    <button className="text-2xl p-2">≡</button>
-    <div className="w-24">
-      <KahfLogo />
-    </div>
-  </div>
-
-  <div className="flex gap-4 items-center">
-    <div className="relative">
-      <input
-        type="text"
-        placeholder="Cari"
-        className="border rounded-full px-4 py-1 text-sm w-64"
-      />
-    </div>
-    <FiBell className="text-2xl" />
-    <Link to="/profile">
-      <div className="w-8 h-8 bg-gray-200 rounded-full flex items-center justify-center">
-        <FiUser className="text-lg" />
-      </div>
-    </Link>
-  </div>
-</header>
-
+      <AppBar position="static" color="inherit" elevation={1}>
+        <Toolbar sx={{ justifyContent: "space-between" }}>
+          <Box display="flex" alignItems="center" gap={2}>
+            <IconButton>
+              <MenuIcon />
+            </IconButton>
+            <Box sx={{ width: 100 }}>
+              <KahfLogo />
+            </Box>
+          </Box>
+          <Box display="flex" alignItems="center" gap={2}>
+            <InputBase placeholder="Cari" sx={{ bgcolor: '#eee', px: 2, py: 0.5, borderRadius: 20, width: 200 }} />
+            <IconButton>
+              <FiBell />
+            </IconButton>
+            <Link to="/profile">
+              <Avatar>
+                <FiUser />
+              </Avatar>
+            </Link>
+          </Box>
+        </Toolbar>
+      </AppBar>
 
       {/* Main Content */}
-      <main className="max-w-2xl mx-auto p-4">
-        <div className="bg-white rounded-xl p-6 mt-4">
-          {/* User Profile */}
-          <div className="flex flex-col items-center mb-8">
-            <div className="relative mb-4">
-              <img
+      <Container maxWidth="sm" sx={{ py: 4 }}>
+        <Paper elevation={3} sx={{ p: 4, borderRadius: 4 }}>
+          <Box textAlign="center" mb={4}>
+            <Box position="relative" display="inline-block">
+              <Avatar
                 src="https://cdn-icons-png.flaticon.com/512/4333/4333609.png"
-                alt="Profile"
-                className="w-28 h-28 rounded-full bg-blue-100"
+                sx={{ width: 112, height: 112, bgcolor: "#bbdefb", mx: "auto" }}
               />
-              <div className="absolute bottom-0 right-0 bg-black text-white rounded-full p-1">
-                <FiEdit className="text-sm" />
-              </div>
-            </div>
-            <h2 className="text-xl font-semibold">{userData.name}</h2>
-            <p className="text-sm text-gray-600">{userData.class}</p>
-          </div>
+              <Box position="absolute" bottom={0} right={0} bgcolor="black" color="white" borderRadius="50%" p={0.5}>
+                <FiEdit size={14} />
+              </Box>
+            </Box>
+            <Typography variant="h6" mt={2}>{userData.name}</Typography>
+            <Typography variant="body2" color="text.secondary">{userData.class}</Typography>
+          </Box>
 
-          {/* User Information */}
-          <div className="space-y-4">
-            {[
-              { label: "Username", name: "username" },
-              { label: "No. Telp", name: "phone" },
-              { label: "Email", name: "email" },
-              { label: "Gender", name: "gender" },
-              { label: "Tanggal lahir", name: "birthDate" },
-              { label: "Password", name: "password", type: "password" },
-              { label: "Alamat", name: "address" }
-            ].map(({ label, name, type }) => (
-              <div key={name} className="border-b pb-2">
-                <div className="flex justify-between items-center">
-                  <div className="text-sm text-gray-600">{label}</div>
-                  {isEditing && name !== "email" ? (
-                    <input
-                      type={type || "text"}
-                      name={name}
-                      value={userData[name]}
-                      onChange={handleChange}
-                      className={`text-right w-full px-2 py-1 ${name === "email" ? "text-gray-500" : ""}`}
-                      disabled={name === "email"} // Email is not editable in design
-                    />
-                  ) : (
-                    <div className="text-right">
-                      {name === "email" ? (
-                        <a href={`mailto:${userData.email}`} className="text-blue-600">
-                          {userData.email}
-                        </a>
-                      ) : (
-                        userData[name]
-                      )}
-                    </div>
-                  )}
-                </div>
-              </div>
-            ))}
-          </div>
+          <Box component="form" noValidate autoComplete="off">
+            <Grid container spacing={2}>
+              {[
+                { label: "Username", name: "username" },
+                { label: "No. Telp", name: "phone" },
+                { label: "Email", name: "email" },
+                { label: "Gender", name: "gender" },
+                { label: "Tanggal lahir", name: "birthDate" },
+                { label: "Password", name: "password", type: "password" },
+                { label: "Alamat", name: "address" },
+              ].map(({ label, name, type }) => (
+                <Grid item xs={12} key={name}>
+                  <TextField
+                    fullWidth
+                    variant="outlined"
+                    label={label}
+                    name={name}
+                    type={type || "text"}
+                    value={userData[name]}
+                    onChange={handleChange}
+                    disabled={!isEditing || name === "email"}
+                  />
+                </Grid>
+              ))}
+            </Grid>
 
-          {/* Action Buttons */}
-          <div className="mt-8 flex justify-center gap-4">
-            <button
-              onClick={handleCancel}
-              className="px-6 py-2 border border-gray-300 rounded-md hover:bg-gray-100 transition"
-            >
-              Cancel
-            </button>
-            <button
-              onClick={handleSave}
-              className="px-6 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 transition"
-            >
-              Save
-            </button>
-          </div>
-        </div>
-      </main>
-    </div>
+            <Box display="flex" justifyContent="center" gap={2} mt={4}>
+              <Button variant="outlined" onClick={handleCancel}>Cancel</Button>
+              <Button variant="contained" color="success" onClick={handleSave}>Save</Button>
+            </Box>
+          </Box>
+        </Paper>
+      </Container>
+    </Box>
   );
 };
 

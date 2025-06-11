@@ -1,5 +1,11 @@
 import React, { useState } from 'react';
-import FormInput from '../components/FormInput';
+import {
+  Box,
+  Button,
+  Typography,
+  TextField,
+  Paper,
+} from '@mui/material';
 import KahfLogo from '../components/Kahflogo';
 
 const ResetPassword = () => {
@@ -16,46 +22,73 @@ const ResetPassword = () => {
   };
 
   return (
-    <div className="flex min-h-screen bg-gray-100 items-center justify-center">
-      <div className="bg-white rounded-3xl shadow-lg p-6 md:p-8 w-full max-w-md">
-        <div className="flex justify-center mb-4">
-          <KahfLogo className="h-6 md:h-8" />
-        </div>
-        <h2 className="text-xl font-bold mb-4 text-center">Set New Password</h2>
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <div>
-            <label className="block mb-2 text-sm font-medium">New Password</label>
-            <FormInput
-              type="password"
-              value={newPassword}
-              onChange={(e) => setNewPassword(e.target.value)}
-              placeholder="Enter new password"
-              required
-              // optional: icon={<YourLockIcon />} 
-            />
-          </div>
-          <div>
-            <label className="block mb-2 text-sm font-medium">Confirm Password</label>
-            <FormInput
-              type="password"
-              value={confirmPassword}
-              onChange={(e) => setConfirmPassword(e.target.value)}
-              placeholder="Confirm new password"
-              required
-              // optional: icon={<YourLockIcon />} 
-            />
-          </div>
-          <div className="flex justify-center mt-6">
-            <button
+    <Box
+      minHeight="100vh"
+      bgcolor="#f3f4f6"
+      display="flex"
+      justifyContent="center"
+      alignItems="center"
+    >
+      <Paper
+        elevation={3}
+        sx={{
+          borderRadius: 6,
+          p: { xs: 3, md: 4 },
+          width: '100%',
+          maxWidth: 400,
+        }}
+      >
+        <Box display="flex" justifyContent="center" mb={2}>
+          <KahfLogo style={{ height: 32 }} />
+        </Box>
+
+        <Typography variant="h6" fontWeight="bold" textAlign="center" mb={3}>
+          Set New Password
+        </Typography>
+
+        <Box component="form" onSubmit={handleSubmit}>
+          <TextField
+            type="password"
+            label="New Password"
+            placeholder="Enter new password"
+            fullWidth
+            required
+            margin="normal"
+            value={newPassword}
+            onChange={(e) => setNewPassword(e.target.value)}
+          />
+
+          <TextField
+            type="password"
+            label="Confirm Password"
+            placeholder="Confirm new password"
+            fullWidth
+            required
+            margin="normal"
+            value={confirmPassword}
+            onChange={(e) => setConfirmPassword(e.target.value)}
+          />
+
+          <Box display="flex" justifyContent="center" mt={3}>
+            <Button
               type="submit"
-              className="px-12 py-2.5 bg-kahf-green text-white rounded-full hover:bg-green-700 transition-colors"
+              variant="contained"
+              sx={{
+                px: 6,
+                py: 1.5,
+                borderRadius: 999,
+                backgroundColor: '#2e7d32', // Warna hijau khas kahf
+                '&:hover': {
+                  backgroundColor: '#27642b',
+                },
+              }}
             >
               Reset Password
-            </button>
-          </div>
-        </form>
-      </div>
-    </div>
+            </Button>
+          </Box>
+        </Box>
+      </Paper>
+    </Box>
   );
 };
 

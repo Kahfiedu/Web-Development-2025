@@ -1,41 +1,92 @@
 import React from 'react';
-import KahfLogo from './Kahflogo'; // import komponen KahfLogo yang ada di folder yang sama
-import quranImage from '../assets/download (6).jpeg'; // import gambar
+import { Box, Typography, Container } from '@mui/material';
+import KahfLogo from './Kahflogo';
+import quranImage from '../assets/download (6).jpeg';
 
 const AuthLayout = ({ children, sidebarText, greeting }) => {
   return (
-    <div className="flex flex-col md:flex-row min-h-screen">
+    <Box
+      display="flex"
+      flexDirection={{ xs: 'column', md: 'row' }}
+      minHeight="100vh"
+    >
       {/* Sidebar */}
-      <div
-        className="w-full md:w-[55%] relative flex items-center justify-center text-white text-center"
+      <Box
+        width={{ xs: '100%', md: '55%' }}
+        position="relative"
+        display="flex"
+        alignItems="center"
+        justifyContent="center"
+        color="white"
+        textAlign="center"
       >
         {/* Background image */}
-        <img
+        <Box
+          component="img"
           src={quranImage}
           alt="Islamic study materials"
-          className="absolute inset-0 w-full h-full object-cover brightness-[0.4]"
+          sx={{
+            position: 'absolute',
+            inset: 0,
+            width: '100%',
+            height: '100%',
+            objectFit: 'cover',
+            filter: 'brightness(0.4)',
+            zIndex: 1,
+          }}
         />
 
-        {/* Overlay gradasi */}
-        <div className="absolute inset-0 bg-gradient-to-b from-[#0A3D2E]/90 via-[#0A3D2E]/70 to-transparent z-10" />
+        {/* Overlay gradient */}
+        <Box
+          sx={{
+            position: 'absolute',
+            inset: 0,
+            background:
+              'linear-gradient(to bottom, rgba(10, 61, 46, 0.9), rgba(10, 61, 46, 0.7), transparent)',
+            zIndex: 2,
+          }}
+        />
 
         {/* Sidebar content */}
-        <div className="relative z-20 px-6 md:px-12">
-          <h1 className="text-4xl md:text-5xl font-bold mb-4">{greeting}</h1>
-          <p className="text-lg md:text-xl">{sidebarText}</p>
-        </div>
-      </div>
+        <Box
+          sx={{
+            position: 'relative',
+            zIndex: 3,
+            px: { xs: 3, md: 6 },
+          }}
+        >
+          <Typography variant="h3" fontWeight="bold" mb={2}>
+            {greeting}
+          </Typography>
+          <Typography variant="h6">{sidebarText}</Typography>
+        </Box>
+      </Box>
 
-      {/* Konten Login/Register */}
-      <div className="w-full md:w-[45%] bg-white flex items-center justify-center">
-        <div className="w-full max-w-md p-6 md:p-12 min-h-screen flex flex-col justify-center">
-          <div className="mb-10 flex justify-center">
+      {/* Content: Login/Register */}
+      <Box
+        width={{ xs: '100%', md: '45%' }}
+        bgcolor="white"
+        display="flex"
+        alignItems="center"
+        justifyContent="center"
+      >
+        <Container
+          maxWidth="sm"
+          sx={{
+            py: { xs: 6, md: 12 },
+            minHeight: '100vh',
+            display: 'flex',
+            flexDirection: 'column',
+            justifyContent: 'center',
+          }}
+        >
+          <Box mb={5} display="flex" justifyContent="center">
             <KahfLogo />
-          </div>
+          </Box>
           {children}
-        </div>
-      </div>
-    </div>
+        </Container>
+      </Box>
+    </Box>
   );
 };
 

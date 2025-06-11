@@ -1,15 +1,27 @@
-// src/components/SocialButton.jsx
 import React from 'react';
+import { Button } from '@mui/material';
 
 const SocialButton = ({ icon, provider, onClick }) => {
   return (
-    <button
+    <Button
       onClick={onClick}
-      className="flex items-center justify-center gap-2 w-full py-3 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
+      fullWidth
+      variant="outlined"
+      startIcon={icon}
+      sx={{
+        py: 1.5,
+        borderRadius: 2,
+        textTransform: 'none',
+        borderColor: '#ccc',
+        color: '#000',
+        '&:hover': {
+          backgroundColor: '#f5f5f5',
+          borderColor: '#bbb',
+        },
+      }}
     >
-      {icon}
-      <span>{provider}</span>
-    </button>
+      {provider}
+    </Button>
   );
 };
 

@@ -1,161 +1,597 @@
-import React from "react";
-import { Link, useNavigate } from "react-router-dom";
-import KahfLogo from "../components/Kahflogo";
-import { FiBell, FiUser } from "react-icons/fi";
-import { MdOutlineEmail, MdOutlineSchool, MdOutlineClass, MdLocationOn } from "react-icons/md";
+import React, { useState } from "react";
+import { useNavigate, Link } from "react-router-dom";
+import {
+  AppBar,
+  Avatar,
+  Box,
+  Button,
+  Container,
+  Grid,
+  IconButton,
+  InputBase,
+  Paper,
+  Toolbar,
+  Typography,
+  Card,
+  CardContent,
+  Divider,
+  Tabs,
+  Tab,
+  Table,
+  TableBody,
+  TableCell,
+  TableContainer,
+  TableHead,
+  TableRow,
+  Chip,
+} from "@mui/material";
+import SearchIcon from "@mui/icons-material/Search";
+import NotificationsNoneIcon from "@mui/icons-material/NotificationsNone";
+import PersonOutlineIcon from "@mui/icons-material/PersonOutline";
+import LocationOnIcon from "@mui/icons-material/LocationOn";
+import EmailIcon from "@mui/icons-material/Email";
+import WhatsAppIcon from "@mui/icons-material/WhatsApp";
+import EditIcon from "@mui/icons-material/Edit";
+import LogoutIcon from "@mui/icons-material/Logout";
+import HomeIcon from "@mui/icons-material/Home";
+import AddIcon from "@mui/icons-material/Add";
+
+import KahfLogo from '../components/Kahflogo';
 
 const Profile = () => {
   const navigate = useNavigate();
-  
+  const [activeTab, setActiveTab] = useState(0);
+
   const userData = {
     name: "John Bee",
-    program: "Program Tahfidz",
-    class: "Kelas 2",
     location: "Bali, Indonesia",
-    email: "john@gmail.com"
+    email: "john@gmail.com",
+    phone: "62 8123 4567 89",
   };
 
-  const messages = [
+  const parentData = {
+    name: "Sri Yulianti",
+    role: "Ibu",
+    gender: "Female",
+    phone: "+62 8144 6555 990",
+  };
+
+  const taskHistory = [
     {
-      sender: "Kahfi Edu",
-      subject: "Briefing pertemuan pertama",
-      day: "Today",
-      time: "10:40"
+      date: "Today",
+      time: "12:41",
+      task: "Tugas menulis",
+      schedule: "08:00 AM - 10:00 AM",
+      status: "Progress",
     },
     {
-      sender: "Kahfi Edu",
-      subject: "Virtual meeting jilid 1, dan jilid 2",
-      day: "Fri",
-      time: "09:00"
+      date: "Yesterday",
+      time: "10:00",
+      task: "Tugas belajar",
+      schedule: "08:00 AM - 10:00 AM",
+      status: "Done",
     },
     {
-      sender: "Kahfi Edu",
-      subject: "Zoom meeting orang tua",
-      day: "Thu",
-      time: "12:30"
-    }
+      date: "Friday",
+      time: "18:00",
+      task: "Tugas belajar",
+      schedule: "08:00 AM - 10:00 AM",
+      status: "Done",
+    },
   ];
 
-  const handleViewDetail = () => {
-    navigate("/profile-detail");
+  const attendanceHistory = [
+    {
+      name: "John Bee",
+      session: "Session 3",
+      time: "08:00 AM - 10:00 AM",
+      date: "Today, 10 Mei 2025",
+      status: "Attend",
+    },
+    {
+      name: "John Bee",
+      session: "Session 2",
+      time: "09:00 AM - 11:00 AM",
+      date: "Kamis, 9 Mei 2025",
+      status: "Attend",
+    },
+    {
+      name: "John Bee",
+      session: "Session 1",
+      time: "08:00 AM - 10:00 AM",
+      date: "Rabu, 8 Mei 2025",
+      status: "Attend",
+    },
+  ];
+
+  const paymentHistory = [
+    {
+      no: 1,
+      period: 2025,
+      description: "Bulan Kedua",
+      date: "2 Mei 2025",
+      billing: "100.000",
+      payment: "0",
+      status: "Upcoming",
+    },
+    {
+      no: 2,
+      period: 2025,
+      description: "E - Book",
+      date: "22 Apr 2025",
+      billing: "50.000",
+      payment: "50.000",
+      status: "Paid",
+    },
+    {
+      no: 3,
+      period: 2025,
+      description: "Bulan Pertama",
+      date: "15 Apr 2025",
+      billing: "150.000",
+      payment: "150.000",
+      status: "Paid",
+    },
+    {
+      no: 4,
+      period: 2025,
+      description: "Biaya Masuk",
+      date: "2 Apr 2025",
+      billing: "100.000",
+      payment: "100.000",
+      status: "Paid",
+    },
+  ];
+
+  const handleTabChange = (event, newValue) => {
+    setActiveTab(newValue);
+  };
+
+  const handleEditProfile = () => {
+    navigate('/profile-edit');
+  };
+
+  const getStatusChip = (status) => {
+    if (status === "Paid") {
+      return (
+        <Chip
+          label="Paid ✓"
+          size="small"
+          sx={{
+            bgcolor: "#4caf50",
+            color: "white",
+            fontWeight: "bold",
+          }}
+        />
+      );
+    } else if (status === "Upcoming") {
+      return (
+        <Chip
+          label="Upcoming ⏰"
+          size="small"
+          sx={{
+            bgcolor: "#ff9800",
+            color: "white",
+            fontWeight: "bold",
+          }}
+        />
+      );
+    }
   };
 
   return (
-    <div className="min-h-screen bg-gray-100 flex flex-col">
+    <Box minHeight="100vh" display="flex" flexDirection="column" bgcolor="#f5f5f5">
       {/* Header */}
-      <header className="bg-white flex justify-between items-center p-4 border-b shadow-sm">
-        <div className="flex items-center gap-4">
-          <button className="text-2xl p-2">≡</button>
-          <div className="w-24">
-            <KahfLogo />
-          </div>
-        </div>
-        <div className="flex gap-4 items-center">
-          <div className="relative">
-            <input
-              type="text"
-              placeholder="Cari"
-              className="border rounded-full px-4 py-1 text-sm w-48"
-            />
-            <button className="absolute right-3 top-1/2 transform -translate-y-1/2">
-              <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-              </svg>
-            </button>
-          </div>
-          <FiBell className="text-2xl" />
-          <Link to="/profile">
-            <div className="w-8 h-8 bg-gray-200 rounded-full flex items-center justify-center">
-              <FiUser className="text-lg" />
-            </div>
-          </Link>
-        </div>
-      </header>
+      <AppBar position="static" color="default" elevation={1}>
+        <Toolbar sx={{ justifyContent: "space-between" }}>
+          <Box display="flex" alignItems="center">
+            <Typography variant="h5" sx={{ cursor: "pointer", mr: -1 }}>
+              ≡
+            </Typography>
+            <Box sx={{ width: 120 }}>
+              <KahfLogo />
+            </Box>
+          </Box>
+          <Box display="flex" alignItems="center" gap={2}>
+            <Paper
+              component="form"
+              sx={{
+                p: "2px 8px",
+                display: "flex",
+                alignItems: "center",
+                width: 200,
+                borderRadius: "999px",
+                boxShadow: "none",
+                bgcolor: "#f0f0f0",
+              }}
+            >
+              <InputBase sx={{ ml: 1, flex: 1 }} placeholder="Cari" />
+              <IconButton type="button" sx={{ p: "10px" }}>
+                <SearchIcon />
+              </IconButton>
+            </Paper>
 
-      {/* Hero Banner - Gradient background */}
-      <div className="h-60 bg-gradient-to-r from-blue-400 to-green-300"></div>
+            <IconButton>
+              <NotificationsNoneIcon />
+            </IconButton>
+            <Avatar sx={{ bgcolor: "grey.300" }}>
+              <PersonOutlineIcon />
+            </Avatar>
+          </Box>
+        </Toolbar>
+      </AppBar>
+
+      {/* Profile Header with Green Gradient */}
+      <Box
+        sx={{
+          background: "linear-gradient(135deg, #81c784 0%, #66bb6a 100%)",
+          py: 6,
+          px: 3,
+          borderRadius: "0 0 40px 40px",
+        }}
+      >
+        <Container>
+          <Box display="flex" alignItems="center" justifyContent="space-between">
+            <Box display="flex" alignItems="center" gap={3}>
+              <Avatar
+                sx={{
+                  width: 100,
+                  height: 100,
+                  bgcolor: "#2196f3",
+                }}
+              >
+                <PersonOutlineIcon sx={{ fontSize: 50 }} />
+              </Avatar>
+              <Box color="white">
+                <Typography variant="h4" fontWeight="bold" mb={1}>
+                  {userData.name}
+                </Typography>
+                <Box display="flex" alignItems="center" gap={1} mb={0.5}>
+                  <LocationOnIcon fontSize="small" />
+                  <Typography>{userData.location}</Typography>
+                </Box>
+                <Box display="flex" alignItems="center" gap={1} mb={0.5}>
+                  <EmailIcon fontSize="small" />
+                  <Typography>{userData.email}</Typography>
+                </Box>
+                <Box display="flex" alignItems="center" gap={1}>
+                  <WhatsAppIcon fontSize="small" />
+                  <Typography>{userData.phone}</Typography>
+                </Box>
+              </Box>
+            </Box>
+            <Box display="flex" flexDirection="column" gap={1}>
+              <Button
+                variant="contained"
+                startIcon={<EditIcon />}
+                onClick={handleEditProfile}
+                sx={{
+                  bgcolor: "white",
+                  color: "#4caf50",
+                  "&:hover": { bgcolor: "#f5f5f5" },
+                  textTransform: "none",
+                  fontWeight: "bold",
+                }}
+              >
+                Edit profile
+              </Button>
+              <Button
+                variant="contained"
+                startIcon={<LogoutIcon />}
+                sx={{
+                  bgcolor: "#f44336",
+                  color: "white",
+                  "&:hover": { bgcolor: "#d32f2f" },
+                  textTransform: "none",
+                  fontWeight: "bold",
+                }}
+              >
+                Log out
+              </Button>
+            </Box>
+          </Box>
+        </Container>
+      </Box>
 
       {/* Main Content */}
-      <div className="container mx-auto px-4 -mt-20">
-        <div className="max-w-4xl mx-auto">
-          {/* Side by side layout */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            {/* Profile Section - Takes 1/3 of the space */}
-            <div className="md:col-span-1 flex flex-col items-center">
-              {/* Profile Image */}
-              <div className="mb-4">
-                <img
-                  src="https://cdn-icons-png.flaticon.com/512/4333/4333609.png"
-                  alt="Profile"
-                  className="w-36 h-36 rounded-full bg-blue-100 border-4 border-white"
-                />
-              </div>
-              
-              {/* Profile Info */}
-              <h1 className="text-3xl font-bold text-center mb-2">{userData.name}</h1>
-              
-              <div className="flex flex-col items-center space-y-1 mb-4 text-gray-700">
-                <div className="flex items-center gap-2">
-                  <MdOutlineSchool />
-                  <span>{userData.program}</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <MdOutlineClass />
-                  <span>{userData.class}</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <MdLocationOn />
-                  <span>{userData.location}</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <MdOutlineEmail />
-                  <span>{userData.email}</span>
-                </div>
-              </div>
-              
-              {/* View Detail Button */}
-              <button
-                onClick={handleViewDetail}
-                className="border border-black rounded-full px-6 py-2 text-sm hover:bg-gray-50"
-                >
-                 view detail
-                </button>
+      <Container sx={{ mt: 4, mb: 4 }}>
+        <Grid container spacing={4}>
+          {/* Left Side - Parent Data */}
+          <Grid item xs={12} md={4}>
+            <Typography variant="h6" fontWeight="bold" mb={2}>
+              Data orang tua
+            </Typography>
+            
+            <Box mb={3}>
+              <Typography color="text.secondary" mb={1}>
+                Nama Orang tua: {parentData.name}
+              </Typography>
+              <Typography color="text.secondary" mb={1}>
+                Sebagai: {parentData.role}
+              </Typography>
+              <Typography color="text.secondary" mb={1}>
+                Gender: {parentData.gender}
+              </Typography>
+              <Typography color="text.secondary" mb={3}>
+                No. Telp: {parentData.phone}
+              </Typography>
+            </Box>
 
-            </div>
+            <Card sx={{ p: 2, textAlign: "center", borderRadius: 3 }}>
+              <Button
+                variant="contained"
+                sx={{
+                  bgcolor: "#4caf50",
+                  color: "white",
+                  textTransform: "none",
+                  fontWeight: "bold",
+                  mb: 2,
+                  width: "100%",
+                  borderRadius: 2,
+                }}
+              >
+                Anak 1
+              </Button>
+              <Button
+                variant="outlined"
+                startIcon={<AddIcon />}
+                sx={{
+                  textTransform: "none",
+                  width: "100%",
+                  borderColor: "#4caf50",
+                  color: "#4caf50",
+                  borderRadius: 2,
+                }}
+              >
+                Tambah daftar anak
+              </Button>
+            </Card>
+          </Grid>
 
-            {/* Inbox Section - Takes 2/3 of the space */}
-            <div className="md:col-span-2 bg-white rounded-lg overflow-hidden shadow-sm mb-8">
-              <div className="px-6 py-3 border-b font-semibold">Inbox</div>
-              <div>
-                {messages.map((message, index) => (
-                  <div 
-                    key={index} 
-                    className="border-b last:border-b-0 py-4 px-6 hover:bg-gray-50 cursor-pointer"
-                    onClick={() => console.log("Message clicked:", message.subject)}
-                  >
-                    <div className="flex justify-between">
-                      <div>
-                        <h3 className="font-medium">{message.sender}</h3>
-                        <p className="text-green-600">{message.subject}</p>
-                      </div>
-                      <div className="text-right">
-                        <div className="font-medium">{message.day}</div>
-                        <div className="text-gray-600">{message.time}</div>
-                      </div>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
+          {/* Right Side - Tabs and Content */}
+          <Grid item xs={12} md={8}>
+            {/* Tabs */}
+            <Box mb={3}>
+              <Tabs 
+                value={activeTab} 
+                onChange={handleTabChange}
+                variant="fullWidth"
+                sx={{
+                  '& .MuiTabs-indicator': {
+                    backgroundColor: '#4caf50',
+                  },
+                  '& .MuiTab-root': {
+                    minHeight: 48,
+                  },
+                  '& .Mui-selected': {
+                    color: '#4caf50 !important',
+                  }
+                }}
+              >
+                <Tab label="📋 Tugas" sx={{ textTransform: "none", fontWeight: "medium" }} />
+                <Tab label="📅 Absen" sx={{ textTransform: "none", fontWeight: "medium" }} />
+                <Tab label="💳 Pembayaran" sx={{ textTransform: "none", fontWeight: "medium" }} />
+              </Tabs>
+            </Box>
+
+            {/* Tugas Tab */}
+            {activeTab === 0 && (
+              <Card sx={{ borderRadius: 3 }}>
+                <CardContent>
+                  <Box display="flex" alignItems="center" gap={1} mb={2}>
+                    <Typography variant="h6" fontWeight="bold">
+                      Tugas
+                    </Typography>
+                    <Typography sx={{ fontSize: "1.2rem" }}>📝</Typography>
+                  </Box>
+                  
+                  <Box display="flex" flexDirection="column" gap={2}>
+                    {taskHistory.map((task, index) => (
+                      <Box 
+                        key={index}
+                        sx={{
+                          display: 'flex',
+                          justifyContent: 'space-between',
+                          alignItems: 'center',
+                          py: 2,
+                          px: 0,
+                          borderBottom: index !== taskHistory.length - 1 ? '1px solid #e0e0e0' : 'none'
+                        }}
+                      >
+                        <Box display="flex" alignItems="center" gap={2}>
+                          <Box textAlign="center" minWidth={60}>
+                            <Typography variant="body2" fontWeight="bold">
+                              {task.date}
+                            </Typography>
+                            <Typography variant="body2" color="text.secondary">
+                              {task.time}
+                            </Typography>
+                          </Box>
+                          
+                          <Box>
+                            <Typography fontWeight="medium" mb={0.5}>
+                              {task.task}
+                            </Typography>
+                            <Typography variant="body2" color="text.secondary">
+                              {task.schedule}
+                            </Typography>
+                          </Box>
+                        </Box>
+                        
+                        <Box>
+                          {task.status === "Progress" ? (
+                            <Box display="flex" alignItems="center" gap={1}>
+                              <Typography variant="body2">Progress</Typography>
+                              <Box
+                                sx={{
+                                  width: 24,
+                                  height: 24,
+                                  borderRadius: '50%',
+                                  border: '2px solid #ff9800',
+                                  display: 'flex',
+                                  alignItems: 'center',
+                                  justifyContent: 'center'
+                                }}
+                              >
+                                <Box
+                                  sx={{
+                                    width: 8,
+                                    height: 8,
+                                    borderRadius: '50%',
+                                    bgcolor: '#ff9800'
+                                  }}
+                                />
+                              </Box>
+                            </Box>
+                          ) : (
+                            <Box display="flex" alignItems="center" gap={1}>
+                              <Typography variant="body2">Done</Typography>
+                              <Box
+                                sx={{
+                                  width: 24,
+                                  height: 24,
+                                  borderRadius: '50%',
+                                  bgcolor: '#4caf50',
+                                  display: 'flex',
+                                  alignItems: 'center',
+                                  justifyContent: 'center'
+                                }}
+                              >
+                                <Typography sx={{ color: 'white', fontSize: '12px' }}>✓</Typography>
+                              </Box>
+                            </Box>
+                          )}
+                        </Box>
+                      </Box>
+                    ))}
+                  </Box>
+                </CardContent>
+              </Card>
+            )}
+
+            {/* Attendance History */}
+            {activeTab === 1 && (
+              <Card sx={{ borderRadius: 3 }}>
+                <CardContent>
+                  <Box display="flex" alignItems="center" gap={1} mb={2}>
+                    <Typography variant="h6" fontWeight="bold">
+                      History absen
+                    </Typography>
+                    <Typography sx={{ fontSize: "1.2rem" }}>📊</Typography>
+                  </Box>
+                  
+                  <Box display="flex" flexDirection="column" gap={2}>
+                    {attendanceHistory.map((record, index) => (
+                      <Card 
+                        key={index}
+                        variant="outlined"
+                        sx={{ 
+                          p: 2,
+                          borderRadius: 3,
+                          '&:hover': { boxShadow: 2 }
+                        }}
+                      >
+                        <Box display="flex" justifyContent="space-between" alignItems="center">
+                          <Box>
+                            <Typography fontWeight="bold" mb={0.5}>
+                              {record.name}
+                            </Typography>
+                            <Typography color="text.secondary" mb={0.5}>
+                              {record.session}
+                            </Typography>
+                            <Typography variant="body2" color="text.secondary">
+                              {record.time}
+                            </Typography>
+                          </Box>
+                          <Box textAlign="right">
+                            <Typography variant="body2" color="text.secondary" mb={1}>
+                              {record.date}
+                            </Typography>
+                            <Chip
+                              label={`${record.status} ✓`}
+                              size="small"
+                              sx={{
+                                bgcolor: "#4caf50",
+                                color: "white",
+                                fontWeight: "bold",
+                              }}
+                            />
+                          </Box>
+                        </Box>
+                      </Card>
+                    ))}
+                  </Box>
+                </CardContent>
+              </Card>
+            )}
+
+            {/* Payment History */}
+            {activeTab === 2 && (
+              <Card sx={{ borderRadius: 3 }}>
+                <CardContent>
+                  <Box display="flex" alignItems="center" gap={1} mb={2}>
+                    <Typography variant="h6" fontWeight="bold">
+                      History pembayaran
+                    </Typography>
+                    <HomeIcon sx={{ color: "#4caf50" }} />
+                  </Box>
+                  
+                  <TableContainer sx={{ borderRadius: 2, border: '1px solid #e0e0e0' }}>
+                    <Table size="small">
+                      <TableHead>
+                        <TableRow sx={{ bgcolor: '#f5f5f5' }}>
+                          <TableCell sx={{ fontWeight: 'bold', borderRadius: '8px 0 0 0' }}>No.</TableCell>
+                          <TableCell sx={{ fontWeight: 'bold' }}>Periode</TableCell>
+                          <TableCell sx={{ fontWeight: 'bold' }}>Deskripsi</TableCell>
+                          <TableCell sx={{ fontWeight: 'bold' }}>Tanggal</TableCell>
+                          <TableCell sx={{ fontWeight: 'bold' }}>Billing</TableCell>
+                          <TableCell sx={{ fontWeight: 'bold' }}>Payment</TableCell>
+                          <TableCell sx={{ fontWeight: 'bold', borderRadius: '0 8px 0 0' }}>Status</TableCell>
+                        </TableRow>
+                      </TableHead>
+                      <TableBody>
+                        {paymentHistory.map((row, index) => (
+                          <TableRow 
+                            key={row.no}
+                            sx={{ 
+                              '&:hover': { bgcolor: '#f9f9f9' },
+                              ...(index === paymentHistory.length - 1 && {
+                                '& td:first-of-type': { borderRadius: '0 0 0 8px' },
+                                '& td:last-of-type': { borderRadius: '0 0 8px 0' }
+                              })
+                            }}
+                          >
+                            <TableCell>{row.no}</TableCell>
+                            <TableCell>{row.period}</TableCell>
+                            <TableCell>{row.description}</TableCell>
+                            <TableCell>{row.date}</TableCell>
+                            <TableCell>{row.billing}</TableCell>
+                            <TableCell>{row.payment}</TableCell>
+                            <TableCell>{getStatusChip(row.status)}</TableCell>
+                          </TableRow>
+                        ))}
+                      </TableBody>
+                    </Table>
+                  </TableContainer>
+                </CardContent>
+              </Card>
+            )}
+          </Grid>
+        </Grid>
+      </Container>
 
       {/* Footer */}
-      <footer className="bg-green-100 text-center py-4 text-sm text-gray-700 mt-auto">
+      <Box
+        mt="auto"
+        textAlign="center"
+        py={3}
+        fontSize={14}
+        bgcolor="#E0F2F1"
+        color="text.secondary"
+      >
         Copyright © 2025 Kahfi Education, All rights Reserved | Bug report to Phone: +6288987167784
-      </footer>
-    </div>
+      </Box>
+    </Box>
   );
 };
 

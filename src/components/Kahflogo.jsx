@@ -1,10 +1,10 @@
-import React from "react"; 
-import KahfImage from "../assets/logo.png"; 
+import React from "react";
+import KahfImage from "../assets/logo.png";
 
 const KahfLogo = () => {
   return (
     <div className="flex flex-col items-center">
-      <img src={KahfImage} alt="Kahf Logo" className="w-32 h-auto" /> 
+      <img src={KahfImage} alt="Kahf Logo" className="w-20 h-auto" />
     </div>
   );
 };

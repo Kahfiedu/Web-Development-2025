@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import FormInput from '../components/FormInput';
+import { Box, Button, TextField, Typography, Paper } from '@mui/material';
 import KahfLogo from '../components/Kahflogo';
 
 const ForgotPassword = () => {
@@ -14,34 +14,62 @@ const ForgotPassword = () => {
   };
 
   return (
-    <div className="flex min-h-screen bg-gray-100 items-center justify-center">
-      <div className="bg-white rounded-3xl shadow-lg p-6 md:p-8 w-full max-w-md">
-        <div className="flex justify-center mb-4">
-          <KahfLogo className="h-6 md:h-8" />
-        </div>
-        <h2 className="text-xl font-bold mb-4 text-center">Forgot Password</h2>
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <div>
-            <label className="block mb-2 text-sm font-medium">Email</label>
-            <FormInput
-              type="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              placeholder="Enter your email"
-              required
-            />
-          </div>
-          <div className="flex justify-center mt-6">
-            <button
+    <Box
+      display="flex"
+      minHeight="100vh"
+      alignItems="center"
+      justifyContent="center"
+      bgcolor="#f3f4f6" // bg-gray-100
+    >
+      <Paper
+        elevation={3}
+        sx={{
+          p: { xs: 3, md: 4 },
+          borderRadius: 6,
+          width: '100%',
+          maxWidth: 400,
+        }}
+      >
+        <Box display="flex" justifyContent="center" mb={2}>
+          <KahfLogo style={{ height: 32 }} />
+        </Box>
+        <Typography variant="h6" align="center" fontWeight="bold" gutterBottom>
+          Forgot Password
+        </Typography>
+
+        <Box component="form" onSubmit={handleSubmit} noValidate>
+          <Typography variant="body2" mb={1}>
+            Email
+          </Typography>
+          <TextField
+            fullWidth
+            type="email"
+            variant="outlined"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            placeholder="Enter your email"
+            required
+            size="small"
+          />
+          <Box display="flex" justifyContent="center" mt={4}>
+            <Button
               type="submit"
-              className="px-12 py-2.5 bg-kahf-green text-white rounded-full hover:bg-green-700 transition-colors"
+              variant="contained"
+              color="success"
+              sx={{
+                borderRadius: '999px',
+                px: 5,
+                py: 1.5,
+                textTransform: 'none',
+                ':hover': { bgcolor: 'green.dark' },
+              }}
             >
               Send Reset Link
-            </button>
-          </div>
-        </form>
-      </div>
-    </div>
+            </Button>
+          </Box>
+        </Box>
+      </Paper>
+    </Box>
   );
 };
 
