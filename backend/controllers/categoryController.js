@@ -68,9 +68,6 @@ const getCategories = async (req, res) => {
             paranoid: false
         });
 
-        if (categories.length === 0) {
-            throw new AppError("Data category tidak ditemukan", 404);
-        }
 
         return res.status(200).json({
             success: true,

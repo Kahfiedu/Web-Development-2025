@@ -2,9 +2,16 @@ import axiosInstance from "../libs/axiosInstance";
 import Category from "../utils/classes/CategoryClass";
 
 const categoryService = {
-    getCategories: async () => {
+    getCategories: async ({ isActive, search }) => {
         try {
-            const response = await axiosInstance.get(`/categories`);
+            const response = await axiosInstance.get(`/categories`,
+                {
+                    params: {
+                        isActive,
+                        search
+                    }
+                }
+            );
             return {
                 ...response.data,
                 categories: response.data.categories.map(category => new Category(category))

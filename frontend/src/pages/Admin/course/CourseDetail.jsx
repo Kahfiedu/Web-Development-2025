@@ -56,7 +56,32 @@ function CourseDetail() {
                 const res = await courseService.deleteCourse(course.id);
                 if (res.success) {
                     showAlert(res.message, 'success');
-                    navigate("/admin/course");
+                    fetchCourse()
+                }
+            } catch (error) {
+                showAlert(error.message, 'error');
+            } finally {
+                hideLoading();
+            }
+        }
+    };
+
+    const handleRestoreCourse = async (course) => {
+        const confirmed = await confirm({
+            title: `Pulihkan Course`,
+            message: `Pulihkan course ${course.name}?`,
+            confirmText: 'Restore',
+            cancelText: 'Cancel',
+            type: 'warning'
+        });
+
+        if (confirmed) {
+            showLoading();
+            try {
+                const res = await courseService.restoreCourse(course.id);
+                if (res.success) {
+                    showAlert(res.message, 'success');
+                    fetchCourse()
                 }
             } catch (error) {
                 showAlert(error.message, 'error');
@@ -80,9 +105,15 @@ function CourseDetail() {
                     Kembali
                 </Button>
                 <Box>
-                    <Button startIcon={<HiPencil />} variant="contained" color="info" onClick={() => { navigate(`/admin/course/edit?courseId=${course.id}`); window.scrollTo(0, 0) }}>
-                        Edit
-                    </Button>
+                    {course.deletedAt ? (
+                        <Button startIcon={<HiReply />} variant="contained" color="warning" onClick={() => handleRestoreCourse(course)}>
+                            Restore
+                        </Button>
+                    ) : (
+                        <Button startIcon={<HiPencil />} variant="contained" color="info" onClick={() => { navigate(`/admin/course/edit?courseId=${course.id}`); window.scrollTo(0, 0) }}>
+                            Edit
+                        </Button>
+                    )}
                     <Button sx={{ ml: 2 }} startIcon={<HiTrash />} variant="contained" color="error" onClick={() => { handleDeleteCourse(course) }}>
                         Delete
                     </Button>

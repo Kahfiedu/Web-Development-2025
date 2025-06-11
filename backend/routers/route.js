@@ -25,7 +25,8 @@ const {
     submissionRoute,
     googleAuthRoute,
     paymentRoute,
-    exportRoute
+    exportRoute,
+    jobRoute,
 } = require('./routeImports.js');
 
 // Public routes
@@ -33,7 +34,8 @@ router.use('/auth', authRoute);
 router.use(googleAuthRoute)
 router.use([
     courseRoute,
-    blogRoute
+    blogRoute,
+    jobRoute
 ])
 // Token validation middleware
 router.use((req, res, next) => {

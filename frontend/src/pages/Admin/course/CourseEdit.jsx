@@ -36,7 +36,9 @@ function CourseEdit() {
     const fetchCategories = async () => {
         showLoading();
         try {
-            const res = await categoryService.getCategories();
+            const res = await categoryService.getCategories({
+                isActive: true
+            });
             if (res.success) {
                 setCategories(res.categories);
             }

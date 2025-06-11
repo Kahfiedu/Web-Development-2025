@@ -30,11 +30,13 @@ const Navbar = () => {
 
   const handleCloseNavMenu = () => {
     setAnchorElNav(null);
+    window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
   const handleMenuItemClick = (page) => {
     console.log(`Navigating to: ${page.name}`);
     handleCloseNavMenu();
+    window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
   return (
@@ -57,7 +59,10 @@ const Navbar = () => {
             />
 
             {pages.map((page) => {
-              const isActive = location.pathname === page.path;
+              const isActive =
+                page.path === "/"
+                  ? location.pathname === "/"
+                  : location.pathname.startsWith(page.path);
               return (
                 <Button
                   key={page.name}

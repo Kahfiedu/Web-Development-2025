@@ -107,18 +107,16 @@ const getBlogById = async (req, res) => {
     const { id } = req.params
 
     try {
-        const blog = await Blog.findByPk(id, {
-            paranoid: false
-        })
+        const blog = await Blog.findByPk(id)
 
         if (!blog) {
             throw new AppError("Data blog tidak ditemukan", 404)
         }
 
         return res.status(200).json(createSuccessResponse(
-            "Data blog ditemukan",
-            { blog: blog }
-        ))
+            "Berhasil mendapatkan data blog",
+            { blog }
+        ));
 
     } catch (error) {
         return handleError(error, res)

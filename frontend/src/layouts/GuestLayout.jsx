@@ -7,12 +7,12 @@ export default function GuestLayout() {
     const hideNavbarPaths = ['/login', '/register', '/forgot-password', '/reset-password', '/otp', '/admin/login'];
     const shouldHideNavbar = hideNavbarPaths.includes(location.pathname);
     return (
-        <div className="min-h-screen flex flex-col m-0 p-0">
+        <div className=" flex flex-col m-0 p-0">
 
             {!shouldHideNavbar && <Navbar />}
 
             {/* Halaman Child (Login / Home) */}
-            <div className={`min-h-[100vh] mb-10`}>
+            <div className={`min-h-screen ${!shouldHideNavbar ? "mb-10" : ""}`}>
                 <Outlet />
             </div>
 

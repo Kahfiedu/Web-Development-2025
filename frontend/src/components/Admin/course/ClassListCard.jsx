@@ -11,6 +11,7 @@ import {
     Box,
     Chip
 } from "@mui/material";
+import { capitalizeWords } from "../../../utils/formatedFont";
 
 export default function ClassListCard({ course }) {
     return (
@@ -42,14 +43,7 @@ export default function ClassListCard({ course }) {
                                             {kelas.formattedStart} - {" "}
                                             {kelas.formattedEnd}
                                         </TableCell>
-                                        <TableCell>
-                                            <Chip
-                                                label={kelas.isActive ? "Aktif" : "Tidak Aktif"}
-                                                color={kelas.isActive ? "success" : "default"}
-                                                size="small"
-                                                sx={{ borderRadius: "8px" }}
-                                            />
-                                        </TableCell>
+                                        <TableCell>{capitalizeWords(kelas.status)}</TableCell>
                                     </TableRow>
                                 ))}
                             </TableBody>

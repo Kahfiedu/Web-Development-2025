@@ -19,5 +19,6 @@ module.exports = {
     blogRoute: require('./blogRoute.js'),
     assignmentRoute: require('./assignmentRoute.js'),
     submissionRoute: require('./submissionRoute.js'),
-    googleAuthRoute: require('./googleAuthRoute')
+    googleAuthRoute: require('./googleAuthRoute'),
+    jobRoute: require('./jobRoute.js'),
 };

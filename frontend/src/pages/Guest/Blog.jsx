@@ -88,20 +88,30 @@ export default function Blog() {
           {blogs.length} Hasil
         </Typography>
       </div>
+
       <Grid container spacing={4}>
         <Grid size={{ xs: 12, md: 9 }}>
           <Stack spacing={2}>
-            <BlogList blogs={blogs} />
-            <Pagination
-              className="flex justify-center"
-              shape="rounded"
-              count={totalPages}
-              page={page + 1}
-              onChange={handlePageChange}
-              color="primary"
-              siblingCount={0}
-              boundaryCount={2}
-            />
+            {blogs.length === 0 ? (
+              <Typography variant="body1" fontWeight="semibold" textAlign="left">
+                Tidak ada blog yang ditemukan.
+              </Typography>
+            ) : (
+              <>
+                <BlogList blogs={blogs} />
+                <Pagination
+                  className="flex justify-center"
+                  shape="rounded"
+                  count={totalPages}
+                  page={page + 1}
+                  onChange={handlePageChange}
+                  color="primary"
+                  siblingCount={0}
+                  boundaryCount={2}
+                />
+              </>
+            )}
+
           </Stack>
         </Grid>
         <Grid size={{ xs: 12, md: 3 }}>

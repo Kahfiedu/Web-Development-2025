@@ -26,6 +26,17 @@ const blogService = {
             throw new Error(error.response?.data?.message || 'Failed to fetch Blogs');
         }
     },
+    getBlogById: async ({ blogId }) => {
+        try {
+            const response = await axiosInstance.get(`/blog/${blogId}`);
+            return {
+                ...response.data,
+                blog: new Blog(response.data.blog)
+            };
+        } catch (error) {
+            throw new Error(error.response?.data?.message || 'Failed to fetch Blog');
+        }
+    },
     getTags: async () => {
         try {
             const response = await axiosInstance.get(`/tags/blog`);

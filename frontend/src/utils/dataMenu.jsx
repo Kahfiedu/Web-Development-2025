@@ -1,4 +1,4 @@
-import { HiHome, HiUser, HiBookOpen, HiSpeakerphone, HiCog, HiCurrencyDollar, HiCreditCard, HiFlag, HiCollection, HiUserGroup, HiAcademicCap } from 'react-icons/hi';
+import { HiHome, HiUser, HiBookOpen, HiSpeakerphone, HiCog, HiCurrencyDollar, HiCreditCard, HiFlag, HiCollection, HiUserGroup, HiAcademicCap, HiBriefcase } from 'react-icons/hi';
 
 const dataMenu = [
     {
@@ -56,9 +56,9 @@ const dataMenu = [
                 link: "/admin/payment-method"
             },
             {
-                title: "Region",
-                icon: <HiFlag size={20} />,
-                link: "/admin/region"
+                title: "Karir",
+                icon: <HiBriefcase size={20} />,
+                link: "/admin/karir"
             },
             {
                 title: "Category",

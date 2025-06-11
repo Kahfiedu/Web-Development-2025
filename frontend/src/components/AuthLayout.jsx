@@ -2,10 +2,10 @@ import KahfLogo from "./KahfLogo";
 
 const AuthLayout = ({ children, sidebarText, greeting }) => {
     return (
-        <div className="flex flex-col md:flex-row min-h-screen">
+        <div className="flex flex-col md:flex-row">
             {/* Sidebar */}
             <div
-                className="w-full md:w-[55%] relative flex items-center justify-center text-white text-center"
+                className="w-full md:w-[90%] relative flex items-center justify-center text-white text-center"
             >
                 {/* Background image */}
                 <img

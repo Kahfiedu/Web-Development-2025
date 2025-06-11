@@ -31,7 +31,6 @@ import CourseDetail from '@/pages/Admin/course/CourseDetail';
 import ProtectedRoute from './ProtectedRoute';
 import CategoryList from '../pages/Admin/settings/category/CategoryList';
 import PaymentMethodList from '../pages/Admin/settings/payment-method/PaymentMethodList';
-import RegionList from '../pages/Admin/settings/region/RegionList';
 import RoleList from '../pages/Admin/settings/role/RoleList';
 import InvoiceList from '../pages/Admin/invoice/InvoiceList';
 import ClassList from '../pages/Admin/class/ClassList';
@@ -40,6 +39,9 @@ import CourseCreate from '../pages/Admin/course/CourseCreate';
 import CourseEdit from '../pages/Admin/course/CourseEdit';
 import AuthLayout from '../layouts/AuthLayout';
 import ClassDetail from '../pages/Admin/class/ClassDetail';
+import Karir from '../pages/Guest/Karir';
+import Job from '../pages/Admin/settings/job/Job';
+import BlogDetail from '../pages/Guest/BlogDetail';
 
 const AppRouter = () => (
     <Routes>
@@ -48,6 +50,8 @@ const AppRouter = () => (
             <Route path="/login" element={<Login />} />
             <Route path="/register" element={<Register />} />
             <Route path="/blog" element={<Blog />} />
+            <Route path="/blog/detail" element={<BlogDetail />} />
+            <Route path="/karir" element={<Karir />} />
             <Route path="/otp" element={<Otp />} />
             <Route path="/reset-password" element={<ResetPassword />} />
             <Route path="/forgot-password" element={<ForgotPassword />} />
@@ -96,7 +100,7 @@ const AppRouter = () => (
             <Route path="blog/detail" element={<CourseDetail />} />
             <Route path="category" element={<CategoryList />} />
             <Route path="payment-method" element={<PaymentMethodList />} />
-            <Route path="region" element={<RegionList />} />
+            <Route path="karir" element={<Job />} />
             <Route path="role" element={<RoleList />} />
             <Route path="invoice" element={<InvoiceList />} />
         </Route>
