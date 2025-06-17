@@ -42,6 +42,9 @@ import ClassDetail from '../pages/Admin/class/ClassDetail';
 import Karir from '../pages/Guest/Karir';
 import Job from '../pages/Admin/settings/job/Job';
 import BlogDetail from '../pages/Guest/BlogDetail';
+import Blog2 from '../pages/Admin/blog2/Blog2';
+import BlogDetailAdmin from '../pages/Admin/blog/BlogDetail';
+import InvoiceDetail from '../pages/Admin/invoice/InvoiceDetail';
 
 const AppRouter = () => (
     <Routes>
@@ -96,13 +99,14 @@ const AppRouter = () => (
             <Route path="course/edit" element={<CourseEdit />} />
             <Route path="class" element={<ClassList />} />
             <Route path="class/detail" element={<ClassDetail />} />
-            <Route path="blog" element={<BlogList />} />
-            <Route path="blog/detail" element={<CourseDetail />} />
+            <Route path="blog" element={<Blog2 />} />
+            <Route path="blog/detail" element={<BlogDetailAdmin />} />
             <Route path="category" element={<CategoryList />} />
             <Route path="payment-method" element={<PaymentMethodList />} />
             <Route path="karir" element={<Job />} />
             <Route path="role" element={<RoleList />} />
             <Route path="invoice" element={<InvoiceList />} />
+            <Route path="invoice/detail" element={<InvoiceDetail />} />
         </Route>
     </Routes>
 );

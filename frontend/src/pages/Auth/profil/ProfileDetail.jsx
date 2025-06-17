@@ -1,15 +1,21 @@
-import React from "react";
-import { useNavigate } from "react-router-dom";
-import { FiBell, FiUser, FiLogOut, FiEdit } from "react-icons/fi";
-import { BsClock, BsCheckCircle } from "react-icons/bs";
-import KahfLogo from "../../../components/KahfLogo";
-import { useAuth } from "../../../hooks/useAuth";
+import React, { useState } from "react";
+import { Link, useNavigate } from "react-router-dom";
+import { FiEdit } from "react-icons/fi";
+import {
+  Typography,
+  Avatar,
+  Container,
+  TextField,
+  Button,
+  Paper,
+  Box,
+  Grid
+} from "@mui/material";
 
-const ProfileDetail = () => {
+const ProfileEdit = () => {
   const navigate = useNavigate();
-  const { logout } = useAuth();
 
-  const userData = {
+  const initialUserData = {
     name: "John Bee",
     class: "Kelas 2",
     username: "John",
@@ -18,167 +24,82 @@ const ProfileDetail = () => {
     gender: "Male",
     birthDate: "2 Jan 2015",
     password: "********",
-    address: "Kab. Kubu Raya, Indonesia",
+    address: "Kab. Kuta, Bali, Indonesia"
   };
 
-  const tasks = [
-    { id: 1, title: "Tugas menulis", date: "Today", time: "12:41", status: "progress" },
-    { id: 2, title: "Tugas belajar", date: "Yesterday", time: "10:00", status: "done" },
-    { id: 3, title: "Tugas belajar", date: "Friday", time: "18:00", status: "done" },
-  ];
+  const [userData, setUserData] = useState(initialUserData);
+  const [isEditing, setIsEditing] = useState(true);
 
-  const attendances = [
-    { session: "Session 2", date: "Today, 8 Mei 2025", status: "Attend" },
-    { session: "Session 1", date: "Yesterday, 7 Mei 2025", status: "Attend" },
-  ];
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+    setUserData((prev) => ({ ...prev, [name]: value }));
+  };
 
-  const payments = [{ date: "1 Maret 2025, Senin", status: "Paid" }];
+  const handleCancel = () => {
+    setIsEditing(false);
+    navigate("/profile-detail");
+  };
 
-  const handleLogout = () => {
-    logout();
-    navigate("/login"); // arahkan ke halaman login
+  const handleSave = () => {
+    setIsEditing(false);
+    navigate("/profile-detail");
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 font-sans">
+    <Box sx={{ minHeight: "100vh", bgcolor: "#f9fafb" }}>
+
       {/* Main Content */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 p-4">
-        {/* Profile Section */}
-        <div className="bg-white rounded-xl p-6 shadow-sm">
-          <div className="flex flex-col items-center text-center mb-6">
-            <div className="relative">
-              <img
+      <Container maxWidth="sm" sx={{ py: 4 }}>
+        <Paper elevation={3} sx={{ p: 4, borderRadius: 4 }}>
+          <Box textAlign="center" mb={4}>
+            <Box position="relative" display="inline-block">
+              <Avatar
                 src="https://cdn-icons-png.flaticon.com/512/4333/4333609.png"
-                alt="Profile"
-                className="w-24 h-24 rounded-full bg-blue-100"
+                sx={{ width: 112, height: 112, bgcolor: "#bbdefb", mx: "auto" }}
               />
-              <div className="absolute bottom-0 right-0 bg-black text-white rounded-full p-1">
-                <FiEdit className="text-sm" />
-              </div>
-            </div>
-            <h2 className="text-lg font-semibold mt-2">{userData.name}</h2>
-            <p className="text-sm text-gray-600">{userData.class}</p>
-          </div>
+              <Box position="absolute" bottom={0} right={0} bgcolor="black" color="white" borderRadius="50%" p={0.5}>
+                <FiEdit size={14} />
+              </Box>
+            </Box>
+            <Typography variant="h6" mt={2}>{userData.name}</Typography>
+            <Typography variant="body2" color="text.secondary">{userData.class}</Typography>
+          </Box>
 
-          <div className="space-y-4">
-            {[
-              { label: "Username", value: userData.username },
-              { label: "No. Telp", value: userData.phone },
-              { label: "Email", value: userData.email },
-              { label: "Gender", value: userData.gender },
-              { label: "Tanggal lahir", value: userData.birthDate },
-              { label: "Password", value: userData.password },
-              { label: "Alamat", value: userData.address },
-            ].map((field, idx) => (
-              <div key={idx} className="border-b pb-2">
-                <div className="text-sm font-medium text-gray-500">{field.label}</div>
-                <div className="text-sm">{field.value}</div>
-              </div>
-            ))}
-          </div>
-
-          <div className="mt-6 grid grid-cols-2 gap-2">
-            <button
-              onClick={handleLogout}
-              className="flex items-center justify-center gap-1 bg-red-500 text-white py-2 rounded-md w-full hover:bg-red-600"
-            >
-              <FiLogOut /> LogOut
-            </button>
-
-            <button
-              onClick={() => navigate("/siswa/profile-edit")}
-              className="flex items-center justify-center gap-1 bg-blue-500 text-white py-2 rounded-md w-full hover:bg-blue-600"
-            >
-              <FiEdit /> Edit
-            </button>
-          </div>
-        </div>
-
-        {/* Task Section */}
-        <div className="col-span-2 space-y-4">
-          <div className="bg-white rounded-xl p-6 shadow-sm">
-            <h3 className="font-semibold mb-4 text-lg flex items-center gap-2">Task 📝</h3>
-            <div className="space-y-2">
-              {tasks.map((task) => (
-                <div
-                  key={task.id}
-                  className="flex justify-between items-center border-b pb-2 pt-2"
-                >
-                  <div className="text-xs text-gray-500">
-                    {task.date}
-                    <br />
-                    {task.time}
-                  </div>
-                  <div className="flex-grow px-4">
-                    <div className="font-medium">{task.title}</div>
-                  </div>
-                  <div className="flex items-center">
-                    {task.status === "progress" ? (
-                      <>
-                        <span className="text-xs mr-2">Progress</span>
-                        <BsClock className="text-gray-600" />
-                      </>
-                    ) : (
-                      <>
-                        <span className="text-xs mr-2">Done</span>
-                        <div className="w-6 h-6 bg-green-100 rounded-full flex items-center justify-center">
-                          <BsCheckCircle className="text-green-600" />
-                        </div>
-                      </>
-                    )}
-                  </div>
-                </div>
+          <Box component="form" noValidate autoComplete="off">
+            <Grid container spacing={2}>
+              {[
+                { label: "Username", name: "username" },
+                { label: "No. Telp", name: "phone" },
+                { label: "Email", name: "email" },
+                { label: "Gender", name: "gender" },
+                { label: "Tanggal lahir", name: "birthDate" },
+                { label: "Password", name: "password", type: "password" },
+                { label: "Alamat", name: "address" },
+              ].map(({ label, name, type }) => (
+                <Grid item xs={12} key={name}>
+                  <TextField
+                    fullWidth
+                    variant="outlined"
+                    label={label}
+                    name={name}
+                    type={type || "text"}
+                    value={userData[name]}
+                    onChange={handleChange}
+                    disabled={!isEditing || name === "email"}
+                  />
+                </Grid>
               ))}
-            </div>
-          </div>
+            </Grid>
 
-          {/* Attendance Section */}
-          <div className="bg-white rounded-xl p-6 shadow-sm">
-            <h3 className="font-semibold mb-4 text-lg flex items-center gap-2">
-              History Absen 📅
-            </h3>
-            <div className="space-y-3">
-              {attendances.map((att, idx) => (
-                <div
-                  key={idx}
-                  className="border rounded-lg px-4 py-3 flex justify-between items-center"
-                >
-                  <div className="flex-grow">
-                    <div className="text-sm font-medium">{att.session}</div>
-                    <div className="text-xs text-gray-500">{att.date}</div>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <span className="text-sm">Attend</span>
-                    <div className="w-6 h-6 bg-green-100 rounded-full flex items-center justify-center">
-                      <BsCheckCircle className="text-green-600" />
-                    </div>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-
-          {/* Payment Section */}
-          <div className="bg-white rounded-xl p-6 shadow-sm">
-            <h3 className="font-semibold mb-4 text-lg flex items-center gap-2">
-              History Pembayaran 💰
-            </h3>
-            <div className="space-y-3">
-              {payments.map((payment, idx) => (
-                <div
-                  key={idx}
-                  className="border rounded-lg px-4 py-3 flex justify-between items-center"
-                >
-                  <div className="text-sm">{payment.date}</div>
-                  <div className="text-sm font-medium text-green-600">{payment.status}</div>
-                </div>
-              ))}
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
+            <Box display="flex" justifyContent="center" gap={2} mt={4}>
+              <Button variant="outlined" onClick={handleCancel}>Cancel</Button>
+              <Button variant="contained" color="success" onClick={handleSave}>Save</Button>
+            </Box>
+          </Box>
+        </Paper>
+      </Container>
+    </Box>
   );
 };
 
-export default ProfileDetail;
+export default ProfileEdit;
