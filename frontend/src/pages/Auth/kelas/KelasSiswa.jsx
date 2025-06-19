@@ -45,7 +45,7 @@ function KelasSiswa() {
               <Paper
                 key={kelas.id}
                 elevation={3}
-                onClick={() => navigate("/kelas/detail")}
+                onClick={() => navigate("/siswa/kelas/detail")}
                 sx={{
                   display: "flex",
                   alignItems: "center",
