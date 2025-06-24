@@ -9,6 +9,7 @@ export default class Job {
         this.description = data.description;
         this.position = data.position;
         this.location = data.location;
+        this.urlLink = data.urlLink;
         this.employmentType = data.employmentType;
         this.createdAt = new Date(data.createdAt);
         this.updatedAt = new Date(data.updatedAt);

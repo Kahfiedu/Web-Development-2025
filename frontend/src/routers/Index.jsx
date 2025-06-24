@@ -34,7 +34,6 @@ import PaymentMethodList from '../pages/Admin/settings/payment-method/PaymentMet
 import RoleList from '../pages/Admin/settings/role/RoleList';
 import InvoiceList from '../pages/Admin/invoice/InvoiceList';
 import ClassList from '../pages/Admin/class/ClassList';
-import BlogList from '../pages/Admin/blog/BlogList';
 import CourseCreate from '../pages/Admin/course/CourseCreate';
 import CourseEdit from '../pages/Admin/course/CourseEdit';
 import AuthLayout from '../layouts/AuthLayout';
@@ -42,9 +41,11 @@ import ClassDetail from '../pages/Admin/class/ClassDetail';
 import Karir from '../pages/Guest/Karir';
 import Job from '../pages/Admin/settings/job/Job';
 import BlogDetail from '../pages/Guest/BlogDetail';
-import Blog2 from '../pages/Admin/blog2/Blog2';
 import BlogDetailAdmin from '../pages/Admin/blog/BlogDetail';
 import InvoiceDetail from '../pages/Admin/invoice/InvoiceDetail';
+import BlogListAdmin from '../pages/Admin/blog/BlogList';
+import BlogCreate from '../pages/Admin/blog/BlogCreate';
+import BlogEdit from '../pages/Admin/blog/BlogEdit';
 
 const AppRouter = () => (
     <Routes>
@@ -63,15 +64,15 @@ const AppRouter = () => (
         </Route>
 
         <Route
-            // element={
-            //     <ProtectedRoute>
-            //         <AuthLayout />
-            //     </ProtectedRoute>
-            // }
-            path='/siswa'
             element={
-                <AuthLayout />
+                <ProtectedRoute>
+                    <AuthLayout />
+                </ProtectedRoute>
             }
+            path='/siswa'
+        // element={
+        //     <AuthLayout />
+        // }
         >
             <Route path="" element={<BerandaSiswa />} />
             <Route path="kelas" element={<KelasSiswa />} />
@@ -99,7 +100,9 @@ const AppRouter = () => (
             <Route path="course/edit" element={<CourseEdit />} />
             <Route path="class" element={<ClassList />} />
             <Route path="class/detail" element={<ClassDetail />} />
-            <Route path="blog" element={<Blog2 />} />
+            <Route path="blog" element={<BlogListAdmin />} />
+            <Route path="blog/create" element={<BlogCreate />} />
+            <Route path="blog/edit" element={<BlogEdit />} />
             <Route path="blog/detail" element={<BlogDetailAdmin />} />
             <Route path="category" element={<CategoryList />} />
             <Route path="payment-method" element={<PaymentMethodList />} />

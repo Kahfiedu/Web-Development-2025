@@ -19,6 +19,10 @@ module.exports = {
         type: Sequelize.TEXT,
         allowNull: false,
       },
+      urlLink: {
+        type: Sequelize.STRING,
+        allowNull: false,
+      },
       position: {
         allowNull: false,
         type: Sequelize.STRING,

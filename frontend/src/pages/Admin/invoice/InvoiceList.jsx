@@ -33,141 +33,67 @@ import SpreadsheetIcon from '@mui/icons-material/Description'; // Closest common
 import HomeIcon from '@mui/icons-material/Home';
 import EditIcon from '@mui/icons-material/Edit';
 import DeleteIcon from '@mui/icons-material/Delete';
-import ChevronRightIcon from '@mui/icons-material/ChevronRight';
+import useAlert from "../../../hooks/useAlert";
+import { useLoading } from '../../../hooks/useLoading';
+import invoiceService from '../../../services/invoiceService';
+import formatDate from '../../../utils/formatDate';
 
 
 const InvoiceList = () => {
+    const [invoiceData, setInvoiceData] = useState([])
     const [page, setPage] = useState(0);
-    const [rowsPerPage, setRowsPerPage] = useState(10);
+    const [rowsPerPage, setRowsPerPage] = useState(5);
+    const [totalRows, setTotalRows] = useState(0);
+    const [countData, setCountData] = useState(null)
+    const [status, setStatus] = useState("all");
     const [searchTerm, setSearchTerm] = useState('');
-    const [anchorElUser, setAnchorElUser] = useState(null); // For user menu
+    const [selectedUserId, setSelectedUserId] = useState("");
+    const [selectedClassId, setSelectedClassId] = useState("");
 
-    // Mock data based on the screenshot
-    const paymentData = [
-        {
-            id: 1,
-            invoice: '#P060525A1',
-            issued: 'Jhone Doe',
-            paymentMethod: 'Payment Method: Transfer',
-            class: 'Mengaji - Kelas A',
-            status: 'Disetujui',
-            date: '06 Feb 2025',
-            total: 'Rp. 150.000'
-        },
-        {
-            id: 2,
-            invoice: '#P060525A1',
-            issued: 'Jhone Doe',
-            paymentMethod: 'Payment Method: Transfer',
-            class: 'Mengaji - Kelas A',
-            status: 'Disetujui',
-            date: '06 Feb 2025',
-            total: 'Rp. 150.000'
-        },
-        {
-            id: 3,
-            invoice: '#P060525A1',
-            issued: 'Jhone Doe',
-            paymentMethod: 'Payment Method: Transfer',
-            class: 'Mengaji - Kelas A',
-            status: 'Diproses',
-            date: '06 Feb 2025',
-            total: 'Rp. 150.000'
-        },
-        {
-            id: 4,
-            invoice: '#P060525A1',
-            issued: 'Jhone Doe',
-            paymentMethod: 'Payment Method: Transfer',
-            class: 'Mengaji - Kelas A',
-            status: 'Disetujui',
-            date: '06 Feb 2025',
-            total: 'Rp. 150.000'
-        },
-        {
-            id: 5,
-            invoice: '#P060525A1',
-            issued: 'Jhone Doe',
-            paymentMethod: 'Payment Method: Transfer',
-            class: 'Mengaji - Kelas A',
-            status: 'Disetujui',
-            date: '06 Feb 2025',
-            total: 'Rp. 150.000'
-        },
-        {
-            id: 6,
-            invoice: '#P060525A1',
-            issued: 'Jhone Doe',
-            paymentMethod: 'Payment Method: Transfer',
-            class: 'Mengaji - Kelas A',
-            status: 'Disetujui',
-            date: '06 Feb 2025',
-            total: 'Rp. 150.000'
-        },
-        {
-            id: 7,
-            invoice: '#P060525A1',
-            issued: 'Jhone Doe',
-            paymentMethod: 'Payment Method: Transfer',
-            class: 'Mengaji - Kelas A',
-            status: 'Disetujui',
-            date: '06 Feb 2025',
-            total: 'Rp. 150.000'
-        },
-        {
-            id: 8,
-            invoice: '#P060525A1',
-            issued: 'Jhone Doe',
-            paymentMethod: 'Payment Method: Transfer',
-            class: 'Mengaji - Kelas A',
-            status: 'Ditolak',
-            date: '06 Feb 2025',
-            total: 'Rp. 150.000'
-        },
-        {
-            id: 9,
-            invoice: '#P060525A1',
-            issued: 'Jhone Doe',
-            paymentMethod: 'Payment Method: Transfer',
-            class: 'Mengaji - Kelas A',
-            status: 'Disetujui',
-            date: '06 Feb 2025',
-            total: 'Rp. 150.000'
-        },
-        {
-            id: 10,
-            invoice: '#P060525A1',
-            issued: 'Jhone Doe',
-            paymentMethod: 'Payment Method: Transfer',
-            class: 'Mengaji - Kelas A',
-            status: 'Disetujui',
-            date: '06 Feb 2025',
-            total: 'Rp. 150.000'
+    const { showAlert } = useAlert();
+    const { showLoading, hideLoading } = useLoading();
+
+    const fetchInvoice = async () => {
+        showLoading()
+        try {
+            const res = await invoiceService.getPayments({
+                page: page + 1,
+                limit: rowsPerPage,
+                status,
+                userId: selectedUserId,
+                classId: selectedClassId,
+            });
+
+            if (res.success) {
+                setInvoiceData(res.payments);
+                setTotalRows(res.meta?.total || 0);
+                setCountData(res.countData)
+            }
+
+        } catch (error) {
+            showAlert(error.message, "error")
+        } finally {
+            hideLoading()
         }
-    ];
+    }
+
+    useEffect(() => {
+        fetchInvoice()
+    }, [page, rowsPerPage, totalRows, status, selectedClassId, selectedUserId]);
 
     const getStatusColor = (status) => {
         switch (status) {
-            case 'Disetujui':
-                return { backgroundColor: 'success.light', color: 'success.dark', borderColor: 'success.main' };
-            case 'Diproses':
-                return { backgroundColor: 'warning.light', color: 'warning.dark', borderColor: 'warning.main' };
-            case 'Ditolak':
-                return { backgroundColor: 'error.light', color: 'error.dark', borderColor: 'error.main' };
+            case 'complated':
+                return { backgroundColor: 'success.light', color: 'white', borderColor: 'success.main' };
+            case 'pending':
+                return { backgroundColor: 'warning.light', color: 'white', borderColor: 'warning.main' };
+            case 'failed':
+                return { backgroundColor: 'error.light', color: 'white', borderColor: 'error.main' };
             default:
                 return { backgroundColor: 'grey.100', color: 'grey.800', borderColor: 'grey.200' };
         }
     };
 
-    const filteredData = paymentData.filter(item =>
-        item.issued.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        item.invoice.toLowerCase().includes(searchTerm.toLowerCase())
-    );
-
-    // Calculate statistics
-    const approvedCount = paymentData.filter(item => item.status === 'Disetujui').length;
-    const processedCount = paymentData.filter(item => item.status === 'Diproses').length;
-    const rejectedCount = paymentData.filter(item => item.status === 'Ditolak').length;
 
     const handleChangePage = (event, newPage) => {
         setPage(newPage);
@@ -178,10 +104,11 @@ const InvoiceList = () => {
         setPage(0);
     };
 
-    const paginatedData = filteredData.slice(
-        page * rowsPerPage,
-        page * rowsPerPage + rowsPerPage
-    );
+    // Add status change handler
+    const handleStatusChange = (event) => {
+        setStatus(event.target.value);
+        setPage(0);
+    };
 
     return (
         <Box sx={{ minHeight: '100vh' }}>
@@ -226,7 +153,7 @@ const InvoiceList = () => {
                             </CardContent>
 
                             {/* Search Input for Table */}
-                            <CardContent sx={{ pb: 0, borderBottom: '1px solid', borderColor: 'grey.200' }}>
+                            <CardContent sx={{ pb: 2, borderBottom: '1px solid', borderColor: 'grey.200' }}>
                                 <InputBase
                                     placeholder="Cari nama pengguna"
                                     value={searchTerm}
@@ -262,7 +189,7 @@ const InvoiceList = () => {
                                         </TableRow>
                                     </TableHead>
                                     <TableBody>
-                                        {paginatedData.map((row, index) => (
+                                        {invoiceData.map((row, index) => (
                                             <TableRow key={row.id} hover>
                                                 <TableCell sx={{ fontSize: '0.875rem', color: 'grey.900' }}>
                                                     {page * rowsPerPage + index + 1}
@@ -271,15 +198,18 @@ const InvoiceList = () => {
                                                     {row.invoice}
                                                 </TableCell>
                                                 <TableCell>
-                                                    <Typography variant="subtitle2" fontWeight="medium" color="grey.900">
-                                                        {row.issued}
-                                                    </Typography>
-                                                    <Typography variant="body2" color="grey.500">
-                                                        {row.paymentMethod}
-                                                    </Typography>
+                                                    <Box>
+                                                        <Typography variant="subtitle2" fontWeight="medium" color="grey.900">
+                                                            {row.fromUser.name}
+                                                        </Typography>
+                                                        <Typography variant="subtitle2" fontWeight={300} color="grey">
+                                                            Metode : {row.method_name}
+                                                        </Typography>
+                                                    </Box>
+
                                                 </TableCell>
                                                 <TableCell sx={{ fontSize: '0.875rem', color: 'grey.900' }}>
-                                                    {row.class}
+                                                    {row.forClass.name}
                                                 </TableCell>
                                                 <TableCell>
                                                     <Chip
@@ -293,10 +223,14 @@ const InvoiceList = () => {
                                                     />
                                                 </TableCell>
                                                 <TableCell sx={{ fontSize: '0.875rem', color: 'grey.900' }}>
-                                                    {row.date}
+                                                    {formatDate(row.payment_date)}
                                                 </TableCell>
                                                 <TableCell sx={{ fontSize: '0.875rem', color: 'grey.900' }}>
-                                                    {row.total}
+                                                    {new Intl.NumberFormat('id-ID', {
+                                                        style: 'currency',
+                                                        currency: 'IDR',
+                                                        minimumFractionDigits: 0
+                                                    }).format(row.amount)}
                                                 </TableCell>
                                                 <TableCell>
                                                     <Stack direction="row" spacing={1}>
@@ -318,15 +252,11 @@ const InvoiceList = () => {
                             <TablePagination
                                 rowsPerPageOptions={[5, 10, 25]}
                                 component="div"
-                                count={filteredData.length}
+                                count={totalRows}
                                 rowsPerPage={rowsPerPage}
                                 page={page}
                                 onPageChange={handleChangePage}
                                 onRowsPerPageChange={handleChangeRowsPerPage}
-                                labelRowsPerPage="Rows per page:"
-                                labelDisplayedRows={({ from, to, count }) =>
-                                    `Showing ${from}-${to} of ${count} results`
-                                }
                             />
                         </Card>
                     </Grid>
@@ -336,27 +266,27 @@ const InvoiceList = () => {
                         <Stack spacing={2}>
 
                             {/* Statistics Cards */}
-                            <Card sx={{ backgroundColor: 'green.600', borderRadius: '8px', p: 3, textAlign: 'center', boxShadow: 1 }}>
+                            <Card sx={{ backgroundColor: "#008B47", borderRadius: '8px', p: 3, color: "white", textAlign: 'center', boxShadow: 1 }}>
                                 <Typography variant="h3" fontWeight="bold" mb={1}>
-                                    {approvedCount}
+                                    {countData ? countData.completed : 0}
                                 </Typography>
                                 <Typography variant="h6">
                                     Disetujui
                                 </Typography>
                             </Card>
 
-                            <Card sx={{ backgroundColor: 'orange.500', borderRadius: '8px', p: 3, textAlign: 'center', boxShadow: 1 }}>
+                            <Card sx={{ backgroundColor: '#FF9500', color: "white", borderRadius: '8px', p: 3, textAlign: 'center', boxShadow: 1 }}>
                                 <Typography variant="h3" fontWeight="bold" mb={1}>
-                                    {processedCount}
+                                    {countData ? countData.pending : 0}
                                 </Typography>
                                 <Typography variant="h6">
                                     Diproses
                                 </Typography>
                             </Card>
 
-                            <Card sx={{ backgroundColor: 'error.main', borderRadius: '8px', p: 3, textAlign: 'center', boxShadow: 1 }}>
+                            <Card sx={{ backgroundColor: 'error.main', color: "white", borderRadius: '8px', p: 3, textAlign: 'center', boxShadow: 1 }}>
                                 <Typography variant="h3" fontWeight="bold" mb={1}>
-                                    {rejectedCount}
+                                    {countData ? countData.failed : 0}
                                 </Typography>
                                 <Typography variant="h6">
                                     Ditolak
@@ -367,21 +297,6 @@ const InvoiceList = () => {
                 </Grid>
             </Box>
 
-            {/* Footer */}
-            <Box
-                component="footer"
-                sx={{
-                    backgroundColor: 'green.600',
-
-                    textAlign: 'center',
-                    py: 2,
-                    mt: 4,
-                }}
-            >
-                <Typography variant="body2">
-                    Copyright &copy; 2025 Kahf Education, All rights Reserved | Bug report to Phone: +6288987167784
-                </Typography>
-            </Box>
         </Box>
     );
 };

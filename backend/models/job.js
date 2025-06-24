@@ -30,6 +30,10 @@ module.exports = (sequelize, DataTypes) => {
             allowNull: false,
             type: DataTypes.STRING,
         },
+        urlLink: {
+            allowNull: true,
+            type: DataTypes.STRING,
+        },
         location: {
             allowNull: false,
             type: DataTypes.STRING,

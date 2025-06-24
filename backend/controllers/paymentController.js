@@ -4,6 +4,7 @@ const { AppError, handleError } = require('../helpers/helperFunction');
 const validatePaymentData = require('../utils/validatePaymentData');
 const getFileUrl = require('../utils/getFileUrl');
 const { getPagination } = require('../utils/paginationUtil');
+const { createSearchWhereClause } = require('../helpers/searchQueryHelper');
 
 const createPayment = async (req, res) => {
     try {
@@ -90,8 +91,10 @@ const getPayments = async (req, res) => {
             status,
             userId,
             classId,
-            search = ''
+            search,
         } = req.query;
+
+        const searchFields = ["atas_nama, no_rekening"]
 
         const {
             limit,
@@ -101,11 +104,7 @@ const getPayments = async (req, res) => {
             meta
         } = getPagination(req.query);
 
-        let whereClause = {};
-
-        if (status) {
-            whereClause.status = status;
-        }
+        let whereClause = createSearchWhereClause(search, searchFields);;
 
         if (userId) {
             whereClause.userId = userId;
@@ -122,6 +121,12 @@ const getPayments = async (req, res) => {
         const totalCount = await Payment.count({ where: whereClause });
         meta.total = totalCount;
         meta.totalPages = Math.ceil(totalCount / limit);
+
+        const [pending, completed, failed] = await Promise.all([
+            Payment.count({ where: { ...whereClause, status: "pending" } }),
+            Payment.count({ where: { ...whereClause, status: "completed" } }),
+            Payment.count({ where: { ...whereClause, status: "failed" } })
+        ]);
 
         const { rows: payments } = await Payment.findAndCountAll({
             where: whereClause,
@@ -145,6 +150,11 @@ const getPayments = async (req, res) => {
             success: true,
             message: payments.length === 0 ? "Data pembayaran tidak ditemukan" : "Berhasil mendapatkan data pembayaran",
             payments,
+            countData: {
+                pending,
+                completed,
+                failed
+            },
             meta
         });
 

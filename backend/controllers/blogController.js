@@ -48,7 +48,6 @@ const createBlog = async (req, res) => {
 
 const getBlogs = async (req, res) => {
     const { search = "", tags = "", isPublish, isFeatured } = req.query;
-    const isAdmin = req.userRole === 'admin';
 
     try {
         const {
@@ -61,20 +60,18 @@ const getBlogs = async (req, res) => {
 
         let whereClause = createSearchWhereClauseWithTags({ search, tags });
 
+        if (typeof isPublish !== 'undefined') {
+            const isPublishBoolean = isPublish === 'true' || isPublish === true;
+            whereClause.isPublish = isPublishBoolean;
+        }
+
+        if (typeof isFeatured !== 'undefined') {
+            const isFeaturedBoolean = isFeatured === 'true' || isFeatured === true;
+            whereClause.isFeatured = isFeaturedBoolean;
+        }
+
         if (statusCondition) {
             whereClause = { ...whereClause, ...statusCondition };
-        }
-
-        if (isPublish !== undefined) {
-            whereClause.isPublish = isPublish;
-        }
-
-        if (isFeatured !== undefined) {
-            whereClause.isFeatured = isFeatured;
-        }
-
-        if (!isAdmin) {
-            whereClause.isPublish = true;
         }
 
         const totalCount = await Blog.count({ where: whereClause });

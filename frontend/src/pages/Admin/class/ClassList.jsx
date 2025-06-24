@@ -42,6 +42,7 @@ function ClassList() {
             });
             if (res.success) {
                 setClasses(res.classes);
+                console.log(res.classes)
                 setTotalRows(res.meta?.total || 0);
             }
         } catch (error) {

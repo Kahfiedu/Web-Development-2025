@@ -1,0 +1,55 @@
+// models/Course.js
+
+import formatDate from "../formatDate";
+
+export default class Payment {
+    constructor(data) {
+        this.id = data.id;
+        this.userId = data.userId;
+        this.childId = data.childId;
+        this.classId = data.classId;
+        this.amount = data.amount;
+        this.status = data.status;
+        this.method_name = data.method_name;
+        this.bank_name = data.bank_name;
+        this.no_rekening = data.no_rekening;
+        this.atas_nama = data.atas_nama;
+        this.payment_proof = data.payment_proof;
+        this.confirmation_by = data.confirmation_by;
+        this.confirmation_by = data.confirmation_by;
+        this.payment_date = new Date(data.payment_date);
+        this.createdAt = new Date(data.createdAt);
+        this.updatedAt = new Date(data.updatedAt);
+        this.deletedAt = data.deletedAt ? new Date(data.deletedAt) : null;
+        this.fromUser = data.fromUser ? {
+            id: data.fromUser.id,
+            name: data.fromUser.name
+        } : null;
+        this.forClass = data.forClass ? {
+            id: data.forClass.id,
+            name: data.forClass.name
+        } : null;
+        this.child = data.child ? {
+            id: data.child.id,
+            name: data.child.name
+        } : null;
+        this.confirmedBy = data.confirmedBy ? {
+            id: data.confirmedBy.id,
+            name: data.confirmedBy.name
+        } : null;
+        this.revision = data.revision;
+    }
+
+
+    get formattedCreatedAt() {
+        return formatDate(this.createdAt);
+    }
+
+    get formattedUpdatedAt() {
+        return formatDate(this.updatedAt);
+    }
+
+    get formattedDeletedAt() {
+        return this.deletedAt ? formatDate(this.deletedAt) : "";
+    }
+}

@@ -1,7 +1,7 @@
 const express = require('express')
 const router = express.Router();
 const { createUpload } = require('../config/multerConfig');
-const { getUsers, getUserById, addUser, deleteUser, updateUser, restoreUser, getUserByRole } = require('../controllers/userController');
+const { getUsers, getUserById, addUser, getMe, deleteUser, updateUser, restoreUser, getUserByRole } = require('../controllers/userController');
 
 const uploadImage = createUpload("uploads/profil/", [
     "image/jpeg",
@@ -11,6 +11,7 @@ const uploadImage = createUpload("uploads/profil/", [
 ]);
 
 router.get('/users', getUsers);
+router.get('/me', getMe);
 router.get('/users/role', getUserByRole);
 router.get('/user/:id', getUserById);
 router.delete('/user/:id', deleteUser);

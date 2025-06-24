@@ -53,6 +53,7 @@ export default function Job() {
             });
 
             if (response.success) {
+                console.log(response.jobs)
                 setJobs(response.jobs);
                 setTotalRows(response.total || response.jobs.length);
                 console.log("Jobs fetched successfully:", response.jobs);
