@@ -1,16 +1,15 @@
-import { Box, Button, CircularProgress, Grid, Stack } from "@mui/material";
+import { Box, Button, Card, CardContent, CircularProgress, Grid, Stack, TextField } from "@mui/material";
 import { useEffect, useState } from "react";
 import useAlert from "../../../hooks/useAlert";
 import { HiReply } from "react-icons/hi";
 import { useNavigate } from "react-router-dom";
-import courseService from "../../../services/courseService";
-import ThumbnailCard from "./ThumbnailCard";
-import GeneralInfoCard from "./GeneralInfoCard";
-import SettingsCard from "./SettingCard";
-import CategoryLevelCard from "./CategoryLevelCard";
-import { useForm } from "react-hook-form";
+import blogService from "../../../services/blogService";
+import { Controller, useForm } from "react-hook-form";
+import ThumbnailCard from "../course/ThumbnailCard";
+import GeneralInfoCard from "../course/GeneralInfoCard";
+import SettingsCard from "../course/SettingCard";
 
-export default function ManageCourse({ editMode, course, categories }) {
+export default function ManageBlog({ editMode, blog }) {
     const [submitting, setSubmitting] = useState(false);
     const { showAlert } = useAlert();
     const [thumbnailFile, setThumbnailFile] = useState(null);
@@ -31,8 +30,7 @@ export default function ManageCourse({ editMode, course, categories }) {
         defaultValues: {
             title: "",
             description: "",
-            categoryId: "",
-            level: "",
+            tags: "",
             isPublish: false,
             isFeatured: false,
         },
@@ -40,26 +38,24 @@ export default function ManageCourse({ editMode, course, categories }) {
 
     useEffect(() => {
         resetForm();
-    }, [editMode, course]);
+    }, [editMode, blog]);
 
     const resetForm = () => {
-        if (editMode && course) {
+        if (editMode && blog) {
             reset({
-                title: course.title || "",
-                description: course.description || "",
-                categoryId: course.categoryId || "",
-                level: course.level || "",
-                isPublish: course.isPublish || false,
-                isFeatured: course.isFeatured || false,
+                title: blog.title || "",
+                description: blog.description || "",
+                tags: blog.tags || "",
+                isPublish: blog.isPublish || false,
+                isFeatured: blog.isFeatured || false,
             });
             setThumbnailFile(null);
-            setThumbnailPreview(course.thumbnail)
+            setThumbnailPreview(blog.thumbnail)
         } else {
             reset({
                 title: "",
                 description: "",
-                categoryId: "",
-                level: "",
+                tags: "",
                 isPublish: false,
                 isFeatured: false,
             });
@@ -72,13 +68,24 @@ export default function ManageCourse({ editMode, course, categories }) {
         try {
             setSubmitting(true);
 
+            const parsedTags = data.tags
+                ? data.tags.split(',').map((tag) => tag.trim()).filter(Boolean)
+                : [];
+
+            const payload = {
+                ...data,
+                tags: parsedTags,
+            };
+
+            console.log("data yang dikirim", payload)
+
             const response = editMode
-                ? await courseService.updateCourse(course.id, data, thumbnailFile)
-                : await courseService.createCourse(data, thumbnailFile);
+                ? await blogService.updateBlog(blog.id, payload, thumbnailFile)
+                : await blogService.createBlog(payload, thumbnailFile);
 
             if (response.success) {
                 showAlert(response.message, "success");
-                navigate(`/admin/course/detail?courseId=${response.course.id}`)
+                navigate(`/admin/blog/detail?blogId=${response.blog.id}`)
             }
         } catch (error) {
             showAlert(error.message, "error");
@@ -119,12 +126,28 @@ export default function ManageCourse({ editMode, course, categories }) {
                     <Stack spacing={2}>
                         <ThumbnailCard
                             editMode={editMode}
-                            data={course}
+                            data={blog}
                             thumbnailPreview={thumbnailPreview}
                             onSelectFile={setThumbnailFile}
                         />
                         <SettingsCard control={control} />
-                        <CategoryLevelCard control={control} errors={errors} categories={categories} submitting={submitting} />
+                        <Card>
+                            <CardContent>
+                                <Controller
+                                    name="tags"
+                                    control={control}
+                                    render={({ field }) => (
+                                        <TextField
+                                            {...field}
+                                            label="Tags (pisahkan dengan koma)"
+                                            variant="outlined"
+                                            fullWidth
+                                            placeholder="contoh: belajar, muslim, tajhuid"
+                                        />
+                                    )}
+                                />
+                            </CardContent>
+                        </Card>
                     </Stack>
                 </Grid>
             </Grid>

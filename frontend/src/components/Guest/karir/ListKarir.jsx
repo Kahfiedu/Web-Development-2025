@@ -59,7 +59,12 @@ export default function ListKarir({ jobs, handleSearchChange }) {
                                     <Typography fontSize={14} fontWeight={300}>
                                         {job.location} - {capitalizeWords(job.employmentType)}
                                     </Typography>
-                                    <Button variant="contained" color="primary" sx={{ mt: 2 }}>
+                                    <Button
+                                        variant="contained"
+                                        color="primary"
+                                        sx={{ mt: 2 }}
+                                        onClick={() => window.open(job.urlLink, '_blank', 'noopener,noreferrer')}
+                                    >
                                         Apply
                                     </Button>
                                 </CardContent>

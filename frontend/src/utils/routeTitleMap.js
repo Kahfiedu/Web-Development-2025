@@ -9,6 +9,8 @@ const routeTitleMap = {
     "/admin/class": "List Kelas",
     "/admin/class/detail": "Detail Kelas",
     "/admin/blog": "List Blog",
+    "/admin/blog/edit": "Edit Blog",
+    "/admin/blog/create": "Buat Blog",
     "/admin/blog/detail": "Detail Blog",
     "/admin/profile": "Profile",
     "/admin/payment-method": "List Payment Method",

@@ -132,6 +132,26 @@ const getUserByRole = async (req, res) => {
     }
 }
 
+const getMe = async (req, res) => {
+    const userId = req.userId
+    try {
+        const user = await User.findByPk(userId);
+
+        if (!user) {
+            throw AppError("Pengguna tidak di temukan", 404)
+        }
+
+        res.status(200).json({
+            success: true,
+            message: "Data ditemukan",
+            user: user,
+        })
+
+    } catch (error) {
+        return handleError(error, res);
+    }
+}
+
 
 const getUserById = async (req, res) => {
     try {
@@ -425,5 +445,6 @@ module.exports = {
     deleteUser,
     updateUser,
     restoreUser,
-    getUserByRole
+    getUserByRole,
+    getMe
 };

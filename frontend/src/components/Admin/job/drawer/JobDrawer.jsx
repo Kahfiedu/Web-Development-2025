@@ -37,6 +37,7 @@ export default function JobDrawer({
             location: "",
             position: "",
             employmentType: "",
+            urlLink: ""
         },
     });
 
@@ -49,6 +50,7 @@ export default function JobDrawer({
                     location: data.location,
                     position: data.position,
                     employmentType: data.employmentType,
+                    urlLink: data.urlLink,
                 });
             } else {
                 reset({
@@ -57,6 +59,7 @@ export default function JobDrawer({
                     location: "",
                     position: "",
                     employmentType: "",
+                    urlLink: ""
                 });
             }
         }
@@ -173,6 +176,21 @@ export default function JobDrawer({
                                     fullWidth
                                     error={!!errors.description}
                                     helperText={errors.description?.message}
+                                />
+                            )}
+                        />
+
+                        <Controller
+                            name="urlLink"
+                            control={control}
+                            rules={{ required: "Link wajib diisi" }}
+                            render={({ field }) => (
+                                <TextField
+                                    {...field}
+                                    label="Link Form"
+                                    fullWidth
+                                    error={!!errors.title}
+                                    helperText={errors.title?.message}
                                 />
                             )}
                         />

@@ -26,17 +26,14 @@ const badgeConfig = {
 
         const badges = [];
 
-        if (item.isDraft) {
-            badges.push({ label: "Draft", color: "#9E9E9E" });
+        if (item.isFeatured) {
+            badges.push({ label: "Di Fiturkan", color: "#FFA000" });
         }
 
-        if (item.isPublished) {
-            badges.push({ label: "Published", color: "#1976D2" });
+        if (item.isPublish) {
+            badges.push({ label: "Di Publish", color: "#1976D2" });
         }
 
-        if (item.isPinned) {
-            badges.push({ label: "Pinned", color: "#FFC107" });
-        }
 
         return badges;
     },

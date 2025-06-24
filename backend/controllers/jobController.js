@@ -5,7 +5,7 @@ const { createSearchWhereClause } = require("../helpers/searchQueryHelper");
 const { AppError, handleError } = require("../helpers/helperFunction");
 
 const createJob = async (req, res) => {
-    const { title, description, position, location, employmentType } = req.body;
+    const { title, description, position, location, employmentType, urlLink } = req.body;
 
     const validation = isAdmin(req.userRole, req.userId);
     if (!validation.isValid) {
@@ -31,7 +31,8 @@ const createJob = async (req, res) => {
             description,
             position,
             location,
-            employmentType
+            employmentType,
+            urlLink
         });
 
         return res.status(201).json({
@@ -114,7 +115,7 @@ const getJobById = async (req, res) => {
 
 const updateJob = async (req, res) => {
     const { id } = req.params;
-    const { title, description, position, location, employmentType } = req.body;
+    const { title, description, position, location, employmentType, urlLink } = req.body;
 
     const validation = isAdmin(req.userRole, req.userId);
     if (!validation.isValid) {
@@ -150,6 +151,7 @@ const updateJob = async (req, res) => {
         if (position) updateData.position = position;
         if (location) updateData.location = location;
         if (employmentType) updateData.employmentType = employmentType;
+        if (urlLink) updateData.urlLink = urlLink;
 
         await job.update(updateData);
 
