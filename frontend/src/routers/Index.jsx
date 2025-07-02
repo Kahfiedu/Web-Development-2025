@@ -1,18 +1,18 @@
 // src/router/AppRouter.jsx
 import { Route, Routes } from 'react-router-dom';
-import GuestLayout from '@/layouts/GuestLayout';
-import AdminLayout from '@/layouts/AdminLayout';
+import GuestLayout from '../layouts/GuestLayout';
+import AdminLayout from '../layouts/AdminLayout';
 
 // Guest Pages
-import Beranda from '@/pages/Guest/Beranda';
-import TentangKami from '@/pages/Guest/TentangKami';
-import Login from '@/pages/Guest/login/Login';
-import Register from '@/pages/Guest/Register';
-import Blog from '@/pages/Guest/Blog';
-import Otp from '@/pages/Guest/Otp';
-import ResetPassword from '@/pages/Guest/ResetPassword';
-import ForgotPassword from '@/pages/Guest/ForgotPassword';
-import LoginAdmin from '@/pages/Guest/login/LoginAdmin';
+import Beranda from '../pages/Guest/Beranda';
+import TentangKami from '../pages/Guest/TentangKami';
+import Login from '../pages/Guest/login/Login';
+import Register from '../pages/Guest/Register';
+import Blog from '../pages/Guest/Blog';
+import Otp from '../pages/Guest/Otp';
+import ResetPassword from '../pages/Guest/ResetPassword';
+import ForgotPassword from '../pages/Guest/ForgotPassword';
+import LoginAdmin from '../pages/Guest/login/LoginAdmin';
 
 // Auth Pages
 import BerandaSiswa from '../pages/Auth/beranda/BerandaSiswa';
@@ -23,11 +23,11 @@ import ProfileDetail from "../pages/Auth/profil/ProfileDetail";
 import ProfileEdit from "../pages/Auth/profil/ProfileEdit";
 
 // Admin Pages
-import DashboardAdmin from '@/pages/Admin/dashboard/DashboardAdmin';
-import UserList from '@/pages/Admin/user/UserList';
-import UserDetail from '@/pages/Admin/user/UserDetail';
-import CourseList from '@/pages/Admin/course/CourseList';
-import CourseDetail from '@/pages/Admin/course/CourseDetail';
+import DashboardAdmin from '../pages/Admin/dashboard/DashboardAdmin';
+import UserList from '../pages/Admin/user/UserList';
+import UserDetail from '../pages/Admin/user/UserDetail';
+import CourseList from '../pages/Admin/course/CourseList';
+import CourseDetail from '../pages/Admin/course/CourseDetail';
 import ProtectedRoute from './ProtectedRoute';
 import CategoryList from '../pages/Admin/settings/category/CategoryList';
 import PaymentMethodList from '../pages/Admin/settings/payment-method/PaymentMethodList';

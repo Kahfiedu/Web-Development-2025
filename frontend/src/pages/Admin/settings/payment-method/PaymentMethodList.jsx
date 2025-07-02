@@ -3,11 +3,12 @@ import { Card, CardContent, Box, Typography, Button, Grid } from '@mui/material'
 import { Add } from '@mui/icons-material';
 import { useEffect, useState } from 'react';
 import paymentMethodService from '../../../../services/paymentMethodService';
-import useAlert from '@hooks/useAlert';
-import { useLoading } from '@hooks/useLoading';
+
 import PaymentMethodAccordion from '../../../../components/Admin/payment_method/PaymentMethodAccordion';
 import PaymentMethodDrawer from '../../../../components/Admin/payment_method/drawer/PaymentMethodDrawer';
 import useMethodHandlers from '../../../../helpers/methodHandler';
+import useAlert from '../../../../hooks/useAlert';
+import { useLoading } from '../../../../hooks/useLoading';
 
 export default function PaymentMethodList() {
     const [paymentMethods, setPaymentMethods] = useState([]);

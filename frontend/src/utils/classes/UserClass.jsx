@@ -1,4 +1,5 @@
 import formatDate from "../formatDate";
+import Payment from "./PaymentClass";
 import Role from "./RoleClass";
 
 export default class User {
@@ -21,7 +22,8 @@ export default class User {
         createdAt,
         updatedAt,
         deletedAt,
-        revision
+        revision,
+        payments
     }) {
         this.id = id;
         this.name = name;
@@ -38,6 +40,7 @@ export default class User {
         this.role = role ? new Role(role) : null;
         this.emailVerified = emailVerified ? new Date(emailVerified) : null;
         this.googleId = googleId;
+        this.payments = payments ? payments.map(p => new Payment(p)) : [];
         this.createdAt = createdAt ? new Date(createdAt) : null;
         this.updatedAt = updatedAt ? new Date(updatedAt) : null;
         this.deletedAt = deletedAt ? new Date(deletedAt) : null;

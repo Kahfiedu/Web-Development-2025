@@ -1,4 +1,4 @@
-const { Payment, User, Class, Child, ClassEnrollment } = require('../models');
+const { Payment, User, Class, Child, ClassEnrollment, Course } = require('../models');
 const { isAdmin } = require('../helpers/validationRole');
 const { AppError, handleError } = require('../helpers/helperFunction');
 const validatePaymentData = require('../utils/validatePaymentData');
@@ -30,13 +30,25 @@ const createPayment = async (req, res) => {
 
         const paymentProofPath = req.file ? getFileUrl(req, `proof/${req.file.filename}`) : null;
 
-        console.log("User ID dari req:", userId);
+        const classData = await Class.findByPk(validationResult.data.classId);
+
+        if (!classData) {
+            throw new AppError("Data Kelas tidak tersedia", 404);
+        }
+
+        const datePart = new Date().toISOString().slice(2, 10).split('-').reverse().join('');
+        const classNameSlug = classData.name.toLowerCase().replace(/\s+/g, '_'); // ubah spasi ke underscore
+        const noRef = `${datePart}_${classNameSlug}`;
+
+        const paymentDate = new Date();
 
         const paymentData = {
             ...data,
             userId,
             childId,
             payment_proof: paymentProofPath,
+            noRef: noRef,
+            paymentDate,
         };
 
         const newPayment = await Payment.create(paymentData, {
@@ -57,7 +69,8 @@ const createPayment = async (req, res) => {
                 },
                 {
                     model: Class,
-                    as: 'forClass'
+                    as: 'forClass',
+
                 }
             ]
         });
@@ -169,7 +182,16 @@ const getPaymentById = async (req, res) => {
         const payment = await Payment.findByPk(id, {
             include: [
                 { model: User, as: 'fromUser', attributes: { exclude: ['password'] } },
-                { model: Class, as: 'forClass' },
+                {
+                    model: Class,
+                    as: 'forClass',
+                    include: [
+                        {
+                            model: Course,
+                            as: "course"
+                        }
+                    ]
+                },
                 { model: User, as: 'confirmedBy', attributes: { exclude: ['password'] } }
             ]
         });

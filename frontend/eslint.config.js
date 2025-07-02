@@ -20,17 +20,6 @@ export default [
       'react-hooks': reactHooks,
       'react-refresh': reactRefresh,
     },
-    resolve: {
-      alias: {
-        '@': path.resolve(__dirname, 'src'),
-        '@utils': path.resolve(__dirname, 'src/utils'),
-        '@hooks': path.resolve(__dirname, 'src/hooks'),
-        '@services': path.resolve(__dirname, 'src/services'),
-        '@components': path.resolve(__dirname, 'src/components'),
-        '@componentsAdmin': path.resolve(__dirname, 'src/components/admin'),
-        '@providers': path.resolve(__dirname, 'src/providers')
-      },
-    },
   },
 
 ]

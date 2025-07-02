@@ -1,9 +1,10 @@
 // hooks/useBankHandlers.js
-import useAlert from '@hooks/useAlert';
-import { useLoading } from '@hooks/useLoading';
+
+import useAlert from '../hooks/useAlert';
 import { useConfirm } from '../hooks/useConfirm'
-import bankService from '@services/bankService';
 import { useState } from 'react';
+import { useLoading } from '../hooks/useLoading';
+import bankService from '../services/bankService';
 
 export default function useBankHandlers(refreshData) {
     const [bankDrawerOpen, setBankDrawerOpen] = useState(false);

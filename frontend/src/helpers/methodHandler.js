@@ -1,6 +1,6 @@
-import useAlert from '@hooks/useAlert';
+import useAlert from '../hooks/useAlert';
 import { useConfirm } from '../hooks/useConfirm'
-import { useLoading } from '@hooks/useLoading';
+import { useLoading } from '../hooks/useLoading';
 import paymentMethodService from '../services/paymentMethodService';
 import { useState } from 'react';
 

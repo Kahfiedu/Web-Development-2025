@@ -6,20 +6,21 @@ import {
     TablePagination
 } from "@mui/material"
 
-import { useLoading } from "@hooks/useLoading"
-import useAlert from "@hooks/useAlert"
 
-import userService from "@services/userService"
-
-import CustomeCalender from "@components/UI/CustomeCalender";
+import CustomeCalender from "../../../components/UI/CustomeCalender";
 import { HiChat, HiDownload } from "react-icons/hi"
-import { capitalizeWords } from "@utils/formatedFont"
+import { capitalizeWords } from "../../../utils/formatedFont"
+import formatDate from "../../../utils/formatDate"
+import useAlert from "../../../hooks/useAlert";
+import userService from "../../../services/userService";
+import { useLoading } from "../../../hooks/useLoading";
 
 export default function UserDetail() {
     const [user, setUser] = useState(null)
     const [notFound, setNotFound] = useState(false)
     const [page, setPage] = useState(0)
-    const [rowsPerPage, setRowsPerPage] = useState(5)
+    const [rowsPerPage, setRowsPerPage] = useState(5);
+    const [paymentData, setPaymentData] = useState([]);
     const [searchParams] = useSearchParams()
     const userId = searchParams.get('userId')
     const { showLoading, hideLoading } = useLoading()
@@ -31,7 +32,9 @@ export default function UserDetail() {
         try {
             const res = await userService.getUserById(userId);
             if (res.success && res.user) {
+                console.log(res.user)
                 setUser(res.user)
+                setPaymentData(res.user.payments)
                 setNotFound(false)
             } else {
                 setUser(null)
@@ -50,13 +53,7 @@ export default function UserDetail() {
         fetchUser();
     }, [userId]);
 
-    const data = Array.from({ length: 13 }, (_, i) => ({
-        course: "Web Development",
-        invoice: "#FA613145",
-        date: "20 Feb 2025",
-        amount: "Rp. 150.000",
-        status: i === 3 ? "Gagal" : i === 1 ? "Proses" : "Berhasil"
-    }))
+
 
     const handleChangePage = (event, newPage) => {
         setPage(newPage)
@@ -67,7 +64,16 @@ export default function UserDetail() {
         setPage(0)
     }
 
-    const paginatedData = data.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
+    const paginatedData = paymentData.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
+
+    const formatCurrency = (value) =>
+        new Intl.NumberFormat('id-ID', {
+            style: 'currency',
+            currency: 'IDR',
+            minimumFractionDigits: 0
+        }).format(value);
+
+    const totalAmount = paymentData.reduce((acc, curr) => acc + Number(curr.amount), 0);
 
     if (notFound) {
         return (
@@ -142,7 +148,7 @@ export default function UserDetail() {
                     <Grid container spacing={2} mb={3}>
                         <Grid size={{ xs: 12, md: 6 }}>
                             <Paper elevation={2} sx={{ p: 2 }}>
-                                <Typography color="text.secondary">Course</Typography>
+                                <Typography color="text.secondary">Program Yang diikuti</Typography>
                                 <Box display="flex" justifyContent="space-evenly">
                                     <Box textAlign="center">
                                         <Typography color="orange">Progress</Typography>
@@ -161,8 +167,8 @@ export default function UserDetail() {
                         </Grid>
                         <Grid size={{ xs: 12, md: 6, height: '100%' }} >
                             <Paper elevation={2} sx={{ p: 2, height: "100%" }} >
-                                <Typography color="text.secondary">Pembayaran</Typography>
-                                <Typography variant="h6">Rp. 1.000.000</Typography>
+                                <Typography color="text.secondary">Total Pembayaran</Typography>
+                                <Typography variant="h6">{formatCurrency(totalAmount ? totalAmount : 0)}</Typography>
                             </Paper>
                         </Grid>
                     </Grid>
@@ -186,34 +192,44 @@ export default function UserDetail() {
                                 <TableHead>
                                     <TableRow>
                                         <TableCell>#</TableCell>
-                                        <TableCell>Course</TableCell>
-                                        <TableCell>Invoice</TableCell>
-                                        <TableCell>Date</TableCell>
-                                        <TableCell>Amount</TableCell>
+                                        <TableCell>Program</TableCell>
+                                        <TableCell>Kelas</TableCell>
+                                        <TableCell>No Ref</TableCell>
+                                        <TableCell>Tanggal Pembayaran</TableCell>
+                                        <TableCell>Jumlah</TableCell>
                                         <TableCell>Status</TableCell>
                                         <TableCell>Aksi</TableCell>
                                     </TableRow>
                                 </TableHead>
                                 <TableBody>
-                                    {paginatedData.map((row, index) => (
-                                        <TableRow key={index}>
-                                            <TableCell>{page * rowsPerPage + index + 1}</TableCell>
-                                            <TableCell><a href="#">{row.course}</a></TableCell>
-                                            <TableCell>{row.invoice}</TableCell>
-                                            <TableCell>{row.date}</TableCell>
-                                            <TableCell>{row.amount}</TableCell>
-                                            <TableCell>
-                                                <Typography color={
-                                                    row.status === "Gagal" ? "error" : row.status === "Proses" ? "warning.main" : "success.main"
-                                                }>
-                                                    {row.status}
-                                                </Typography>
-                                            </TableCell>
-                                            <TableCell>
-                                                <Button size="small" variant="text">Detail</Button>
+                                    {paginatedData.length === 0 ? (
+                                        <TableRow>
+                                            <TableCell colSpan={8} align="center">
+                                                Belum ada pembayaran
                                             </TableCell>
                                         </TableRow>
-                                    ))}
+                                    ) : (
+                                        paginatedData.map((row, index) => (
+                                            <TableRow key={index}>
+                                                <TableCell>{page * rowsPerPage + index + 1}</TableCell>
+                                                <TableCell><a href="#">{row.forClass.course.title}</a></TableCell>
+                                                <TableCell><a href="#">{row.forClass.name}</a></TableCell>
+                                                <TableCell>{row.noRef}</TableCell>
+                                                <TableCell>{formatDate(row.payment_date)}</TableCell>
+                                                <TableCell>{formatCurrency(row.amount)}</TableCell>
+                                                <TableCell>
+                                                    <Typography color={
+                                                        row.status === "failed" ? "error" : row.status === "pending" ? "warning.main" : "success.main"
+                                                    }>
+                                                        {row.status === "failed" ? "Ditolak" : row.status === "pending" ? "Diproses" : "Berhasil"}
+                                                    </Typography>
+                                                </TableCell>
+                                                <TableCell>
+                                                    <Button size="small" variant="text">Detail</Button>
+                                                </TableCell>
+                                            </TableRow>
+                                        ))
+                                    )}
                                 </TableBody>
                             </Table>
                         </TableContainer>
@@ -221,7 +237,7 @@ export default function UserDetail() {
                         {/* Pagination */}
                         <TablePagination
                             component="div"
-                            count={data.length}
+                            count={paymentData.length}
                             page={page}
                             onPageChange={handleChangePage}
                             rowsPerPage={rowsPerPage}

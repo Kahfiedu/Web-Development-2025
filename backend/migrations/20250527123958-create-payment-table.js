@@ -39,6 +39,10 @@ module.exports = {
         onDelete: 'CASCADE',
         allowNull: false
       },
+      noRef: {
+        type: Sequelize.STRING,
+        allowNull: false,
+      },
       amount: {
         type: Sequelize.DECIMAL(10, 2),
         allowNull: false,

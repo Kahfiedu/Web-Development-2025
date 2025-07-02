@@ -18,9 +18,9 @@ import formatDate from "../../../../utils/formatDate";
 import { HiPencil, HiPlus, HiReply, HiTrash } from "react-icons/hi";
 import AssigmentDialog from "../dialog/AssigmentDialog";
 import AssigmentDrawer from "../drawer/AssigmentDrawer";
-import { useConfirm } from '@hooks/useConfirm';
 import { useLoading } from "../../../../hooks/useLoading";
 import assignmentService from "../../../../services/assigmentService";
+import { useConfirm } from "../../../../hooks/useConfirm";
 
 
 export default function AssigmentTable({ assignments = [], showAlert, onSuccess, classId, className }) {

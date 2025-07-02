@@ -65,11 +65,6 @@ const dataMenu = [
                 icon: <HiCollection size={20} />,
                 link: "/admin/category"
             },
-            {
-                title: "Role",
-                icon: <HiUserGroup size={20} />,
-                link: "/admin/role"
-            },
         ]
     },
 

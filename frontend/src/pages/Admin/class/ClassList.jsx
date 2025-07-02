@@ -6,10 +6,10 @@ import classService from "../../../services/classService";
 import { HiPlus } from "react-icons/hi";
 import ClassFilter from "../../../components/Admin/class/ClassFilter";
 import ClassTable from "../../../components/Admin/class/ClassTable";
-import { useConfirm } from '@hooks/useConfirm';
 import courseService from "../../../services/courseService";
 import userService from "../../../services/userService";
 import ClassDrawer from "../../../components/Admin/class/drawer/ClassDrawer";
+import { useConfirm } from "../../../hooks/useConfirm";
 
 function ClassList() {
     const [classes, setClasses] = useState([]);

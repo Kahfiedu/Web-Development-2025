@@ -15,22 +15,18 @@ import {
 
 
 // Custom hooks
-import useAlert from '@hooks/useAlert';
-import { useLoading } from '@hooks/useLoading';
-import { useConfirm } from '@hooks/useConfirm';
-
-// Services
-import userService from '@services/userService';
-import roleService from '@services/roleService';
+import useAlert from '../../../hooks/useAlert';
+import { useLoading } from '../../../hooks/useLoading';
+import { useConfirm } from '../../../hooks/useConfirm';
 
 // Hero Icons
 import { HiPlus } from 'react-icons/hi';
 
 // Components
-import UserTable from '@componentsAdmin/user/UserTable';
-import UserFilterTable from '@componentsAdmin/user/UserFilterTable';
-import UserCount from '@componentsAdmin/user/UserCount';
-import UserDrawer from '@componentsAdmin/user/drawer/UserDrawer';
+import UserTable from '../../../components/Admin/user/UserTable';
+import UserFilterTable from '../../../components/Admin/user/UserFilterTable';
+import UserCount from '../../../components/Admin/user/UserCount';
+import UserDrawer from '../../../components/Admin/user/drawer/UserDrawer';
 
 
 

@@ -1,6 +1,8 @@
 // models/Course.js
 
 import formatDate from "../formatDate";
+import Class from "./Class";
+import User from "./UserClass";
 
 export default class Payment {
     constructor(data) {
@@ -9,6 +11,7 @@ export default class Payment {
         this.childId = data.childId;
         this.classId = data.classId;
         this.amount = data.amount;
+        this.noRef = data.noRef;
         this.status = data.status;
         this.method_name = data.method_name;
         this.bank_name = data.bank_name;
@@ -21,14 +24,8 @@ export default class Payment {
         this.createdAt = new Date(data.createdAt);
         this.updatedAt = new Date(data.updatedAt);
         this.deletedAt = data.deletedAt ? new Date(data.deletedAt) : null;
-        this.fromUser = data.fromUser ? {
-            id: data.fromUser.id,
-            name: data.fromUser.name
-        } : null;
-        this.forClass = data.forClass ? {
-            id: data.forClass.id,
-            name: data.forClass.name
-        } : null;
+        this.fromUser = data.fromUser ? new User(data.fromUser) : null;
+        this.forClass = data.forClass ? new Class(data.forClass) : null;
         this.child = data.child ? {
             id: data.child.id,
             name: data.child.name

@@ -37,6 +37,7 @@ import useAlert from "../../../hooks/useAlert";
 import { useLoading } from '../../../hooks/useLoading';
 import invoiceService from '../../../services/invoiceService';
 import formatDate from '../../../utils/formatDate';
+import { useNavigate } from 'react-router-dom';
 
 
 const InvoiceList = () => {
@@ -52,6 +53,7 @@ const InvoiceList = () => {
 
     const { showAlert } = useAlert();
     const { showLoading, hideLoading } = useLoading();
+    const navigate = useNavigate();
 
     const fetchInvoice = async () => {
         showLoading()
@@ -194,8 +196,18 @@ const InvoiceList = () => {
                                                 <TableCell sx={{ fontSize: '0.875rem', color: 'grey.900' }}>
                                                     {page * rowsPerPage + index + 1}
                                                 </TableCell>
-                                                <TableCell sx={{ fontSize: '0.875rem', color: 'grey.900' }}>
-                                                    {row.invoice}
+                                                <TableCell
+                                                    sx={{
+                                                        fontSize: '0.875rem',
+                                                        color: '#5c92ea',
+                                                        cursor: 'pointer',
+                                                        '&:hover': {
+                                                            textDecoration: 'underline',
+                                                        },
+                                                    }}
+                                                    onClick={() => navigate(`/admin/invoice/detail?invoiceId=${row.id}`)}
+                                                >
+                                                    {row.noRef}
                                                 </TableCell>
                                                 <TableCell>
                                                     <Box>
@@ -233,14 +245,14 @@ const InvoiceList = () => {
                                                     }).format(row.amount)}
                                                 </TableCell>
                                                 <TableCell>
-                                                    <Stack direction="row" spacing={1}>
+                                                    {/* <Stack direction="row" spacing={1}>
                                                         <IconButton sx={{ color: 'orange.600', '&:hover': { color: 'orange.800' } }}>
                                                             <EditIcon sx={{ fontSize: 16 }} />
                                                         </IconButton>
                                                         <IconButton sx={{ color: 'error.main', '&:hover': { color: 'error.dark' } }}>
                                                             <DeleteIcon sx={{ fontSize: 16 }} />
                                                         </IconButton>
-                                                    </Stack>
+                                                    </Stack> */}
                                                 </TableCell>
                                             </TableRow>
                                         ))}

@@ -58,6 +58,10 @@ module.exports = (sequelize, DataTypes) => {
             type: DataTypes.DECIMAL(10, 2),
             allowNull: false,
         },
+        noRef: {
+            type: DataTypes.STRING,
+            allowNull: false,
+        },
         status: {
             type: DataTypes.ENUM("pending", "completed", "failed"),
             defaultValue: "pending",

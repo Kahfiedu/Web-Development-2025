@@ -1,8 +1,8 @@
 import { Navigate, useLocation } from 'react-router-dom';
 import { useEffect, useState } from 'react';
-import { cookieService } from '@/services/cookieService';
 import LoadingOverlay from '../components/UI/LoadingOverlay';
 import { useAuth } from '../hooks/useAuth';
+import { cookieService } from '../services/cookieService';
 
 const ProtectedRoute = ({ children }) => {
     const { isAuthenticated } = useAuth();

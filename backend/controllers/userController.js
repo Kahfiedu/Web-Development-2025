@@ -1,5 +1,5 @@
 const { Op } = require("sequelize");
-const { User, Role } = require("../models");
+const { User, Role, Payment, Class, Course } = require("../models");
 const { validateEmail } = require("../utils/validorUtil");
 const getFileUrl = require("../utils/getFileUrl");
 const { getPagination } = require("../utils/paginationUtil");
@@ -164,11 +164,29 @@ const getUserById = async (req, res) => {
 
         const user = await User.findByPk(id, {
             attributes: { exclude: ["password"] },
-            include: [{
-                model: Role,
-                as: "role",
-                attributes: ["id", "name"]
-            }],
+            include: [
+                {
+                    model: Role,
+                    as: "role",
+                    attributes: ["id", "name"]
+                },
+                {
+                    model: Payment,
+                    as: "payments",
+                    include: [
+                        {
+                            model: Class,
+                            as: 'forClass',
+                            include: [
+                                {
+                                    model: Course,
+                                    as: "course"
+                                }
+                            ]
+                        },
+                    ]
+                },
+            ],
             paranoid: false
         });
 

@@ -2,8 +2,8 @@ import { Box, Button, FormControl, InputAdornment, InputLabel, MenuItem, Select,
 import FileDownloadIcon from '@mui/icons-material/FileDownload';
 import FileUpload from '@mui/icons-material/FileUpload';
 import { HiSearch } from "react-icons/hi"
-import ImportUserDialog from '@componentsAdmin/user/dialog/ImportUserDialog';
-import ExportDialog from '@componentsAdmin/user/dialog/ExportUserDialog';
+import ImportUserDialog from '../../../components/Admin/user/dialog/ImportUserDialog';
+import ExportDialog from '../../../components/Admin/user/dialog/ExportUserDialog';
 import useAlert from "../../../hooks/useAlert";
 import userService from "../../../services/userService";
 import { useState } from "react";
